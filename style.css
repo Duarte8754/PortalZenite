@@ -1,0 +1,807 @@
+/* PÁGINA DE INSCRIÇÃO */
+.form-banner {
+    text-align: center;
+    padding: 20px 10px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 10px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+
+.form-banner h2 {
+    font-size: 1.8rem;
+    margin-bottom: 8px;
+    color: #fff;
+}
+
+.form-banner p {
+    font-size: 1rem;
+    color: #eee;
+}
+
+.form-inscricao {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px 15px;
+}
+
+.form-inscricao input {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    border: none;
+    outline: none;
+    box-sizing: border-box;
+}
+
+.form-inscricao button {
+    grid-column: 1 / -1; /* botão ocupa toda a linha */
+    background: #4caf50;
+    color: #fff;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.form-inscricao button:hover {
+    background: #66bb6a;
+}
+
+.btn-voltar {
+    margin-top: 15px;
+    background: #ff9800;
+}
+
+.btn-voltar:hover {
+    background: #ffc107;
+}
+
+/* RESPONSIVO */
+@media screen and (max-width: 480px) {
+    .form-inscricao {
+        grid-template-columns: 1fr; /* inputs em coluna única no celular */
+    }
+
+    .form-inscricao input, .form-inscricao button {
+        font-size: 14px;
+        padding: 10px;
+    }
+}
+
+.zenite {
+  font-size: 12px;
+  font-weight: bold;
+  text-align: center;
+  letter-spacing: 4px;
+  color: #00e5ff;
+  animation: zeniteAnim 6s;
+  text-shadow: 
+    0 0 10px #00e5ff,
+    0 0 20px #00e5ff,
+    0 0 40px #00bcd4;
+}
+
+/* Animação */
+@keyframes zeniteAnim {
+  0% {
+    opacity: 0;
+    transform: translateY(-30px) scale(0.30);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(0) scale(1.0);
+  }
+  80% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.30);
+  }
+}
+
+/* PÁGINA DE LOGIN */
+.form-login {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    background: rgba(255,255,255,0.1);
+    padding: 25px 20px;
+    border-radius: 10px;
+    box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+}
+
+.form-login input {
+    padding: 12px;
+    border-radius: 8px;
+    border: none;
+    outline: none;
+    font-size: 1rem;
+    box-sizing: border-box;
+}
+
+.form-login button {
+    background: #2196f3;
+    color: #fff;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.form-login button:hover {
+    background: #42a5f5;
+}
+
+/* Banner compartilhado com inscrição */
+#login .form-banner {
+    text-align: center;
+    padding: 20px 10px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 10px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+
+#login .form-banner h2 {
+    font-size: 1.8rem;
+    margin-bottom: 8px;
+    color: #fff;
+}
+
+#login .form-banner p {
+    font-size: 1rem;
+    color: #eee;
+}
+
+.btn-voltar {
+    margin-top: 15px;
+    background: #ff9800;
+}
+
+.btn-voltar:hover {
+    background: #ffc107;
+}
+
+/* RESPONSIVO */
+@media screen and (max-width: 480px) {
+    .form-login input, .form-login button {
+        font-size: 14px;
+        padding: 10px;
+    }
+}
+
+/* ================= PAGINA INICIAL ================= */
+#home {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    background: radial-gradient(circle at center, #0f0c29, #302b63, #24243e);
+    color: #fff;
+    text-align: center;
+    overflow: hidden;
+    position: relative;
+}
+
+.home-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* ================= TÍTULO ANIMADO ================= */
+.animated-title {
+    font-size: 4rem;
+    font-weight: bold;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: #ffeb3b;
+    text-shadow: 0 0 20px #fff, 0 0 40px #ffeb3b, 0 0 60px #ff9800, 0 0 80px #ff5722;
+    margin-bottom: 20px;
+    animation: shakeTitle 2s infinite;
+}
+
+.cursor {
+    display: inline-block;
+    background-color: #fff;
+    width: 4px;
+    animation: blink 0.7s step-end infinite;
+    margin-left: 2px;
+}
+
+@keyframes blink {
+    0%, 50%, 100% { opacity: 1; }
+    25%, 75% { opacity: 0; }
+}
+
+@keyframes shakeTitle {
+    0% { transform: rotate(0deg); }
+    10% { transform: rotate(2deg); }
+    20% { transform: rotate(-2deg); }
+    30% { transform: rotate(2deg); }
+    40% { transform: rotate(-2deg); }
+    50% { transform: rotate(0deg); }
+    100% { transform: rotate(0deg); }
+}
+
+/* ================= SUB TEXTS ================= */
+.sub-texts {
+    margin-top: 10px;
+    display: flex;
+    gap: 20px;
+    font-size: 1.3rem;
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeInSub 3s ease forwards;
+    animation-delay: 3s;
+}
+
+@keyframes fadeInSub {
+    0% { opacity: 0; transform: translateY(20px); }
+    100% { opacity: 1; transform: translateY(0); }
+}
+
+/* ===== RESET ===== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Poppins", Arial, sans-serif;
+}
+
+/* ===== FUNDO GERAL ===== */
+body {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #020024, #090979, #00d4ff);
+  background-size: 400% 400%;
+  animation: bgMove 12s ease infinite;
+  color: #fff;
+}
+
+@keyframes bgMove {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* ===== CONTAINER ===== */
+.container {
+  width: 100%;
+  min-height: 100vh;
+}
+
+/* ===== PÁGINAS ===== */
+.page {
+  display: none;
+  padding: 30px;
+}
+
+.page.active {
+  display: block;
+  animation: fadeIn 0.8s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ===============================
+   🔥 PAINEL DO ALUNO
+================================ */
+#painelAluno {
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(15px);
+  border-radius: 20px;
+  box-shadow: 0 0 40px rgba(0, 212, 255, 0.6);
+}
+
+/* TÍTULO */
+#painelAluno h2 {
+  text-align: center;
+  font-size: 2.5rem;
+  margin-bottom: 25px;
+  color: #00f5ff;
+  text-shadow: 0 0 15px #00f5ff;
+  animation: glowTitle 2s infinite alternate;
+}
+
+@keyframes glowTitle {
+  from { text-shadow: 0 0 10px #00f5ff; }
+  to { text-shadow: 0 0 25px #00f5ff; }
+}
+
+/* ===== ABAS ===== */
+.abas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+  margin-bottom: 25px;
+}
+
+.abas button {
+  padding: 12px 18px;
+  border-radius: 30px;
+  border: none;
+  cursor: pointer;
+  background: linear-gradient(135deg, #00f5ff, #0066ff);
+  color: #000;
+  font-weight: bold;
+  transition: all 0.4s ease;
+  box-shadow: 0 0 15px rgba(0, 245, 255, 0.6);
+}
+
+.abas button:hover {
+  transform: scale(1.1);
+  box-shadow: 0 0 30px rgba(0, 245, 255, 1);
+}
+
+/* ===== CONTEÚDO DAS ABAS ===== */
+.aba {
+  display: none;
+  background: rgba(255, 255, 255, 0.08);
+  padding: 25px;
+  border-radius: 18px;
+  animation: slideUp 0.6s ease;
+  box-shadow: inset 0 0 20px rgba(0, 212, 255, 0.4);
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.aba h3 {
+  margin-bottom: 15px;
+  color: #00d4ff;
+  text-shadow: 0 0 10px #00d4ff;
+}
+
+/* ===== PERFIL ===== */
+#abaPerfil p {
+  margin: 10px 0;
+  font-size: 1.05rem;
+}
+
+#abaPerfil span {
+  color: #00f5ff;
+  font-weight: bold;
+}
+
+/* ===== LISTAS ===== */
+ul {
+  list-style: none;
+}
+
+ul li {
+  background: rgba(0, 0, 0, 0.4);
+  margin: 8px 0;
+  padding: 12px;
+  border-radius: 12px;
+  box-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+}
+
+/* ===== BOTÃO SAIR ===== */
+#painelAluno button:last-child {
+  margin-top: 25px;
+  width: 100%;
+  padding: 15px;
+  border-radius: 35px;
+  border: none;
+  cursor: pointer;
+  font-size: 1.1rem;
+  font-weight: bold;
+  background: linear-gradient(135deg, #ff0055, #ff7700);
+  color: #fff;
+  box-shadow: 0 0 25px rgba(255, 0, 85, 0.8);
+  transition: all 0.4s ease;
+}
+
+#painelAluno button:last-child:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 40px rgba(255, 0, 85, 1);
+}
+
+/* ================= PAGINA INICIAL ================= */
+#home {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    background: radial-gradient(circle at center, #0f0c29, #302b63, #24243e);
+    color: #fff;
+    text-align: center;
+    overflow: hidden;
+    position: relative;
+}
+
+.home-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* ================= TÍTULO ANIMADO ================= */
+.animated-title {
+    font-size: 4rem;
+    font-weight: bold;
+    letter-spacing: 5px;
+    text-transform: uppercase;
+    color: #ffeb3b;
+    text-shadow: 0 0 20px #fff, 0 0 40px #ffeb3b, 0 0 60px #ff9800, 0 0 80px #ff5722;
+    margin-bottom: 20px;
+    animation: shakeTitle 2s infinite;
+}
+
+.cursor {
+    display: inline-block;
+    background-color: #fff;
+    width: 4px;
+    animation: blink 0.7s step-end infinite;
+    margin-left: 2px;
+}
+
+/* Letras piscando */
+@keyframes blink {
+    0%,50%,100% { opacity: 1; }
+    25%,75% { opacity: 0; }
+}
+
+/* Abanar o título */
+@keyframes shakeTitle {
+    0% { transform: rotate(0deg); }
+    10% { transform: rotate(2deg); }
+    20% { transform: rotate(-2deg); }
+    30% { transform: rotate(2deg); }
+    40% { transform: rotate(-2deg); }
+    50% { transform: rotate(0deg); }
+    100% { transform: rotate(0deg); }
+}
+
+/* ================= SUB TEXTS ================= */
+.sub-texts {
+    margin-top: 10px;
+    display: flex;
+    gap: 25px;
+    font-size: 1.5rem;
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeInSub 3s ease forwards;
+    animation-delay: 3s;
+}
+
+@keyframes fadeInSub {
+    0% { opacity: 0; transform: translateY(20px); }
+    100% { opacity: 1; transform: translateY(0); }
+}
+
+/* ================= BOTÕES HOME ================= */
+.buttons-home {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-top: 40px;
+    width: 220px;
+}
+
+.buttons-home button {
+    padding: 12px;
+    font-size: 1.2rem;
+    border-radius: 12px;
+    border: none;
+    font-weight: bold;
+    cursor: pointer;
+    background: linear-gradient(45deg, #ff9800, #ffc107, #ff9800, #ff5722);
+    background-size: 400% 400%;
+    color: #000;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.5);
+    transition: all 0.3s ease;
+    animation: gradientBG 5s ease infinite, pulse 2s infinite;
+}
+
+.buttons-home button:hover {
+    transform: scale(1.1) translateY(-3px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.7);
+}
+
+.buttons-home button:active {
+    transform: scale(0.95);
+}
+
+@keyframes gradientBG {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+@keyframes pulse {
+    0%,100% { box-shadow: 0 6px 18px rgba(255,255,0,0.5); }
+    50% { box-shadow: 0 10px 30px rgba(255,255,0,0.8); }
+}
+
+/* ================= RESPONSIVO ================= */
+@media screen and (max-width: 480px) {
+    .animated-title {
+        font-size: 2.5rem;
+    }
+    .sub-texts {
+        font-size: 1rem;
+    }
+    .buttons-home button {
+        font-size: 1rem;
+        padding: 10px;
+    }
+}
+
+body {
+  background: radial-gradient(circle at top, #020617, #000);
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.aluno-area {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.aluno-card {
+  position: relative;
+  width: 340px;
+  padding: 25px;
+  border-radius: 20px;
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(10px);
+  color: #fff;
+  box-shadow: 0 0 40px rgba(0,255,255,0.15);
+  animation: flutuar 4s ease-in-out infinite;
+  overflow: hidden;
+}
+
+/* Glow animado */
+.glow {
+  position: absolute;
+  inset: -2px;
+  background: linear-gradient(120deg, #00f5ff, #7c3aed, #00ff9c);
+  filter: blur(30px);
+  opacity: 0.6;
+  z-index: -1;
+  animation: girar 6s linear infinite;
+}
+
+.aluno-nome {
+  text-align: center;
+  font-size: 22px;
+  margin-bottom: 5px;
+  text-shadow: 0 0 10px #00f5ff;
+}
+
+.aluno-info {
+  text-align: center;
+  font-size: 14px;
+  opacity: 0.8;
+}
+
+.status {
+  margin: 15px 0;
+  text-align: center;
+}
+
+.ativo {
+  color: #00ff9c;
+  font-weight: bold;
+  text-shadow: 0 0 8px #00ff9c;
+}
+
+.financeiro {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.box {
+  flex: 1;
+  background: rgba(255,255,255,0.05);
+  padding: 10px;
+  border-radius: 12px;
+  text-align: center;
+  box-shadow: inset 0 0 10px rgba(0,255,255,0.1);
+}
+
+.box span {
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+.divida {
+  color: #ff4d4d;
+  text-shadow: 0 0 8px #ff4d4d;
+}
+
+.acoes {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.btn {
+  padding: 10px;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+  color: #fff;
+  transition: 0.3s;
+}
+
+.pagar {
+  background: linear-gradient(135deg, #00ff9c, #00c853);
+}
+
+.editar {
+  background: linear-gradient(135deg, #7c3aed, #5b21b6);
+}
+
+.suspender {
+  background: linear-gradient(135deg, #ff4d4d, #b91c1c);
+}
+
+.btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 15px rgba(0,255,255,0.4);
+}
+
+/* ANIMAÇÕES */
+@keyframes flutuar {
+  0%,100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes girar {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #6a11cb, #2575fc);
+    color: #fff;
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    max-width: 600px;
+    margin: 30px auto;
+    padding: 20px;
+    background: rgba(0,0,0,0.6);
+    border-radius: 10px;
+}
+
+h1, h2, h3 {
+    text-align: center;
+}
+
+input, button {
+    width: 100%;
+    padding: 10px;
+    margin: 5px 0;
+    border-radius: 5px;
+    border: none;
+    box-sizing: border-box;
+}
+
+button {
+    background: #ff9800;
+    color: #000;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+button:hover {
+    background: #ffc107;
+}
+
+.page {
+    display: none;
+}
+
+.page.active {
+    display: block;
+}
+
+/* TABELAS */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+th, td {
+    padding: 8px;
+    text-align: left;
+    border-bottom: 1px solid #fff;
+}
+
+ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+/* ABAS */
+.abas {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    margin-bottom: 15px;
+}
+
+.abas button {
+    flex: 1;
+    margin: 2px;
+    background: #ff9800;
+    color: #000;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.abas button:hover {
+    background: #ffc107;
+}
+
+.aba {
+    display: none;
+    margin-top: 10px;
+}
+
+.aba.active {
+    display: block;
+}
+
+/* BOTÕES DO CALENDÁRIO */
+#calendario button {
+    padding: 6px 10px;   /* tamanho confortável para clicar */
+    font-size: 14px;     /* normal ou pequeno */
+    width: 45px;         /* largura dos botões */
+    height: 35px;        /* altura dos botões */
+    margin: 2px;
+    border-radius: 5px;
+    background: #ff9800;
+    color: #000;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+#calendario button:hover {
+    background: #ffc107;
+}
+
+/* RESPONSIVO PARA CELULAR */
+@media screen and (max-width: 480px) {
+    .container {
+        margin: 10px;
+        padding: 15px;
+    }
+
+    input, button {
+        padding: 8px;
+        font-size: 14px;
+    }
+
+    #calendario button {
+        width: 35px;
+        height: 30px;
+        font-size: 20px;
+        padding: 4px 6px;
+    }
+
+    .abas button {
+        font-size: 20px;
+        padding: 6px 4px;
+    }
+
+    table th, table td {
+        padding: 6px;
+        font-size: 12px;
+    }
+}
