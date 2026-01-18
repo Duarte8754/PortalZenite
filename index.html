@@ -1,4 +1,4 @@
-hubby<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt">
 <head>
 <meta charset="UTF-8">
@@ -197,6 +197,41 @@ hubby<!DOCTYPE html>
   <button onclick="logout()">Sair</button>
 </div>
 
+  <!-- MODAL VER FORMULÁRIO -->
+<div id="modalFormulario" style="
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.6);
+  justify-content:center;
+  align-items:center;
+  z-index:9999;
+">
+
+  <div style="
+    background:#fff;
+    padding:20px;
+    width:90%;
+    max-width:450px;
+    border-radius:10px;
+  ">
+    <h3 style="color:#000">📄 Formulário do Aluno</h3>
+
+    <div id="conteudoFormulario" style="color:#000">
+      <!-- JS preenche aqui -->
+    </div>
+
+    <button onclick="fecharFormulario()" style="
+      margin-top:15px;
+      width:100%;
+      padding:10px;
+      cursor:pointer;
+    ">
+      Fechar
+    </button>
+  </div>
+  </div>
+  
 </div>
 <script src="script.js"></script>
 
