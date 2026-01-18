@@ -347,15 +347,17 @@ async function editarDivida(numero){ const nova=prompt('Informe o valor da dívi
   const a = doc.data();
 
   document.getElementById('conteudoFormulario').innerHTML = `
-    <p><strong>Nome:</strong> ${a.nome}</p>
-    <p><strong>Número:</strong> ${numero}</p>
-    <p><strong>Email:</strong> ${a.email || '-'}</p>
-    <p><strong>Dívida:</strong> ${a.divida || 0} MT</p>
-    <p><strong>Status:</strong> ${a.ativo ? 'Ativo' : 'Suspenso'}</p>
+    <p style="color:#000 !important;"><strong>Nome:</strong> ${a.nome}</p>
+    <p style="color:#000 !important;"><strong>Número:</strong> ${numero}</p>
+    <p style="color:#000 !important;"><strong>Email:</strong> ${a.email || '-'}</p>
+    <p style="color:#000 !important;"><strong>Telefone:</strong> ${a.telefone || '-'}</p>
+    <p style="color:#000 !important;"><strong>Classe:</strong> ${a.classe || '-'}</p>
+    <p style="color:#000 !important;"><strong>Dívida:</strong> ${a.divida || 0} MT</p>
+    <p style="color:#000 !important;"><strong>Status:</strong> ${a.ativo ? 'Ativo' : 'Suspenso'}</p>
   `;
 
   document.getElementById('modalFormulario').style.display = 'flex';
-                                  }
+}
 
 // ===== REGISTRAR PAGAMENTO =====
 async function registrarPagamento(numero){
