@@ -335,6 +335,67 @@ async function confirmar(numero){ await db.collection('alunos').doc(numero).upda
 async function suspender(numero, ativo){ await db.collection('alunos').doc(numero).update({ativo:!ativo}); alert(`Aluno ${!ativo?'ativado':'suspenso'}`); mostrarPainelAdmin(); }
 async function excluir(numero){ if(confirm('Deseja realmente excluir este aluno?')){ await db.collection('alunos').doc(numero).delete(); alert('Aluno excluído'); mostrarPainelAdmin(); } }
 async function editarDivida(numero){ const nova=prompt('Informe o valor da dívida:'); if(nova!==null){ await db.collection('alunos').doc(numero).update({divida:parseFloat(nova)}); alert('Dívida atualizada'); mostrarPainelAdmin(); } }
+// ===== VER FORMULÁRIO =====
+async function verFormulario(numero){
+  const doc = await db.collection('alunos').doc(numero).get();
+  if(!doc.exists){
+    alert('Aluno não encontrado');
+    return;
+  }
+
+  const a = doc.data();
+
+  document.getElementById('conteudoFormulario').innerHTML = `
+    <p><strong>Nome:</strong> ${a.nome}</p>
+    <p><strong>Número:</strong> ${numero}</p>
+    <p><strong>Email:</strong> ${a.email || '-'}</p>
+    <p><strong>Dívida:</strong> ${a.divida || 0} MT</p>
+    <p><strong>Status:</strong> ${a.ativo ? 'Ativo' : 'Suspenso'}</p>
+  `;
+
+  document.getElementById('modalFormulario').style.display = 'flex';
+}
+
+// ===== REGISTRAR PAGAMENTO =====
+async function registrarPagamento(numero){
+  const valor = prompt('Valor pago:');
+  if(!valor) return;
+
+  await db.collection('pagamentos').add({
+    aluno: numero,
+    valor: parseFloat(valor),
+    data: new Date().toLocaleDateString()
+  });
+
+  alert('Pagamento registrado');
+}
+
+// ===== EDITAR PLANO =====
+async function editarPlano(numero){
+  const plano = prompt('Informe o novo plano (Básico / Premium / VIP):');
+  if(!plano) return;
+
+  await db.collection('alunos').doc(numero).update({plano});
+  alert('Plano atualizado');
+  mostrarPainelAdmin();
+}
+
+// ===== FECHAR ANO =====
+async function fecharAno(numero){
+  if(!confirm('Deseja fechar o ano deste aluno?')) return;
+
+  await db.collection('alunos').doc(numero).update({
+    encerrado: true
+  });
+
+  alert('Ano fechado');
+  mostrarPainelAdmin();
+}
+
+// ===== FECHAR MODAL =====
+function fecharFormulario(){
+  document.getElementById('modalFormulario').style.display = 'none';
+}
 
 // ===== LANÇAR NOTA =====
 document.getElementById('formNota').addEventListener('submit', async e=>{
