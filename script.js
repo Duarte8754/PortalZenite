@@ -65,7 +65,16 @@ document.getElementById('formInscricao').addEventListener('submit', async e => {
         };
 
         await db.collection('alunos').doc(aluno.numero).set(aluno);
-        alert(`Inscrição realizada, com sucesso, guarde teu código de aluno e a senha, não compartinhe. antes de clicar ok transcreve a sua senha e código.!\nNúmero do Aluno: ${aluno.numero}\nSenha: ${aluno.senha}`);
+        Swal.fire({
+  icon: 'success',
+  title: 'Inscrição realizada!',
+  html: `
+    <b>Número do Aluno:</b> ${aluno.numero}<br>
+    <b>Senha:</b> ${aluno.senha}<br><br>
+    <small>Guarde estes dados com segurança</small>
+  `,
+  confirmButtonText: 'OK'
+});
         document.getElementById('formInscricao').reset();
         voltarHome();
     } catch (err) {
