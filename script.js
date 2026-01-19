@@ -88,43 +88,24 @@ document.getElementById('formLogin').addEventListener('submit', async e=>{
   e.preventDefault();
   const usuario = document.getElementById('loginUsuario').value;
   const senha = document.getElementById('loginSenha').value;
+  if(usuario==='zenite'&&senha==='adminzenite'){ mostrarPainelAdmin(); return; }
 
   try{
-    // Admin hardcoded
-    if(usuario === 'zenite' && senha === 'adminzenite'){
-      usuarioTipo = 'admin';
-      mostrarPainelAdmin();
-      return;
-    }
-
-    // Aluno normal
-    let snapshot = await db.collection('alunos').where('email','==',usuario).get();
+    let snapshot=await db.collection('alunos').where('email','==',usuario).get();
     let alunoData;
     if(snapshot.empty){
-      const snapNum = await db.collection('alunos').doc(usuario).get();
+      const snapNum=await db.collection('alunos').doc(usuario).get();
       if(!snapNum.exists) throw new Error('Aluno não encontrado');
-      if(snapNum.data().senha !== senha) throw new Error('Senha incorreta');
-      alunoData = snapNum.data();
-    } else {
-      const data = snapshot.docs[0].data();
-      if(data.senha !== senha) throw new Error('Senha incorreta');
-      alunoData = data;
+      if(snapNum.data().senha!==senha) throw new Error('Senha incorreta');
+      alunoData=snapNum.data();
+    }else{
+      const data=snapshot.docs[0].data();
+      if(data.senha!==senha) throw new Error('Senha incorreta');
+      alunoData=data;
     }
-
-    usuarioTipo = 'aluno'; // ✅ define como aluno depois de pegar dados
     mostrarPainelAluno(alunoData);
-
-  } catch(err){
-    alert(err.message);
-  }
+  }catch(err){ alert(err.message); }
 });
-
-// ===== ABAS DO ALUNO =====
-function mostrarAba(nome){
-  document.querySelectorAll('.aba').forEach(a=>a.classList.remove('active'));
-  const aba = document.getElementById('aba'+nome.charAt(0).toUpperCase()+nome.slice(1));
-  if(aba) aba.classList.add('active');
-}
 
 // ===== PAINEL DO ALUNO =====
 async function mostrarPainelAluno(aluno){
@@ -150,7 +131,29 @@ document.getElementById('formLogin').addEventListener('submit', async e=>{
     let snapshot = await db.collection('alunos').where('email','==',usuario).get();
     let alunoData;
     if(snapshot.empty){
-      const snapNum = await db.collection('alunos').doc(usuario).get();
+      const snapNum = await db.collection('alunos').d// ===== LOGIN =====
+document.getElementById('formLogin').addEventListener('submit', async e=>{
+  e.preventDefault();
+  const usuario = document.getElementById('loginUsuario').value;
+  const senha = document.getElementById('loginSenha').value;
+  if(usuario==='zenite'&&senha==='adminzenite'){ mostrarPainelAdmin(); return; }
+
+  try{
+    let snapshot=await db.collection('alunos').where('email','==',usuario).get();
+    let alunoData;
+    if(snapshot.empty){
+      const snapNum=await db.collection('alunos').doc(usuario).get();
+      if(!snapNum.exists) throw new Error('Aluno não encontrado');
+      if(snapNum.data().senha!==senha) throw new Error('Senha incorreta');
+      alunoData=snapNum.data();
+    }else{
+      const data=snapshot.docs[0].data();
+      if(data.senha!==senha) throw new Error('Senha incorreta');
+      alunoData=data;
+    }
+    mostrarPainelAluno(alunoData);
+  }catch(err){ alert(err.message); }
+});oc(usuario).get();
       if(!snapNum.exists) throw new Error('Aluno não encontrado');
       if(snapNum.data().senha !== senha) throw new Error('Senha incorreta');
       alunoData = snapNum.data();
