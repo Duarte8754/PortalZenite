@@ -394,32 +394,34 @@ async function editarPlano(numero){
   mostrarPainelAdmin();
 }
 
-async function editarAluno(numero) {
+
+                                                                         }
+
+// ===== FECHAR ANO =====
+async fasync function editarAluno(numero) {
   try {
-    // 🔐 garante que só admin edita
-    if (usuarioTipo !== 'admin') {
+    // 🔐 Apenas admin pode editar
+    if (typeof usuarioTipo === 'undefined' || usuarioTipo !== 'admin') {
       Swal.fire('Acesso negado', 'Somente administradores podem editar', 'error');
       return;
     }
 
-    // 🔍 buscar aluno
+    // 🔍 Pegar dados do aluno
     const doc = await db.collection('alunos').doc(numero).get();
-
     if (!doc.exists) {
       Swal.fire('Erro', 'Aluno não encontrado', 'error');
       return;
     }
-
     const aluno = doc.data();
 
-    // ✏️ alerta com formulário
+    // ✏️ Formulário dentro do SweetAlert
     const { value: dados } = await Swal.fire({
       title: 'Editar dados do aluno',
       html: `
-        <input id="nome" class="swal2-input" placeholder="Nome" value="${aluno.nome || ''}">
-        <input id="email" class="swal2-input" placeholder="Email" value="${aluno.email || ''}">
-        <input id="telefone" class="swal2-input" placeholder="Telefone" value="${aluno.telefone || ''}">
-        <input id="classe" class="swal2-input" placeholder="Classe" value="${aluno.classe || ''}">
+        <input id="swal-nome" class="swal2-input" placeholder="Nome" value="${aluno.nome || ''}">
+        <input id="swal-email" class="swal2-input" placeholder="Email" value="${aluno.email || ''}">
+        <input id="swal-telefone" class="swal2-input" placeholder="Telefone" value="${aluno.telefone || ''}">
+        <input id="swal-classe" class="swal2-input" placeholder="Classe" value="${aluno.classe || ''}">
       `,
       focusConfirm: false,
       showCancelButton: true,
@@ -427,28 +429,25 @@ async function editarAluno(numero) {
       cancelButtonText: 'Cancelar',
       preConfirm: () => {
         return {
-          nome: document.getElementById('nome').value,
-          email: document.getElementById('email').value,
-          telefone: document.getElementById('telefone').value,
-          classe: document.getElementById('classe').value
+          nome: document.getElementById('swal-nome').value,
+          email: document.getElementById('swal-email').value,
+          telefone: document.getElementById('swal-telefone').value,
+          classe: document.getElementById('swal-classe').value
         };
       }
     });
 
-    // 💾 salvar alterações
+    // 💾 Salvar no Firestore
     if (dados) {
       await db.collection('alunos').doc(numero).update(dados);
       Swal.fire('Sucesso', 'Dados atualizados com sucesso', 'success');
-      mostrarPainelAdmin();
+      mostrarPainelAdmin(); // Atualiza tabela
     }
 
   } catch (erro) {
     Swal.fire('Erro', erro.message, 'error');
   }
-                                                                         }
-
-// ===== FECHAR ANO =====
-async function fecharAno(numero){
+}unction fecharAno(numero){
   if(!confirm('Deseja fechar o ano deste aluno?')) return;
 
   await db.collection('alunos').doc(numero).update({
