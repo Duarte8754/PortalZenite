@@ -392,6 +392,59 @@ async function editarPlano(numero){
   mostrarPainelAdmin();
 }
 
+async function editarAluno(numero) {
+  try {
+    // 🔐 garante que só admin edita
+    if (usuarioTipo !== 'admin') {
+      Swal.fire('Acesso negado', 'Somente administradores podem editar', 'error');
+      return;
+    }
+
+    // 🔍 buscar aluno
+    const doc = await db.collection('alunos').doc(numero).get();
+
+    if (!doc.exists) {
+      Swal.fire('Erro', 'Aluno não encontrado', 'error');
+      return;
+    }
+
+    const aluno = doc.data();
+
+    // ✏️ alerta com formulário
+    const { value: dados } = await Swal.fire({
+      title: 'Editar dados do aluno',
+      html: `
+        <input id="nome" class="swal2-input" placeholder="Nome" value="${aluno.nome || ''}">
+        <input id="email" class="swal2-input" placeholder="Email" value="${aluno.email || ''}">
+        <input id="telefone" class="swal2-input" placeholder="Telefone" value="${aluno.telefone || ''}">
+        <input id="classe" class="swal2-input" placeholder="Classe" value="${aluno.classe || ''}">
+      `,
+      focusConfirm: false,
+      showCancelButton: true,
+      confirmButtonText: 'Salvar',
+      cancelButtonText: 'Cancelar',
+      preConfirm: () => {
+        return {
+          nome: document.getElementById('nome').value,
+          email: document.getElementById('email').value,
+          telefone: document.getElementById('telefone').value,
+          classe: document.getElementById('classe').value
+        };
+      }
+    });
+
+    // 💾 salvar alterações
+    if (dados) {
+      await db.collection('alunos').doc(numero).update(dados);
+      Swal.fire('Sucesso', 'Dados atualizados com sucesso', 'success');
+      mostrarPainelAdmin();
+    }
+
+  } catch (erro) {
+    Swal.fire('Erro', erro.message, 'error');
+  }
+                                                                         }
+
 // ===== FECHAR ANO =====
 async function fecharAno(numero){
   if(!confirm('Deseja fechar o ano deste aluno?')) return;
