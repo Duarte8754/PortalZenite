@@ -215,6 +215,10 @@ async function mostrarPainelAdmin() {
           <button onclick="suspender('${a.numero}', ${a.ativo})">
             ${a.ativo ? 'Suspender' : 'Ativar'}
           </button>
+          <!-- Botões administrativos adicionais -->
+<button onclick="editarDivida('NUMERO_DO_ALUNO')">Editar Dívida</button>
+<button onclick="editarPagamento('ID_DO_PAGAMENTO')">Editar Pagamento</button>
+<button onclick="fecharAnoLetivo()">Fechar Ano Letivo</button>
           <button onclick="excluir('${a.numero}')">Excluir</button>
         </td>
       </tr>`;
@@ -230,6 +234,51 @@ async function confirmar(n) {
 
 async function suspender(n, ativo) {
   await db.collection('alunos').doc(n).update({ ativo: !ativo });
+  mostrarPainelAdmin();
+}
+
+// Editar dívida do aluno
+async function editarDivida(numero) {
+  const div = prompt('Novo valor da dívida:');
+  if(div === null) return; // cancelou
+  const valor = Number(div);
+  if(isNaN(valor)) return alert('Valor inválido');
+  
+  await db.collection('alunos').doc(numero).update({ divida: valor });
+  alert('Dívida atualizada');
+  mostrarPainelAdmin();
+}
+
+// Editar pagamento
+async function editarPagamento(idPagamento) {
+  const pagSnap = await db.collection('pagamentos').doc(idPagamento).get();
+  if(!pagSnap.exists) return alert('Pagamento não encontrado');
+  
+  const valorAtual = pagSnap.data().valor;
+  const novoValor = prompt('Editar valor do pagamento:', valorAtual);
+  if(novoValor === null) return; // cancelou
+  
+  const valor = Number(novoValor);
+  if(isNaN(valor)) return alert('Valor inválido');
+  
+  await db.collection('pagamentos').doc(idPagamento).update({ valor });
+  alert('Pagamento atualizado');
+}
+
+// Fechar ano letivo
+async function fecharAnoLetivo() {
+  if(!confirm('Deseja realmente fechar o ano letivo?')) return;
+
+  const snap = await db.collection('alunos').get();
+  for(const doc of snap.docs) {
+    await db.collection('alunos').doc(doc.id).update({
+      divida: 0,
+      confirmado: false,
+      statusAcademico: 'Reprovado'
+    });
+  }
+
+  alert('Ano letivo fechado. Todas as dívidas zeradas e status redefinido.');
   mostrarPainelAdmin();
 }
 
