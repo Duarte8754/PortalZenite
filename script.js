@@ -445,7 +445,8 @@ async function editarPlano(numero){
 
 
                                                                          }
-// ===== FECHAR MOasync function fecharAno(numero){
+// ===== FECHAR ANO =====
+async function fecharAno(numero){
   if(!confirm('Deseja fechar o ano deste aluno?')) return;
 
   await db.collection('alunos').doc(numero).update({
