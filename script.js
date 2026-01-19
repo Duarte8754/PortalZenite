@@ -88,25 +88,33 @@ document.getElementById('formLogin').addEventListener('submit', async e=>{
   e.preventDefault();
   const usuario = document.getElementById('loginUsuario').value;
   const senha = document.getElementById('loginSenha').value;
-  if(usuario==='zenite'&&senha==='adminzenite'){ mostrarPainelAdmin(); return; }
 
-  try{
-    let snapshot=await db.collection('alunos').where('email','==',usuario).get();
+  try {
+    if(usuario==='zenite' && senha==='adminzenite'){
+      usuarioTipo = 'admin';
+      mostrarPainelAdmin();
+      return;
+    }
+
+    let snapshot = await db.collection('alunos').where('email','==',usuario).get();
     let alunoData;
     if(snapshot.empty){
-      const snapNum=await db.collection('alunos').doc(usuario).get();
+      const snapNum = await db.collection('alunos').doc(usuario).get();
       if(!snapNum.exists) throw new Error('Aluno não encontrado');
-      if(snapNum.data().senha!==senha) throw new Error('Senha incorreta');
-      alunoData=snapNum.data();
-    }else{
-      const data=snapshot.docs[0].data();
-      if(data.senha!==senha) throw new Error('Senha incorreta');
-      alunoData=data;
+      if(snapNum.data().senha !== senha) throw new Error('Senha incorreta');
+      alunoData = snapNum.data();
+    } else {
+      const data = snapshot.docs[0].data();
+      if(data.senha !== senha) throw new Error('Senha incorreta');
+      alunoData = data;
     }
-    mostrarPainelAluno(alunoData);
-  }catch(err){ alert(err.message); }
-});
 
+    usuarioTipo = 'aluno';
+    mostrarPainelAluno(alunoData);
+
+  } catch(err){ alert(err.message); }
+});
+  
 // ===== PAINEL DO ALUNO =====
 async function mostrarPainelAluno(aluno){
   mostrarPagina('painelAluno');
