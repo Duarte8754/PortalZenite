@@ -283,26 +283,28 @@ async function mostrarPainelAdmin(){
     <th>Nome</th><th>Número</th><th>Status</th><th>Status Académico</th><th>Dívida</th><th>Ações</th>
   </tr>`;
   snapshot.forEach(doc=>{
-    const a=doc.data();
-    const tr=document.createElement('tr');
-    tr.innerHTML=`
-      <td>${a.nome}</td>
-      <td>${a.numero}</td>
-      <td>${a.ativo?'Ativo':'Suspenso'}</td>
-      <td>${a.statusAcademico}</td>
-      <td>${a.divida}</td>
-      <td>
-        <button onclick="confirmar('${a.numero}')">Confirmar</button>
-        <button onclick="verFormulario('${a.numero}')">Ver Formulário</button>
-        <button onclick="registrarPagamento('${a.numero}')">Registrar Pagamento</button>
-        <button onclick="editarPlano('${a.numero}')">Editar Plano</button>
-        <button onclick="suspender('${a.numero}',${a.ativo})">${a.ativo?'Suspender':'Ativar'}</button>
-        <button onclick="excluir('${a.numero}')">Excluir</button>
-        <button onclick="editarDivida('${a.numero}')">Editar Dívida</button>
-        <button onclick="fecharAno('${a.numero}')">Fechar Ano</button>
-      </td>`;
-    tabela.appendChild(tr);
-  });
+  const a = doc.data();
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td>${a.nome}</td>
+    <td>${a.numero}</td>
+    <td>${a.ativo?'Ativo':'Suspenso'}</td>
+    <td>${a.statusAcademico}</td>
+    <td>${a.divida}</td>
+    <td>
+      <button onclick="confirmar('${a.numero}')">Confirmar</button>
+      <button onclick="verFormulario('${a.numero}')">Ver Formulário</button>
+      <button onclick="registrarPagamento('${a.numero}')">Registrar Pagamento</button>
+      <button onclick="editarPlano('${a.numero}')">Editar Plano</button>
+      <button onclick="suspender('${a.numero}',${a.ativo})">${a.ativo?'Suspender':'Ativar'}</button>
+      <button onclick="excluir('${a.numero}')">Excluir</button>
+      <button onclick="editarDivida('${a.numero}')">Editar Dívida</button>
+      <button onclick="fecharAno('${a.numero}')">Fechar Ano</button>
+      <button onclick="editarAluno('${a.numero}')">Editar</button> <!-- Aqui é o botão -->
+    </td>
+  `;
+  tabela.appendChild(tr);
+});
 
   // CALENDÁRIO
   const calSnap=await db.collection('calendario').get();
