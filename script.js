@@ -90,10 +90,8 @@ document.getElementById('formLogin').addEventListener('submit', async e=>{
   const senha = document.getElementById('loginSenha').value;
 
   try {
-    if(usuario==='zenite' && senha==='adminzenite'){
-      usuarioTipo = 'admin';
-      mostrarPainelAdmin();
-      return;
+    if(usuario==='zenite' && senha==='adminzenite');
+  return;
     }
 
     let snapshot = await db.collection('alunos').where('email','==',usuario).get();
@@ -109,8 +107,6 @@ document.getElementById('formLogin').addEventListener('submit', async e=>{
       alunoData = data;
     }
 
-    usuarioTipo = 'aluno';
-    mostrarPainelAluno(alunoData);
 
   } catch(err){ alert(err.message); }
 });
@@ -302,8 +298,7 @@ async function mostrarPainelAdmin(){
       <button onclick="excluir('${a.numero}')">Excluir</button>
       <button onclick="editarDivida('${a.numero}')">Editar Dívida</button>
       <button onclick="fecharAno('${a.numero}')">Fechar Ano</button>
-      <button onclick="editarAluno('${a.numero}')">Editar</button> <!-- Aqui é o botão -->
-    </td>
+     </td>
   `;
   tabela.appendChild(tr);
 });
@@ -397,7 +392,7 @@ async function editarPlano(numero){
 }
 
 
-                                                                         }
+                                                                         
 // ===== FECHAR ANO =====
 async function fecharAno(numero){
   if(!confirm('Deseja fechar o ano deste aluno?')) return;
