@@ -870,3 +870,26 @@ ul {
     transform: scale(1);
   }
     }
+
+/* BOTÃO EDITAR ALUNO */
+.btn-editar {
+  background: linear-gradient(135deg, #ff9800, #f57c00);
+  color: #fff;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  box-shadow: 0 3px 6px rgba(0,0,0,0.2);
+}
+
+.btn-editar:hover {
+  background: linear-gradient(135deg, #fb8c00, #ef6c00);
+  transform: scale(1.05);
+}
+
+.btn-editar:active {
+  transform: scale(0.95);
+    }
