@@ -11,8 +11,6 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-let usuarioTipo = null;
-
 // ===== NAVEGAÇÃO =====
 function mostrarInscricao(){ mostrarPagina('inscricao'); }
 function mostrarLogin(){ mostrarPagina('login'); }
