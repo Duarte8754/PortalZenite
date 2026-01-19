@@ -90,7 +90,14 @@ document.getElementById('formLogin').addEventListener('submit', async e=>{
   e.preventDefault();
   const usuario = document.getElementById('loginUsuario').value;
   const senha = document.getElementById('loginSenha').value;
-  if(usuario==='zenite'&&senha==='adminzenite'){ mostrarPainelAdmin(); return; }
+  if(usuario === 'zenite' && senha === 'adminzenite'){
+    usuarioTipo = 'admin';  // aqui diz que é admin
+    mostrarPainelAdmin();
+    return;
+} else {
+    usuarioTipo = 'aluno';  // aqui diz que é aluno
+    mostrarPainelAluno(alunoData);
+  }
 
   try{
     let snapshot=await db.collection('alunos').where('email','==',usuario).get();
