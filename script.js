@@ -445,58 +445,7 @@ async function editarPlano(numero){
 
 
                                                                          }
-
-// ===== FECHAR ANO =====
-async fasync function editarAluno(numero) {
-  try {
-    // 🔐 Apenas admin pode editar
-    if (typeof usuarioTipo === 'undefined' || usuarioTipo !== 'admin') {
-      Swal.fire('Acesso negado', 'Somente administradores podem editar', 'error');
-      return;
-    }
-
-    // 🔍 Pegar dados do aluno
-    const doc = await db.collection('alunos').doc(numero).get();
-    if (!doc.exists) {
-      Swal.fire('Erro', 'Aluno não encontrado', 'error');
-      return;
-    }
-    const aluno = doc.data();
-
-    // ✏️ Formulário dentro do SweetAlert
-    const { value: dados } = await Swal.fire({
-      title: 'Editar dados do aluno',
-      html: `
-        <input id="swal-nome" class="swal2-input" placeholder="Nome" value="${aluno.nome || ''}">
-        <input id="swal-email" class="swal2-input" placeholder="Email" value="${aluno.email || ''}">
-        <input id="swal-telefone" class="swal2-input" placeholder="Telefone" value="${aluno.telefone || ''}">
-        <input id="swal-classe" class="swal2-input" placeholder="Classe" value="${aluno.classe || ''}">
-      `,
-      focusConfirm: false,
-      showCancelButton: true,
-      confirmButtonText: 'Salvar',
-      cancelButtonText: 'Cancelar',
-      preConfirm: () => {
-        return {
-          nome: document.getElementById('swal-nome').value,
-          email: document.getElementById('swal-email').value,
-          telefone: document.getElementById('swal-telefone').value,
-          classe: document.getElementById('swal-classe').value
-        };
-      }
-    });
-
-    // 💾 Salvar no Firestore
-    if (dados) {
-      await db.collection('alunos').doc(numero).update(dados);
-      Swal.fire('Sucesso', 'Dados atualizados com sucesso', 'success');
-      mostrarPainelAdmin(); // Atualiza tabela
-    }
-
-  } catch (erro) {
-    Swal.fire('Erro', erro.message, 'error');
-  }
-}unction fecharAno(numero){
+// ===== FECHAR MOasync function fecharAno(numero){
   if(!confirm('Deseja fechar o ano deste aluno?')) return;
 
   await db.collection('alunos').doc(numero).update({
@@ -506,8 +455,6 @@ async fasync function editarAluno(numero) {
   alert('Ano fechado');
   mostrarPainelAdmin();
 }
-
-// ===== FECHAR MODAL =====
 function fecharFormulario(){
   document.getElementById('modalFormulario').style.display = 'none';
 }
