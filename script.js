@@ -113,70 +113,15 @@ async function mostrarPainelAluno(aluno){
 
   // PERFIL
   document.getElementById('perfilNome').innerText = aluno.nome;
-  document.getElementById('perfi// ===== LOGIN =====
-document.getElementById('formLogin').addEventListener('submit', async e=>{
-  e.preventDefault();
-  const usuario = document.getElementById('loginUsuario').value;
-  const senha = document.getElementById('loginSenha').value;
+document.getElementById('perfilNumero').innerText = aluno.numero;
+document.getElementById('perfilClasse').innerText = aluno.classe;
+document.getElementById('perfilTurma').innerText = aluno.turma;
+document.getElementById('perfilNascimento').innerText = aluno.nascimento;
+document.getElementById('perfilContato').innerText = `Tel: ${aluno.telefone} / WhatsApp: ${aluno.whatsapp}`;
+document.getElementById('valorTotal').innerText = aluno.planoPagamento?.total || 0;
+document.getElementById('parcelas').innerText = aluno.planoPagamento?.parcelas || 0;
 
-  try{
-    // Admin hardcoded
-    if(usuario === 'zenite' && senha === 'adminzenite'){
-      usuarioTipo = 'admin';
-      mostrarPainelAdmin();
-      return;
-    }
-
-    // Aluno normal
-    let snapshot = await db.collection('alunos').where('email','==',usuario).get();
-    let alunoData;
-    if(snapshot.empty){
-      const snapNum = await db.collection('alunos').d// ===== LOGIN =====
-document.getElementById('formLogin').addEventListener('submit', async e=>{
-  e.preventDefault();
-  const usuario = document.getElementById('loginUsuario').value;
-  const senha = document.getElementById('loginSenha').value;
-  if(usuario==='zenite'&&senha==='adminzenite'){ mostrarPainelAdmin(); return; }
-
-  try{
-    let snapshot=await db.collection('alunos').where('email','==',usuario).get();
-    let alunoData;
-    if(snapshot.empty){
-      const snapNum=await db.collection('alunos').doc(usuario).get();
-      if(!snapNum.exists) throw new Error('Aluno não encontrado');
-      if(snapNum.data().senha!==senha) throw new Error('Senha incorreta');
-      alunoData=snapNum.data();
-    }else{
-      const data=snapshot.docs[0].data();
-      if(data.senha!==senha) throw new Error('Senha incorreta');
-      alunoData=data;
-    }
-    mostrarPainelAluno(alunoData);
-  }catch(err){ alert(err.message); }
-});oc(usuario).get();
-      if(!snapNum.exists) throw new Error('Aluno não encontrado');
-      if(snapNum.data().senha !== senha) throw new Error('Senha incorreta');
-      alunoData = snapNum.data();
-    } else {
-      const data = snapshot.docs[0].data();
-      if(data.senha !== senha) throw new Error('Senha incorreta');
-      alunoData = data;
-    }
-
-    usuarioTipo = 'aluno'; // ✅ define como aluno depois de pegar dados
-    mostrarPainelAluno(alunoData);
-
-  } catch(err){
-    alert(err.message);
-  }
-});lNumero').innerText = aluno.numero;
-  document.getElementById('perfilClasse').innerText = aluno.classe;
-  document.getElementById('perfilTurma').innerText = aluno.turma;
-  document.getElementById('perfilNascimento').innerText = aluno.nascimento;
-  document.getElementById('perfilContato').innerText = `Tel: ${aluno.telefone} / WhatsApp: ${aluno.whatsapp}`;
-  document.getElementById('valorTotal').innerText = aluno.planoPagamento?.total || 0;
-  document.getElementById('parcelas').innerText = aluno.planoPagamento?.parcelas || 0;
-
+  
 // NOTAS
 const listaNotas = document.getElementById('listaNotas');
 listaNotas.innerHTML = '';
