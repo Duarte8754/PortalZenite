@@ -11,8 +11,6 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-// ===== VARIÁVEL GLOBAL =====
-let usuarioTipo = null;
 
 // ===== NAVEGAÇÃO =====
 function mostrarPagina(id){
@@ -102,7 +100,6 @@ document.getElementById('formLogin').addEventListener('submit', async e=>{
   try {
     // Login Admin
     if(usuario==='zenite' && senha==='adminzenite'){
-      usuarioTipo = 'admin';
       mostrarPainelAdmin();
       return;
     }
@@ -121,7 +118,6 @@ document.getElementById('formLogin').addEventListener('submit', async e=>{
       alunoData = data;
     }
 
-    usuarioTipo = 'aluno';
     mostrarPainelAluno(alunoData);
 
   } catch(err){ alert(err.message); }
