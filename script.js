@@ -226,81 +226,156 @@ async function mostrarPainelAdmin() {
 `;
 }
 
-// ================= FUNÇÕES ADMIN =================
-async function confirmar(n) {
-  await db.collection('alunos').doc(n).update({ confirmado: true });
-  alert('Aluno confirmado');
+// ===== FUNÇÕES ADMINISTRADOR (COM ALERT PERSONALIZADO) =====
+
+// CONFIRMAR MATRÍCULA
+async function confirmar(numero){
+  const res = await Swal.fire({
+    title: 'Confirmar matrícula?',
+    text: 'O aluno será oficialmente matriculado.',
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonText: 'Sim, confirmar',
+    cancelButtonText: 'Cancelar'
+  });
+  if(!res.isConfirmed) return;
+
+  await db.collection('alunos').doc(numero).update({ confirmado:true });
+  Swal.fire('Confirmado!', 'Matrícula confirmada com sucesso.', 'success');
   mostrarPainelAdmin();
 }
 
-async function suspender(n, ativo) {
-  await db.collection('alunos').doc(n).update({ ativo: !ativo });
-  mostrarPainelAdmin();
-}
-
-// Editar dívida do aluno
-async function editarDivida(numero) {
-  const div = prompt('Novo valor da dívida:');
-  if(div === null) return; // cancelou
-  const valor = Number(div);
-  if(isNaN(valor)) return alert('Valor inválido');
-  
-  await db.collection('alunos').doc(numero).update({ divida: valor });
-  alert('Dívida atualizada');
-  mostrarPainelAdmin();
-}
-
-// Editar pagamento
-async function editarPagamento(idPagamento) {
-  const pagSnap = await db.collection('pagamentos').doc(idPagamento).get();
-  if(!pagSnap.exists) return alert('Pagamento não encontrado');
-  
-  const valorAtual = pagSnap.data().valor;
-  const novoValor = prompt('Editar valor do pagamento:', valorAtual);
-  if(novoValor === null) return; // cancelou
-  
-  const valor = Number(novoValor);
-  if(isNaN(valor)) return alert('Valor inválido');
-  
-  await db.collection('pagamentos').doc(idPagamento).update({ valor });
-  alert('Pagamento atualizado');
-}
-
-// Fechar ano letivo
-async function fecharAnoLetivo() {
-  if(!confirm('Deseja realmente fechar o ano letivo?')) return;
-
-  const snap = await db.collection('alunos').get();
-  for(const doc of snap.docs) {
-    await db.collection('alunos').doc(doc.id).update({
-      divida: 0,
-      confirmado: false,
-      statusAcademico: 'Reprovado'
-    });
+// VER FORMULÁRIO
+async function verFormulario(numero){
+  const doc = await db.collection('alunos').doc(numero).get();
+  if(!doc.exists){
+    Swal.fire('Erro', 'Aluno não encontrado.', 'error');
+    return;
   }
+  const a = doc.data();
 
-  alert('Ano letivo fechado. Todas as dívidas zeradas e status redefinido.');
-  mostrarPainelAdmin();
+  Swal.fire({
+    title: 'Formulário do Aluno',
+    html: `
+      <p><b>Nome:</b> ${a.nome}</p>
+      <p><b>Número:</b> ${a.numero}</p>
+      <p><b>Email:</b> ${a.email || '-'}</p>
+      <p><b>Telefone:</b> ${a.telefone || '-'}</p>
+      <p><b>Classe:</b> ${a.classe}</p>
+      <p><b>Dívida:</b> ${a.divida || 0} MT</p>
+      <p><b>Status:</b> ${a.ativo ? 'Ativo' : 'Suspenso'}</p>
+    `,
+    icon: 'info'
+  });
 }
 
-async function excluir(n) {
-  if (confirm('Excluir aluno?')) {
-    await db.collection('alunos').doc(n).delete();
-    mostrarPainelAdmin();
-  }
-}
-
-async function registrarPagamento(n) {
-  const v = prompt('Valor pago');
-  if (!v) return;
+// REGISTRAR PAGAMENTO
+async function registrarPagamento(numero){
+  const { value: valor } = await Swal.fire({
+    title: 'Registrar pagamento',
+    input: 'number',
+    inputLabel: 'Valor pago (MT)',
+    inputPlaceholder: 'Ex: 180',
+    showCancelButton: true
+  });
+  if(!valor) return;
 
   await db.collection('pagamentos').add({
-    numero: n,
-    valor: Number(v),
-    data: new Date().toLocaleDateString()
+    numero,
+    valor: parseFloat(valor),
+    data: new Date().toLocaleDateString(),
+    status: 'Pago'
   });
 
-  alert('Pagamento registrado');
+  Swal.fire('Sucesso!', 'Pagamento registrado com sucesso.', 'success');
+  mostrarPainelAdmin();
+}
+
+// EDITAR PLANO
+async function editarPlano(numero){
+  const { value: plano } = await Swal.fire({
+    title: 'Editar plano',
+    input: 'select',
+    inputOptions: {
+      Basico: 'Básico',
+      Premium: 'Premium',
+      VIP: 'VIP'
+    },
+    inputPlaceholder: 'Selecione o plano',
+    showCancelButton: true
+  });
+  if(!plano) return;
+
+  await db.collection('alunos').doc(numero).update({ plano });
+  Swal.fire('Atualizado!', 'Plano alterado com sucesso.', 'success');
+  mostrarPainelAdmin();
+}
+
+// SUSPENDER / ATIVAR
+async function suspender(numero, ativo){
+  const acao = ativo ? 'Suspender' : 'Ativar';
+  const res = await Swal.fire({
+    title: `${acao} aluno?`,
+    text: `Deseja ${acao.toLowerCase()} este aluno?`,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonText: acao,
+    cancelButtonText: 'Cancelar'
+  });
+  if(!res.isConfirmed) return;
+
+  await db.collection('alunos').doc(numero).update({ ativo: !ativo });
+  Swal.fire('Sucesso!', `Aluno ${ativo ? 'suspenso' : 'ativado'}.`, 'success');
+  mostrarPainelAdmin();
+}
+
+// EXCLUIR ALUNO
+async function excluir(numero){
+  const res = await Swal.fire({
+    title: 'Excluir aluno?',
+    text: 'Essa ação não pode ser desfeita!',
+    icon: 'error',
+    showCancelButton: true,
+    confirmButtonText: 'Excluir',
+    cancelButtonText: 'Cancelar'
+  });
+  if(!res.isConfirmed) return;
+
+  await db.collection('alunos').doc(numero).delete();
+  Swal.fire('Excluído!', 'Aluno removido com sucesso.', 'success');
+  mostrarPainelAdmin();
+}
+
+// EDITAR DÍVIDA
+async function editarDivida(numero){
+  const { value: divida } = await Swal.fire({
+    title: 'Editar dívida',
+    input: 'number',
+    inputLabel: 'Valor da dívida (MT)',
+    showCancelButton: true
+  });
+  if(divida === undefined) return;
+
+  await db.collection('alunos').doc(numero).update({ divida: parseFloat(divida) });
+  Swal.fire('Atualizado!', 'Dívida atualizada com sucesso.', 'success');
+  mostrarPainelAdmin();
+}
+
+// FECHAR ANO LETIVO
+async function fecharAno(numero){
+  const res = await Swal.fire({
+    title: 'Fechar ano letivo?',
+    text: 'O histórico do aluno será encerrado.',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonText: 'Fechar ano',
+    cancelButtonText: 'Cancelar'
+  });
+  if(!res.isConfirmed) return;
+
+  await db.collection('alunos').doc(numero).update({ encerrado:true });
+  Swal.fire('Concluído!', 'Ano letivo encerrado com sucesso.', 'success');
+  mostrarPainelAdmin();
 }
 
 // ================= LOGOUT =================
