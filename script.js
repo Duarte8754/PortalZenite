@@ -206,23 +206,24 @@ async function mostrarPainelAdmin() {
     const a = doc.data();
     tabelaAlunos.innerHTML += `
       <tr>
-        <td>${a.nome}</td>
-        <td>${a.numero}</td>
-        <td>${a.ativo ? 'Ativo' : 'Suspenso'}</td>
-        <td>
-          <button onclick="confirmar('${a.numero}')">Confirmar</button>
-          <button onclick="registrarPagamento('${a.numero}')">Pagamento</button>
-          <button onclick="suspender('${a.numero}', ${a.ativo})">
-            ${a.ativo ? 'Suspender' : 'Ativar'}
-          </button>
-          <!-- Botões administrativos adicionais -->
-<button onclick="editarDivida('NUMERO_DO_ALUNO')">Editar Dívida</button>
-<button onclick="editarPagamento('ID_DO_PAGAMENTO')">Editar Pagamento</button>
-<button onclick="fecharAnoLetivo()">Fechar Ano Letivo</button>
-          <button onclick="excluir('${a.numero}')">Excluir</button>
-        </td>
-      </tr>`;
-  });
+  <td>${a.nome}</td>
+  <td>${a.numero}</td>
+  <td>${a.ativo ? 'Ativo' : 'Suspenso'}</td>
+  <td>${a.statusAcademico}</td>
+  <td>${a.divida}</td>
+  <td>
+    <button onclick="confirmar('${a.numero}')">Confirmar</button>
+    <button onclick="verFormulario('${a.numero}')">Ver Formulário</button>
+    <button onclick="registrarPagamento('${a.numero}')">Registrar Pagamento</button>
+    <button onclick="editarPlano('${a.numero}')">Editar Plano</button>
+    <button onclick="suspender('${a.numero}', ${a.ativo})">
+      ${a.ativo ? 'Suspender' : 'Ativar'}
+    </button>
+    <button onclick="excluir('${a.numero}')">Excluir</button>
+    <button onclick="editarDivida('${a.numero}')">Editar Dívida</button>
+    <button onclick="fecharAno('${a.numero}')">Fechar Ano</button>
+  </td>
+`;
 }
 
 // ================= FUNÇÕES ADMIN =================
