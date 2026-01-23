@@ -79,36 +79,7 @@ async function mostrarPainelAdmin() {
   });
 }
 
-// ================= PAGAMENTO (CORRIGIDO) =================
-async function registrarPagamento(numero) {
-  const { value: valor } = await Swal.fire({
-    title: 'Registrar pagamento',
-    input: 'number',
-    inputLabel: 'Valor pago (MT)',
-    showCancelButton: true
-  });
-
-  if (!valor || valor <= 0) return;
-
-  const ref = db.collection('alunos').doc(numero);
-  const doc = await ref.get();
-  if (!doc.exists) return;
-
-  const dividaAtual = doc.data().divida || 0;
-  const novaDivida = Math.max(dividaAtual - valor, 0);
-
-  await ref.update({ divida: novaDivida });
-
-  await db.collection('pagamentos').add({
-    numero,
-    valor: Number(valor),
-    data: new Date().toLocaleDateString()
-  });
-
-  Swal.fire('Sucesso', 'Pagamento registrado!', 'success');
-  mostrarPainelAdmin();
-  }
-
+// ================= FUNÇÕES DO ADMIN (CORRIGIDO) =================
 async function confirmar(numero) {
   const res = await Swal.fire({
     title: 'Confirmar matrícula?',
