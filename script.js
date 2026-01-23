@@ -109,6 +109,111 @@ async function registrarPagamento(numero) {
   mostrarPainelAdmin();
 }
 
+async function confirmar(numero) {
+  const res = await Swal.fire({
+    title: 'Confirmar matrícula?',
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonText: 'Confirmar'
+  });
+  if (!res.isConfirmed) return;
+
+  await db.collection('alunos').doc(numero).update({ confirmado: true });
+  Swal.fire('Confirmado', 'Matrícula confirmada', 'success');
+  mostrarPainelAdmin();
+}
+
+async function verFormulario(numero) {
+  const doc = await db.collection('alunos').doc(numero).get();
+  if (!doc.exists) {
+    Swal.fire('Erro', 'Aluno não encontrado', 'error');
+    return;
+  }
+
+  const a = doc.data();
+  Swal.fire({
+    title: 'Dados do Aluno',
+    html: `
+      <p><b>Nome:</b> ${a.nome}</p>
+      <p><b>Número:</b> ${a.numero}</p>
+      <p><b>Email:</b> ${a.email}</p>
+      <p><b>Telefone:</b> ${a.telefone}</p>
+      <p><b>WhatsApp:</b> ${a.whatsapp}</p>
+      <p><b>Classe:</b> ${a.classe}</p>
+      <p><b>Turma:</b> ${a.turma}</p>
+      <p><b>Disciplinas:</b> ${a.disciplina.join(', ')}</p>
+      <p><b>Dívida:</b> ${a.divida} MT</p>
+      <p><b>Status:</b> ${a.ativo ? 'Ativo' : 'Suspenso'}</p>
+    `,
+    icon: 'info'
+  });
+        }
+
+async function registrarPagamento(numero) {
+  const { value: valor } = await Swal.fire({
+    title: 'Registrar pagamento',
+    input: 'number',
+    inputLabel: 'Valor pago (MT)',
+    showCancelButton: true
+  });
+
+  if (!valor || valor <= 0) return;
+
+  const ref = db.collection('alunos').doc(numero);
+  const doc = await ref.get();
+  if (!doc.exists) return;
+
+  const dividaAtual = doc.data().divida || 0;
+  const novaDivida = Math.max(dividaAtual - valor, 0);
+
+  await ref.update({ divida: novaDivida });
+
+  await db.collection('pagamentos').add({
+    numero,
+    valor: Number(valor),
+    data: new Date().toLocaleDateString(),
+    status: 'Pago'
+  });
+
+  Swal.fire('Pago', 'Pagamento registrado', 'success');
+  mostrarPainelAdmin();
+                               }
+
+async function editarPlano(numero) {
+  const { value: plano } = await Swal.fire({
+    title: 'Editar plano',
+    input: 'select',
+    inputOptions: {
+      Basico: 'Básico',
+      Premium: 'Premium',
+      VIP: 'VIP'
+    },
+    showCancelButton: true
+  });
+
+  if (!plano) return;
+
+  await db.collection('alunos').doc(numero).update({ plano });
+  Swal.fire('Atualizado', 'Plano alterado', 'success');
+  mostrarPainelAdmin();
+    }
+
+async function suspender(numero, ativo) {
+  const acao = ativo ? 'Suspender' : 'Ativar';
+
+  const res = await Swal.fire({
+    title: `${acao} aluno?`,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonText: acao
+  });
+  if (!res.isConfirmed) return;
+
+  await db.collection('alunos').doc(numero).update({ ativo: !ativo });
+  Swal.fire('Sucesso', `Aluno ${acao.toLowerCase()}ado`, 'success');
+  mostrarPainelAdmin();
+}
+
 // ================= LOGOUT =================
 function sair() {
   mostrarPagina('home');
