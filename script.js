@@ -107,7 +107,7 @@ async function registrarPagamento(numero) {
 
   Swal.fire('Sucesso', 'Pagamento registrado!', 'success');
   mostrarPainelAdmin();
-}
+  }
 
 async function confirmar(numero) {
   const res = await Swal.fire({
@@ -121,7 +121,7 @@ async function confirmar(numero) {
   await db.collection('alunos').doc(numero).update({ confirmado: true });
   Swal.fire('Confirmado', 'Matrícula confirmada', 'success');
   mostrarPainelAdmin();
-}
+  }
 
 async function verFormulario(numero) {
   const doc = await db.collection('alunos').doc(numero).get();
@@ -147,7 +147,7 @@ async function verFormulario(numero) {
     `,
     icon: 'info'
   });
-        }
+   }
 
 async function registrarPagamento(numero) {
   const { value: valor } = await Swal.fire({
@@ -177,7 +177,7 @@ async function registrarPagamento(numero) {
 
   Swal.fire('Pago', 'Pagamento registrado', 'success');
   mostrarPainelAdmin();
-                               }
+  }
 
 async function editarPlano(numero) {
   const { value: plano } = await Swal.fire({
@@ -196,7 +196,7 @@ async function editarPlano(numero) {
   await db.collection('alunos').doc(numero).update({ plano });
   Swal.fire('Atualizado', 'Plano alterado', 'success');
   mostrarPainelAdmin();
-    }
+  }
 
 async function suspender(numero, ativo) {
   const acao = ativo ? 'Suspender' : 'Ativar';
@@ -212,7 +212,58 @@ async function suspender(numero, ativo) {
   await db.collection('alunos').doc(numero).update({ ativo: !ativo });
   Swal.fire('Sucesso', `Aluno ${acao.toLowerCase()}ado`, 'success');
   mostrarPainelAdmin();
-}
+  }
+
+async function editarDivida(numero) {
+  const { value: divida } = await Swal.fire({
+    title: 'Editar dívida',
+    input: 'number',
+    inputLabel: 'Nova dívida (MT)',
+    showCancelButton: true
+  });
+
+  if (divida === undefined) return;
+
+  await db.collection('alunos').doc(numero).update({ divida: Number(divida) });
+  Swal.fire('Atualizado', 'Dívida alterada', 'success');
+  mostrarPainelAdmin();
+  }
+
+async function fecharAno(numero) {
+  const res = await Swal.fire({
+    title: 'Fechar ano letivo?',
+    text: 'O aluno será arquivado',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonText: 'Fechar'
+  });
+
+  if (!res.isConfirmed) return;
+
+  await db.collection('alunos').doc(numero).update({
+    encerrado: true,
+    ativo: false
+  });
+
+  Swal.fire('Concluído', 'Ano letivo encerrado', 'success');
+  mostrarPainelAdmin();
+  }
+
+async function excluir(numero) {
+  const res = await Swal.fire({
+    title: 'Excluir aluno?',
+    text: 'Essa ação é irreversível!',
+    icon: 'error',
+    showCancelButton: true,
+    confirmButtonText: 'Excluir'
+  });
+
+  if (!res.isConfirmed) return;
+
+  await db.collection('alunos').doc(numero).delete();
+  Swal.fire('Excluído', 'Aluno removido', 'success');
+  mostrarPainelAdmin();
+  }
 
 // ================= LOGOUT =================
 function sair() {
