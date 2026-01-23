@@ -62,10 +62,11 @@ function mostrarAba(id) {
 function gerarNumeroAluno() {
   return '2007' + Math.floor(10000 + Math.random() * 90000);
 }
-function gerarSenha() {
-  return Math.random().toString(36).slice(-8);
+function gerarSenha(nomeCompleto, numeroAluno) {
+    // Pega apenas o primeiro nome
+    const primeiroNome = nomeCompleto.trim().split(' ')[0].toLowerCase();
+    return `${primeiroNome}${numeroAluno}@IZ.com`;
 }
-
 // ================= INSCRIÇÃO =================
 formInscricao.addEventListener('submit', async (e) => {
   e.preventDefault();
