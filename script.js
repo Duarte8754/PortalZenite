@@ -87,7 +87,7 @@ formInscricao.addEventListener('submit', async (e) => {
     disciplina: disciplinas,
     turma: ['A', 'B', 'C'][Math.floor(Math.random() * 3)],
     numero: gerarNumeroAluno(),
-    senha: gerarSenha(),
+    senha: gerarSenha(nome.value, aluno.numero),
     ativo: true,
     confirmado: false,
     divida: 5000,
