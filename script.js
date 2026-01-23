@@ -196,9 +196,11 @@ async function mostrarPainelAdmin() {
   tabelaAlunos.innerHTML = `
     <tr>
       <th>Nome</th>
-      <th>Número</th>
-      <th>Status</th>
-      <th>Ações</th>
+<th>Número</th>
+<th>Conta</th>
+<th>Status Acad.</th>
+<th>Dívida</th>
+<th>Ações</th>
     </tr>`;
 
   const snap = await db.collection('alunos').get();
