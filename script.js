@@ -336,6 +336,41 @@ async function mostrarPainelAdmin() {
   });
 }
 
+  // CALENDÁRIO
+  const calSnap=await db.collection('calendario').get();
+  const lista=document.getElementById('adminCalendario');
+  lista.innerHTML='';
+  calSnap.forEach(doc => {
+    const li = document.createElement('li');
+    li.innerHTML = `${doc.data().data}: ${doc.data().evento} 
+      <button onclick="editarEvento('${doc.id}')">Editar</button>
+      <button onclick="limparEvento('${doc.id}')">Limpar</button>`;
+    lista.appendChild(li);
+  });
+}
+
+// ===== Preencher disciplinas no select do admin =====
+document.getElementById('notaAluno').addEventListener('change', async e => {
+  const numero = e.target.value;
+  const selectDisciplina = document.getElementById('notaDisciplina');
+  selectDisciplina.innerHTML = '<option value="">Selecione a disciplina</option>';
+
+  if (!numero) return;
+  try {
+      const doc = await db.collection('alunos').doc(numero).get();
+      if (!doc.exists) { alert('Aluno não encontrado'); return; }
+      doc.data().disciplina.forEach(d => {
+          const option = document.createElement('option');
+          option.value = d;
+          option.textContent = d;
+          selectDisciplina.appendChild(option);
+      });
+  } catch(err) {
+      console.error(err);
+      alert('Erro ao buscar disciplinas do aluno');
+  }
+});
+
 // ================= FUNÇÕES ADMIN =================
 async function confirmar(numero){
   await db.collection('alunos').doc(numero).update({ confirmado: true });
