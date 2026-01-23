@@ -267,18 +267,18 @@ if(mediaFinalAnual !== '-') {
 }
 
   // EXTRATO
-  const listaExtrato=document.getElementById('listaExtrato');
+  const listaExtrato = document.getElementById('listaExtrato');
   listaExtrato.innerHTML='';
-  const pagamentosSnap=await db.collection('pagamentos').where('numero','==',aluno.numero).get();
+  const pagamentosSnap = await db.collection('pagamentos').where('numero','==',aluno.numero).get();
   pagamentosSnap.forEach(doc=>{
-    const li=document.createElement('li');
+    const li = document.createElement('li');
     li.innerText=`${doc.data().data}: ${doc.data().valor} - ${doc.data().status}`;
     listaExtrato.appendChild(li);
   });
 
   // CALENDÁRIO
-  const calSnap=await db.collection('calendario').get();
-  const listaCalendario=document.getElementById('listaCalendario');
+  const calSnap = await db.collection('calendario').get();
+  const listaCalendario = document.getElementById('listaCalendario');
   listaCalendario.innerHTML='';
   calSnap.forEach(doc=>{
     const li=document.createElement('li');
@@ -290,8 +290,8 @@ if(mediaFinalAnual !== '-') {
   document.getElementById('totalDivida').innerText=aluno.divida;
 
   // HISTÓRICO
-  const histSnap=await db.collection('historico').where('numero','==',aluno.numero).get();
-  const listaHistorico=document.getElementById('listaHistorico');
+  const histSnap = await db.collection('historico').where('numero','==',aluno.numero).get();
+  const listaHistorico = document.getElementById('listaHistorico');
   listaHistorico.innerHTML='';
   histSnap.forEach(doc=>{
     const h=doc.data();
@@ -337,8 +337,8 @@ async function mostrarPainelAdmin() {
 }
 
   // CALENDÁRIO
-  const calSnap=await db.collection('calendario').get();
-  const lista=document.getElementById('adminCalendario');
+  const calSnap= await db.collection('calendario').get();
+  const lista = document.getElementById('adminCalendario');
   lista.innerHTML='';
   calSnap.forEach(doc => {
     const li = document.createElement('li');
