@@ -893,3 +893,22 @@ ul {
 .btn-editar:active {
   transform: scale(0.95);
     }
+
+/* Ajusta tamanho de todos os alertas do SweetAlert2 de uma vez */
+.swal2-popup {
+    width: 350px !important;   /* largura da caixa */
+    padding: 1rem !important;  /* espaço interno */
+}
+
+.swal2-title {
+    font-size: 16px !important;   /* tamanho do título */
+}
+
+.swal2-content {
+    font-size: 14px !important;   /* tamanho do texto */
+}
+
+.swal2-styled {
+    font-size: 14px !important;   /* botões */
+    padding: 0.5rem 1rem !important;
+}
