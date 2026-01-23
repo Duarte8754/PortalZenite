@@ -45,7 +45,19 @@
       <input type="text" placeholder="Telefone" id="telefone" required>
       <input type="text" placeholder="WhatsApp" id="whatsapp" required>
       <input type="text" placeholder="Nome do pai/mãe" id="paiMae" required>
-      <input type="text" placeholder="Classe" id="classe" required>
+      <select id="classe" required>
+  <option value="" disabled selected>Selecione sua classe</option>
+  
+  <!-- Classes ainda não disponíveis -->
+  <option value="7ª" disabled>7ª Classe (em breve)</option>
+  <option value="8ª" disabled>8ª Classe (em breve)</option>
+  
+  <!-- Classes disponíveis -->
+  <option value="9ª">9ª Classe</option>
+  <option value="10ª">10ª Classe</option>
+  <option value="11ª">11ª Classe</option>
+  <option value="12ª">12ª Classe</option>
+      </select>
       <input type="date" placeholder="Data de nascimento" id="nascimento" required>
 
       <h4>Selecione as disciplinas:</h4>
