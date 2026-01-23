@@ -11,49 +11,207 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
+// ================= ELEMENTOS DOM =================
+// INSCRIÇÃO
+const formInscricao = document.getElementById('formInscricao');
+const nome = document.getElementById('nome');
+const email = document.getElementById('email');
+const telefone = document.getElementById('telefone');
+const whatsapp = document.getElementById('whatsapp');
+const paiMae = document.getElementById('paiMae');
+const classe = document.getElementById('classe');
+const nascimento = document.getElementById('nascimento');
+
+// LOGIN
+const formLogin = document.getElementById('formLogin');
+const loginUsuario = document.getElementById('loginUsuario');
+const loginSenha = document.getElementById('loginSenha');
+
+// PAINEL ALUNO
+const perfilNome = document.getElementById('perfilNome');
+const perfilNumero = document.getElementById('perfilNumero');
+const perfilClasse = document.getElementById('perfilClasse');
+const perfilTurma = document.getElementById('perfilTurma');
+const perfilNascimento = document.getElementById('perfilNascimento');
+const perfilContato = document.getElementById('perfilContato');
+const listaNotas = document.getElementById('listaNotas');
+const mediaFinalAluno = document.getElementById('mediaFinalAluno');
+const statusAcademicoAluno = document.getElementById('statusAcademicoAluno');
+const listaPagamentos = document.getElementById('listaPagamentos');
+
+// PAINEL ADMIN
+const tabelaAlunos = document.getElementById('tabelaAlunos');
+
 // ================= NAVEGAÇÃO =================
 function mostrarPagina(id) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  const page = document.getElementById(id);
-  if (page) page.classList.add('active');
+  document.getElementById(id)?.classList.add('active');
 }
 
 function mostrarAba(id) {
   document.querySelectorAll('.aba').forEach(a => a.style.display = 'none');
-  const aba = document.getElementById(id);
-  if (aba) aba.style.display = 'block';
+  document.getElementById(id).style.display = 'block';
 }
 
 // ================= FUNÇÕES AUXILIARES =================
 function gerarNumeroAluno() {
   return '2007' + Math.floor(10000 + Math.random() * 90000);
 }
-
 function gerarSenha() {
   return Math.random().toString(36).slice(-8);
 }
 
-async function avaliarAluno(numero, mediaFinal, divida) {
-  let status = 'Reprovado';
-  if (divida > 0) status = 'Bloqueado';
-  else if (mediaFinal >= 10) status = 'Aprovado';
+// ================= INSCRIÇÃO =================
+formInscricao.addEventListener('submit', async (e) => {
+  e.preventDefault();
 
-  await db.collection('alunos').doc(numero).update({ statusAcademico: status });
-  return status;
+  const disciplinas = [...document.querySelectorAll('input[name="disciplinas"]:checked')].map(d => d.value);
+  if (!disciplinas.length) {
+    Swal.fire('Erro', 'Selecione pelo menos uma disciplina', 'error');
+    return;
+  }
+
+  const aluno = {
+    nome: nome.value,
+    email: email.value,
+    telefone: telefone.value,
+    whatsapp: whatsapp.value,
+    paiMae: paiMae.value,
+    classe: classe.value,
+    nascimento: nascimento.value,
+    disciplina: disciplinas,
+    turma: ['A', 'B', 'C'][Math.floor(Math.random() * 3)],
+    numero: gerarNumeroAluno(),
+    senha: gerarSenha(),
+    ativo: true,
+    confirmado: false,
+    divida: 5000,
+    statusAcademico: 'Reprovado'
+  };
+
+  await db.collection('alunos').doc(aluno.numero).set(aluno);
+
+  Swal.fire({
+    title: 'Inscrição concluída',
+    html: `<b>Número:</b> ${aluno.numero}<br><b>Senha:</b> ${aluno.senha}`,
+    icon: 'success'
+  });
+
+  formInscricao.reset();
+  mostrarPagina('home');
+});
+
+// ================= LOGIN =================
+formLogin.addEventListener('submit', async (e) => {
+  e.preventDefault();
+
+  const usuario = loginUsuario.value;
+  const senha = loginSenha.value;
+
+  // ADMIN
+  if (usuario === 'zenite' && senha === 'adminzenite') {
+    Swal.fire('Bem-vindo Admin', 'Login confirmado', 'success');
+    mostrarPainelAdmin();
+    return;
+  }
+
+  let aluno = null;
+  const snapEmail = await db.collection('alunos').where('email', '==', usuario).get();
+  if (!snapEmail.empty) aluno = snapEmail.docs[0].data();
+  else {
+    const doc = await db.collection('alunos').doc(usuario).get();
+    if (doc.exists) aluno = doc.data();
+  }
+
+  if (!aluno || aluno.senha !== senha) {
+    Swal.fire('Erro', 'Credenciais inválidas', 'error');
+    return;
+  }
+
+  const confirm = await Swal.fire({
+    title: 'Confirmar login',
+    text: `Entrar como ${aluno.nome}?`,
+    icon: 'question',
+    showCancelButton: true
+  });
+
+  if (!confirm.isConfirmed) return;
+
+  mostrarPainelAluno(aluno);
+});
+
+// ================= PAINEL ALUNO =================
+async function mostrarPainelAluno(aluno) {
+  mostrarPagina('painelAluno');
+
+  perfilNome.innerText = aluno.nome;
+  perfilNumero.innerText = aluno.numero;
+  perfilClasse.innerText = aluno.classe;
+  perfilTurma.innerText = aluno.turma;
+  perfilNascimento.innerText = aluno.nascimento;
+  perfilContato.innerText = `${aluno.telefone} / ${aluno.whatsapp}`;
+
+  listaNotas.innerHTML = '';
+  let soma = 0, qtd = 0;
+
+  const notasSnap = await db.collection('notas').where('numero', '==', aluno.numero).get();
+  notasSnap.forEach(n => {
+    listaNotas.innerHTML += `<p>${n.data().disciplina}: ${n.data().nota}</p>`;
+    soma += n.data().nota;
+    qtd++;
+  });
+
+  const media = qtd ? (soma / qtd).toFixed(1) : '-';
+  mediaFinalAluno.innerText = media;
+
+  let status = 'Reprovado';
+  if (aluno.divida > 0) status = 'Bloqueado';
+  else if (media >= 10) status = 'Aprovado';
+
+  statusAcademicoAluno.innerText = status;
+  mostrarAba('perfil');
+}
+
+// ===== BOTÕES DO ALUNO =====
+async function mostrarPagamentosAluno() {
+  mostrarAba('pagamentos');
+  listaPagamentos.innerHTML = '';
+
+  const numero = perfilNumero.innerText;
+  const snap = await db.collection('pagamentos').where('numero', '==', numero).get();
+  snap.forEach(p => {
+    listaPagamentos.innerHTML += `<p>${p.data().data} - ${p.data().valor} MT</p>`;
+  });
+}
+
+async function atualizarDadosAluno() {
+  const numero = perfilNumero.innerText;
+
+  const { value: dados } = await Swal.fire({
+    title: 'Atualizar contacto',
+    html: `
+      <input id="tel" class="swal2-input" placeholder="Telefone">
+      <input id="whats" class="swal2-input" placeholder="WhatsApp">
+    `,
+    preConfirm: () => ({
+      telefone: document.getElementById('tel').value,
+      whatsapp: document.getElementById('whats').value
+    }),
+    showCancelButton: true
+  });
+
+  if (!dados) return;
+
+  await db.collection('alunos').doc(numero).update(dados);
+  Swal.fire('Atualizado', 'Dados alterados', 'success');
 }
 
 // ================= PAINEL ADMIN =================
 async function mostrarPainelAdmin() {
   mostrarPagina('painelAdmin');
-
   tabelaAlunos.innerHTML = `
     <tr>
-      <th>Nome</th>
-      <th>Número</th>
-      <th>Conta</th>
-      <th>Status</th>
-      <th>Dívida</th>
-      <th>Ações</th>
+      <th>Nome</th><th>Número</th><th>Status</th><th>Dívida</th><th>Ações</th>
     </tr>`;
 
   const snap = await db.collection('alunos').get();
@@ -64,179 +222,106 @@ async function mostrarPainelAdmin() {
         <td>${a.nome}</td>
         <td>${a.numero}</td>
         <td>${a.ativo ? 'Ativo' : 'Suspenso'}</td>
-        <td>${a.statusAcademico}</td>
         <td>${a.divida} MT</td>
         <td>
           <button onclick="confirmar('${a.numero}')">Confirmar</button>
           <button onclick="verFormulario('${a.numero}')">Ver</button>
           <button onclick="registrarPagamento('${a.numero}')">Pagamento</button>
-          <button onclick="suspender('${a.numero}', ${a.ativo})">
-            ${a.ativo ? 'Suspender' : 'Ativar'}
-          </button>
+          <button onclick="editarDivida('${a.numero}')">Dívida</button>
+          <button onclick="editarPlano('${a.numero}')">Plano</button>
+          <button onclick="suspender('${a.numero}', ${a.ativo})">${a.ativo ? 'Suspender' : 'Ativar'}</button>
+          <button onclick="fecharAno('${a.numero}')">Fechar</button>
           <button onclick="excluir('${a.numero}')">Excluir</button>
         </td>
       </tr>`;
   });
 }
 
-// ================= FUNÇÕES DO ADMIN (CORRIGIDO) =================
-async function confirmar(numero) {
-  const res = await Swal.fire({
-    title: 'Confirmar matrícula?',
-    icon: 'question',
-    showCancelButton: true,
-    confirmButtonText: 'Confirmar'
-  });
-  if (!res.isConfirmed) return;
-
-  await db.collection('alunos').doc(numero).update({ confirmado: true });
-  Swal.fire('Confirmado', 'Matrícula confirmada', 'success');
+// ===== FUNÇÕES ADMIN =====
+async function confirmar(n) {
+  await db.collection('alunos').doc(n).update({ confirmado: true });
+  Swal.fire('Confirmado', 'Matrícula validada', 'success');
   mostrarPainelAdmin();
-  }
+}
 
-async function verFormulario(numero) {
-  const doc = await db.collection('alunos').doc(numero).get();
-  if (!doc.exists) {
-    Swal.fire('Erro', 'Aluno não encontrado', 'error');
-    return;
-  }
-
+async function verFormulario(n) {
+  const doc = await db.collection('alunos').doc(n).get();
+  if (!doc.exists) return;
   const a = doc.data();
+
   Swal.fire({
     title: 'Dados do Aluno',
     html: `
       <p><b>Nome:</b> ${a.nome}</p>
-      <p><b>Número:</b> ${a.numero}</p>
       <p><b>Email:</b> ${a.email}</p>
-      <p><b>Telefone:</b> ${a.telefone}</p>
-      <p><b>WhatsApp:</b> ${a.whatsapp}</p>
       <p><b>Classe:</b> ${a.classe}</p>
-      <p><b>Turma:</b> ${a.turma}</p>
       <p><b>Disciplinas:</b> ${a.disciplina.join(', ')}</p>
       <p><b>Dívida:</b> ${a.divida} MT</p>
-      <p><b>Status:</b> ${a.ativo ? 'Ativo' : 'Suspenso'}</p>
     `,
     icon: 'info'
   });
-   }
+}
 
-async function registrarPagamento(numero) {
-  const { value: valor } = await Swal.fire({
-    title: 'Registrar pagamento',
-    input: 'number',
-    inputLabel: 'Valor pago (MT)',
-    showCancelButton: true
-  });
+async function registrarPagamento(n) {
+  const { value } = await Swal.fire({ title: 'Valor pago', input: 'number', showCancelButton: true });
+  if (!value) return;
 
-  if (!valor || valor <= 0) return;
-
-  const ref = db.collection('alunos').doc(numero);
+  const ref = db.collection('alunos').doc(n);
   const doc = await ref.get();
-  if (!doc.exists) return;
-
-  const dividaAtual = doc.data().divida || 0;
-  const novaDivida = Math.max(dividaAtual - valor, 0);
-
-  await ref.update({ divida: novaDivida });
+  await ref.update({ divida: Math.max(doc.data().divida - value, 0) });
 
   await db.collection('pagamentos').add({
-    numero,
-    valor: Number(valor),
-    data: new Date().toLocaleDateString(),
-    status: 'Pago'
+    numero: n,
+    valor: Number(value),
+    data: new Date().toLocaleDateString()
   });
 
-  Swal.fire('Pago', 'Pagamento registrado', 'success');
+  Swal.fire('Pago', 'Pagamento registado', 'success');
   mostrarPainelAdmin();
-  }
+}
 
-async function editarPlano(numero) {
-  const { value: plano } = await Swal.fire({
-    title: 'Editar plano',
+async function editarDivida(n) {
+  const { value } = await Swal.fire({ title: 'Nova dívida', input: 'number', showCancelButton: true });
+  if (value !== undefined) {
+    await db.collection('alunos').doc(n).update({ divida: Number(value) });
+    Swal.fire('Atualizado', 'Dívida alterada', 'success');
+    mostrarPainelAdmin();
+  }
+}
+
+async function editarPlano(n) {
+  const { value } = await Swal.fire({
+    title: 'Plano',
     input: 'select',
-    inputOptions: {
-      Basico: 'Básico',
-      Premium: 'Premium',
-      VIP: 'VIP'
-    },
+    inputOptions: { Basico: 'Básico', Premium: 'Premium', VIP: 'VIP' },
     showCancelButton: true
   });
-
-  if (!plano) return;
-
-  await db.collection('alunos').doc(numero).update({ plano });
+  if (!value) return;
+  await db.collection('alunos').doc(n).update({ plano: value });
   Swal.fire('Atualizado', 'Plano alterado', 'success');
   mostrarPainelAdmin();
-  }
+}
 
-async function suspender(numero, ativo) {
-  const acao = ativo ? 'Suspender' : 'Ativar';
-
-  const res = await Swal.fire({
-    title: `${acao} aluno?`,
-    icon: 'warning',
-    showCancelButton: true,
-    confirmButtonText: acao
-  });
-  if (!res.isConfirmed) return;
-
-  await db.collection('alunos').doc(numero).update({ ativo: !ativo });
-  Swal.fire('Sucesso', `Aluno ${acao.toLowerCase()}ado`, 'success');
+async function suspender(n, ativo) {
+  await db.collection('alunos').doc(n).update({ ativo: !ativo });
+  Swal.fire('Sucesso', 'Estado alterado', 'success');
   mostrarPainelAdmin();
-  }
+}
 
-async function editarDivida(numero) {
-  const { value: divida } = await Swal.fire({
-    title: 'Editar dívida',
-    input: 'number',
-    inputLabel: 'Nova dívida (MT)',
-    showCancelButton: true
-  });
-
-  if (divida === undefined) return;
-
-  await db.collection('alunos').doc(numero).update({ divida: Number(divida) });
-  Swal.fire('Atualizado', 'Dívida alterada', 'success');
-  mostrarPainelAdmin();
-  }
-
-async function fecharAno(numero) {
-  const res = await Swal.fire({
-    title: 'Fechar ano letivo?',
-    text: 'O aluno será arquivado',
-    icon: 'warning',
-    showCancelButton: true,
-    confirmButtonText: 'Fechar'
-  });
-
-  if (!res.isConfirmed) return;
-
-  await db.collection('alunos').doc(numero).update({
-    encerrado: true,
-    ativo: false
-  });
-
+async function fecharAno(n) {
+  await db.collection('alunos').doc(n).update({ encerrado: true, ativo: false });
   Swal.fire('Concluído', 'Ano letivo encerrado', 'success');
   mostrarPainelAdmin();
-  }
+}
 
-async function excluir(numero) {
-  const res = await Swal.fire({
-    title: 'Excluir aluno?',
-    text: 'Essa ação é irreversível!',
-    icon: 'error',
-    showCancelButton: true,
-    confirmButtonText: 'Excluir'
-  });
-
-  if (!res.isConfirmed) return;
-
-  await db.collection('alunos').doc(numero).delete();
+async function excluir(n) {
+  await db.collection('alunos').doc(n).delete();
   Swal.fire('Excluído', 'Aluno removido', 'success');
   mostrarPainelAdmin();
-  }
+}
 
 // ================= LOGOUT =================
 function sair() {
+  Swal.fire('Sessão encerrada', '', 'info');
   mostrarPagina('home');
-}
+  }
