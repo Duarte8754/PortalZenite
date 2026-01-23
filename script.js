@@ -11,45 +11,12 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-// ================= ELEMENTOS DOM =================
-const formInscricao = document.getElementById('formInscricao');
-const formLogin = document.getElementById('formLogin');
-
-const nome = document.getElementById('nome');
-const email = document.getElementById('email');
-const telefone = document.getElementById('telefone');
-const whatsapp = document.getElementById('whatsapp');
-const paiMae = document.getElementById('paiMae');
-const classe = document.getElementById('classe');
-const nascimento = document.getElementById('nascimento');
-
-const loginUsuario = document.getElementById('loginUsuario');
-const loginSenha = document.getElementById('loginSenha');
-
-// PAINEL ALUNO
-const perfilNome = document.getElementById('perfilNome');
-const perfilNumero = document.getElementById('perfilNumero');
-const perfilClasse = document.getElementById('perfilClasse');
-const perfilTurma = document.getElementById('perfilTurma');
-const perfilNascimento = document.getElementById('perfilNascimento');
-const perfilContato = document.getElementById('perfilContato');
-const listaNotas = document.getElementById('listaNotas');
-const mediaFinalAluno = document.getElementById('mediaFinalAluno');
-const statusAcademicoAluno = document.getElementById('statusAcademicoAluno');
-
-// PAINEL ADMIN
-const tabelaAlunos = document.getElementById('tabelaAlunos');
-
 // ================= NAVEGAÇÃO =================
 function mostrarPagina(id) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  const pagina = document.getElementById(id);
-  if (pagina) pagina.classList.add('active');
+  const page = document.getElementById(id);
+  if (page) page.classList.add('active');
 }
-
-function mostrarInscricao() { mostrarPagina('inscricao'); }
-function mostrarLogin() { mostrarPagina('login'); }
-function voltarHome() { mostrarPagina('home'); }
 
 function mostrarAba(id) {
   document.querySelectorAll('.aba').forEach(a => a.style.display = 'none');
@@ -75,130 +42,6 @@ async function avaliarAluno(numero, mediaFinal, divida) {
   return status;
 }
 
-// ================= INSCRIÇÃO =================
-if (formInscricao) {
-  formInscricao.addEventListener('submit', async (e) => {
-    e.preventDefault();
-
-    try {
-      const checks = document.querySelectorAll('#disciplinasCheckboxes input[name="disciplinas"]:checked');
-      if (!checks.length) {
-        Swal.fire('Atenção', 'Selecione pelo menos uma disciplina.', 'warning');
-        return;
-      }
-
-      const aluno = {
-        nome: nome.value,
-        email: email.value,
-        telefone: telefone.value,
-        whatsapp: whatsapp.value,
-        paiMae: paiMae.value,
-        classe: classe.value,
-        disciplina: Array.from(checks).map(c => c.value),
-        nascimento: nascimento.value,
-        turma: ['A', 'B', 'C'][Math.floor(Math.random() * 3)],
-        dataInscricao: new Date().toLocaleDateString(),
-        numero: gerarNumeroAluno(),
-        senha: gerarSenha(),
-        ativo: true,
-        confirmado: false,
-        divida: 0,
-        planoPagamento: { total: 5000, parcelas: 5 },
-        statusAcademico: 'Reprovado'
-      };
-
-      await db.collection('alunos').doc(aluno.numero).set(aluno);
-
-      Swal.fire(
-        'Inscrição concluída!',
-        `Número: ${aluno.numero}<br>Senha: ${aluno.senha}`,
-        'success'
-      );
-
-      formInscricao.reset();
-      voltarHome();
-
-    } catch (err) {
-      Swal.fire('Erro', err.message, 'error');
-      console.error(err);
-    }
-  });
-}
-
-// ================= LOGIN =================
-if (formLogin) {
-  formLogin.addEventListener('submit', async (e) => {
-    e.preventDefault();
-
-    try {
-      const usuario = loginUsuario.value;
-      const senha = loginSenha.value;
-
-      if (usuario === 'zenite' && senha === 'adminzenite') {
-        mostrarPainelAdmin();
-        return;
-      }
-
-      let alunoData = null;
-
-      const snapEmail = await db.collection('alunos').where('email', '==', usuario).get();
-      if (!snapEmail.empty) {
-        alunoData = snapEmail.docs[0].data();
-        if (alunoData.senha !== senha) throw new Error('Senha incorreta');
-      } else {
-        const doc = await db.collection('alunos').doc(usuario).get();
-        if (!doc.exists) throw new Error('Aluno não encontrado');
-        if (doc.data().senha !== senha) throw new Error('Senha incorreta');
-        alunoData = doc.data();
-      }
-
-      mostrarPainelAluno(alunoData);
-
-    } catch (err) {
-      Swal.fire('Erro', err.message, 'error');
-    }
-  });
-}
-
-// ================= PAINEL ALUNO =================
-async function mostrarPainelAluno(aluno) {
-  mostrarPagina('painelAluno');
-
-  perfilNome.innerText = aluno.nome;
-  perfilNumero.innerText = aluno.numero;
-  perfilClasse.innerText = aluno.classe;
-  perfilTurma.innerText = aluno.turma;
-  perfilNascimento.innerText = aluno.nascimento;
-  perfilContato.innerText = `${aluno.telefone} / ${aluno.whatsapp}`;
-
-  listaNotas.innerHTML = '';
-
-  const notasSnap = await db.collection('notas').where('numero', '==', aluno.numero).get();
-
-  let soma = 0, qtd = 0;
-  const tabela = document.createElement('table');
-  tabela.innerHTML = `<tr><th>Disciplina</th><th>Nota</th></tr>`;
-
-  notasSnap.forEach(d => {
-    const nota = Number(d.data().nota);
-    tabela.innerHTML += `<tr><td>${d.data().disciplina}</td><td>${nota}</td></tr>`;
-    soma += nota;
-    qtd++;
-  });
-
-  listaNotas.appendChild(tabela);
-
-  const media = qtd ? Number((soma / qtd).toFixed(1)) : null;
-  mediaFinalAluno.innerText = media ?? '-';
-
-  if (media !== null) {
-    const status = await avaliarAluno(aluno.numero, media, aluno.divida);
-    statusAcademicoAluno.innerText = status;
-  }
-
-  mostrarAba('perfil');
-}
-
 // ================= PAINEL ADMIN =================
 async function mostrarPainelAdmin() {
   mostrarPagina('painelAdmin');
@@ -208,7 +51,7 @@ async function mostrarPainelAdmin() {
       <th>Nome</th>
       <th>Número</th>
       <th>Conta</th>
-      <th>Status Acad.</th>
+      <th>Status</th>
       <th>Dívida</th>
       <th>Ações</th>
     </tr>`;
@@ -222,24 +65,51 @@ async function mostrarPainelAdmin() {
         <td>${a.numero}</td>
         <td>${a.ativo ? 'Ativo' : 'Suspenso'}</td>
         <td>${a.statusAcademico}</td>
-        <td>${a.divida}</td>
+        <td>${a.divida} MT</td>
         <td>
           <button onclick="confirmar('${a.numero}')">Confirmar</button>
-          <button onclick="verFormulario('${a.numero}')">Ver Formulário</button>
-          <button onclick="registrarPagamento('${a.numero}')">Registrar Pagamento</button>
-          <button onclick="editarPlano('${a.numero}')">Editar Plano</button>
+          <button onclick="verFormulario('${a.numero}')">Ver</button>
+          <button onclick="registrarPagamento('${a.numero}')">Pagamento</button>
           <button onclick="suspender('${a.numero}', ${a.ativo})">
             ${a.ativo ? 'Suspender' : 'Ativar'}
           </button>
           <button onclick="excluir('${a.numero}')">Excluir</button>
-          <button onclick="editarDivida('${a.numero}')">Editar Dívida</button>
-          <button onclick="fecharAno('${a.numero}')">Fechar Ano</button>
         </td>
       </tr>`;
   });
 }
 
+// ================= PAGAMENTO (CORRIGIDO) =================
+async function registrarPagamento(numero) {
+  const { value: valor } = await Swal.fire({
+    title: 'Registrar pagamento',
+    input: 'number',
+    inputLabel: 'Valor pago (MT)',
+    showCancelButton: true
+  });
+
+  if (!valor || valor <= 0) return;
+
+  const ref = db.collection('alunos').doc(numero);
+  const doc = await ref.get();
+  if (!doc.exists) return;
+
+  const dividaAtual = doc.data().divida || 0;
+  const novaDivida = Math.max(dividaAtual - valor, 0);
+
+  await ref.update({ divida: novaDivida });
+
+  await db.collection('pagamentos').add({
+    numero,
+    valor: Number(valor),
+    data: new Date().toLocaleDateString()
+  });
+
+  Swal.fire('Sucesso', 'Pagamento registrado!', 'success');
+  mostrarPainelAdmin();
+}
+
 // ================= LOGOUT =================
 function sair() {
   mostrarPagina('home');
-  }
+}
