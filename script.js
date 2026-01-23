@@ -48,9 +48,14 @@ function mostrarPagina(id) {
   document.getElementById(id)?.classList.add('active');
 }
 
+function mostrarInscricao() { mostrarPagina('inscricao'); }
+function mostrarLogin() { mostrarPagina('login'); }
+function voltarHome() { mostrarPagina('home'); }
+
 function mostrarAba(id) {
   document.querySelectorAll('.aba').forEach(a => a.style.display = 'none');
-  document.getElementById(id).style.display = 'block';
+  const aba = document.getElementById(`aba${id.charAt(0).toUpperCase() + id.slice(1)}`);
+  if(aba) aba.style.display = 'block';
 }
 
 // ================= FUNÇÕES AUXILIARES =================
@@ -64,7 +69,6 @@ function gerarSenha() {
 // ================= INSCRIÇÃO =================
 formInscricao.addEventListener('submit', async (e) => {
   e.preventDefault();
-
   const disciplinas = [...document.querySelectorAll('input[name="disciplinas"]:checked')].map(d => d.value);
   if (!disciplinas.length) {
     Swal.fire('Erro', 'Selecione pelo menos uma disciplina', 'error');
@@ -104,7 +108,6 @@ formInscricao.addEventListener('submit', async (e) => {
 // ================= LOGIN =================
 formLogin.addEventListener('submit', async (e) => {
   e.preventDefault();
-
   const usuario = loginUsuario.value;
   const senha = loginSenha.value;
 
@@ -115,6 +118,7 @@ formLogin.addEventListener('submit', async (e) => {
     return;
   }
 
+  // ALUNO
   let aluno = null;
   const snapEmail = await db.collection('alunos').where('email', '==', usuario).get();
   if (!snapEmail.empty) aluno = snapEmail.docs[0].data();
@@ -167,51 +171,18 @@ async function mostrarPainelAluno(aluno) {
   let status = 'Reprovado';
   if (aluno.divida > 0) status = 'Bloqueado';
   else if (media >= 10) status = 'Aprovado';
-
   statusAcademicoAluno.innerText = status;
+
   mostrarAba('perfil');
-}
-
-// ===== BOTÕES DO ALUNO =====
-async function mostrarPagamentosAluno() {
-  mostrarAba('pagamentos');
-  listaPagamentos.innerHTML = '';
-
-  const numero = perfilNumero.innerText;
-  const snap = await db.collection('pagamentos').where('numero', '==', numero).get();
-  snap.forEach(p => {
-    listaPagamentos.innerHTML += `<p>${p.data().data} - ${p.data().valor} MT</p>`;
-  });
-}
-
-async function atualizarDadosAluno() {
-  const numero = perfilNumero.innerText;
-
-  const { value: dados } = await Swal.fire({
-    title: 'Atualizar contacto',
-    html: `
-      <input id="tel" class="swal2-input" placeholder="Telefone">
-      <input id="whats" class="swal2-input" placeholder="WhatsApp">
-    `,
-    preConfirm: () => ({
-      telefone: document.getElementById('tel').value,
-      whatsapp: document.getElementById('whats').value
-    }),
-    showCancelButton: true
-  });
-
-  if (!dados) return;
-
-  await db.collection('alunos').doc(numero).update(dados);
-  Swal.fire('Atualizado', 'Dados alterados', 'success');
 }
 
 // ================= PAINEL ADMIN =================
 async function mostrarPainelAdmin() {
   mostrarPagina('painelAdmin');
+
   tabelaAlunos.innerHTML = `
     <tr>
-      <th>Nome</th><th>Número</th><th>Status</th><th>Dívida</th><th>Ações</th>
+      <th>Nome</th><th>Número</th><th>Status</th><th>Status Académico</th><th>Dívida</th><th>Ações</th>
     </tr>`;
 
   const snap = await db.collection('alunos').get();
@@ -222,6 +193,7 @@ async function mostrarPainelAdmin() {
         <td>${a.nome}</td>
         <td>${a.numero}</td>
         <td>${a.ativo ? 'Ativo' : 'Suspenso'}</td>
+        <td>${a.statusAcademico}</td>
         <td>${a.divida} MT</td>
         <td>
           <button onclick="confirmar('${a.numero}')">Confirmar</button>
@@ -237,91 +209,110 @@ async function mostrarPainelAdmin() {
   });
 }
 
-// ===== FUNÇÕES ADMIN =====
-async function confirmar(n) {
-  await db.collection('alunos').doc(n).update({ confirmado: true });
+// ================= FUNÇÕES ADMIN =================
+async function confirmar(numero){
+  await db.collection('alunos').doc(numero).update({ confirmado: true });
   Swal.fire('Confirmado', 'Matrícula validada', 'success');
   mostrarPainelAdmin();
 }
 
-async function verFormulario(n) {
-  const doc = await db.collection('alunos').doc(n).get();
-  if (!doc.exists) return;
+async function verFormulario(numero){
+  const doc = await db.collection('alunos').doc(numero).get();
+  if(!doc.exists) return;
   const a = doc.data();
 
   Swal.fire({
-    title: 'Dados do Aluno',
+    title: 'Formulário do Aluno',
     html: `
       <p><b>Nome:</b> ${a.nome}</p>
       <p><b>Email:</b> ${a.email}</p>
+      <p><b>Telefone:</b> ${a.telefone}</p>
       <p><b>Classe:</b> ${a.classe}</p>
       <p><b>Disciplinas:</b> ${a.disciplina.join(', ')}</p>
       <p><b>Dívida:</b> ${a.divida} MT</p>
+      <p><b>Status:</b> ${a.ativo ? 'Ativo' : 'Suspenso'}</p>
     `,
     icon: 'info'
   });
 }
 
-async function registrarPagamento(n) {
+async function registrarPagamento(numero){
   const { value } = await Swal.fire({ title: 'Valor pago', input: 'number', showCancelButton: true });
   if (!value) return;
 
-  const ref = db.collection('alunos').doc(n);
+  const ref = db.collection('alunos').doc(numero);
   const doc = await ref.get();
   await ref.update({ divida: Math.max(doc.data().divida - value, 0) });
 
   await db.collection('pagamentos').add({
-    numero: n,
+    numero,
     valor: Number(value),
     data: new Date().toLocaleDateString()
   });
 
-  Swal.fire('Pago', 'Pagamento registado', 'success');
+  Swal.fire('Pago', 'Pagamento registrado', 'success');
   mostrarPainelAdmin();
 }
 
-async function editarDivida(n) {
-  const { value } = await Swal.fire({ title: 'Nova dívida', input: 'number', showCancelButton: true });
-  if (value !== undefined) {
-    await db.collection('alunos').doc(n).update({ divida: Number(value) });
+async function editarDivida(numero){
+  const { value } = await Swal.fire({ title: 'Editar dívida', input: 'number', showCancelButton: true });
+  if(value !== undefined){
+    await db.collection('alunos').doc(numero).update({ divida: Number(value) });
     Swal.fire('Atualizado', 'Dívida alterada', 'success');
     mostrarPainelAdmin();
   }
 }
 
-async function editarPlano(n) {
+async function editarPlano(numero){
   const { value } = await Swal.fire({
-    title: 'Plano',
+    title: 'Editar plano',
     input: 'select',
     inputOptions: { Basico: 'Básico', Premium: 'Premium', VIP: 'VIP' },
     showCancelButton: true
   });
-  if (!value) return;
-  await db.collection('alunos').doc(n).update({ plano: value });
+  if(!value) return;
+  await db.collection('alunos').doc(numero).update({ plano: value });
   Swal.fire('Atualizado', 'Plano alterado', 'success');
   mostrarPainelAdmin();
 }
 
-async function suspender(n, ativo) {
-  await db.collection('alunos').doc(n).update({ ativo: !ativo });
-  Swal.fire('Sucesso', 'Estado alterado', 'success');
+async function suspender(numero, ativo){
+  await db.collection('alunos').doc(numero).update({ ativo: !ativo });
+  Swal.fire('Sucesso', `Aluno ${ativo ? 'suspenso' : 'ativado'}`, 'success');
   mostrarPainelAdmin();
 }
 
-async function fecharAno(n) {
-  await db.collection('alunos').doc(n).update({ encerrado: true, ativo: false });
+async function fecharAno(numero){
+  await db.collection('alunos').doc(numero).update({ encerrado: true, ativo: false });
   Swal.fire('Concluído', 'Ano letivo encerrado', 'success');
   mostrarPainelAdmin();
 }
 
-async function excluir(n) {
-  await db.collection('alunos').doc(n).delete();
+async function excluir(numero){
+  await db.collection('alunos').doc(numero).delete();
   Swal.fire('Excluído', 'Aluno removido', 'success');
   mostrarPainelAdmin();
 }
 
 // ================= LOGOUT =================
-function sair() {
+function logout() {
   Swal.fire('Sessão encerrada', '', 'info');
   mostrarPagina('home');
+}
+
+// ================= EFEITO DE DIGITAÇÃO =================
+const titleText = "Portal ZÊNITE";
+const titleSpan = document.getElementById("title-text");
+let index = 0;
+
+function typeTitle() {
+  if(index <= titleText.length){
+    titleSpan.innerText = titleText.slice(0,index);
+    index++;
+    setTimeout(typeTitle, 150);
+  } else {
+    setTimeout(()=>{ index=0; titleSpan.innerText=''; typeTitle(); }, 3000);
   }
+}
+
+typeTitle();
