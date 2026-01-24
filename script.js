@@ -452,6 +452,17 @@ async function confirmarFecharAno(id) {
     Swal.fire({ icon: 'success', title: 'Sucesso', text: 'Ano fechado com sucesso', timer: 2000, showConfirmButton: false });
 }
 
+function toggleGerir(botao) {
+  const menu = botao.nextElementSibling;
+
+  // Fecha outros menus abertos
+  document.querySelectorAll('.gerir-menu').forEach(m => {
+    if (m !== menu) m.style.display = 'none';
+  });
+
+  menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+      }
+
 // ===== SAIR DO SISTEMA =====
 function sair() {
     mostrarPagina('home');
