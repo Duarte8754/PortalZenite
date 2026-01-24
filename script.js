@@ -271,10 +271,36 @@ function editarPlano(id) {
 }
 
 async function salvarPlano(id) {
-    const plano = document.getElementById('novoPlano').value;
-    await db.collection('alunos').doc(id).update({ plano });
-    fecharModal();
-    Swal.fire({ icon: 'success', title: 'Sucesso', text: 'Plano atualizado', timer: 2000, showConfirmButton: false });
+    try {
+        const plano = document.getElementById('novoPlano').value;
+        if (!plano) return Swal.fire({ icon: 'warning', title: 'Aviso', text: 'Selecione um plano', timer: 2000, showConfirmButton: false });
+
+        await db.collection('alunos').doc(id).update({ plano });
+        fecharModal();
+        Swal.fire({ icon: 'success', title: 'Sucesso', text: 'Plano atualizado', timer: 2000, showConfirmButton: false });
+        mostrarPainelAdmin(); // atualiza tabela após mudança
+    } catch (err) {
+        console.error(err);
+        Swal.fire({ icon: 'error', title: 'Erro', text: 'Falha ao atualizar plano', timer: 2000, showConfirmButton: false });
+    }
+     }
+
+// ===== SUSPENDER / ATIVAR ALUNO =====
+async function suspender(numero, ativo) {
+    try {
+        await db.collection('alunos').doc(numero).update({ ativo: !ativo });
+        Swal.fire({
+            icon: 'success',
+            title: 'Sucesso',
+            text: `Aluno ${!ativo ? 'ativado' : 'suspenso'} com sucesso!`,
+            timer: 2000,
+            showConfirmButton: false
+        });
+        mostrarPainelAdmin(); // atualiza tabela após mudança
+    } catch (err) {
+        console.error(err);
+        Swal.fire({ icon: 'error', title: 'Erro', text: 'Falha ao alterar status', timer: 2000, showConfirmButton: false });
+    }
 }
 
 // ===== FECHAR ANO =====
