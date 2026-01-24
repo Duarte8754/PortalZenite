@@ -200,10 +200,107 @@ function typeWriter(){
 }
 typeWriter();
 
-// ===== FUNÇÕES ADMIN SIMPLES =====
-async function confirmar(numero){ await db.collection('alunos').doc(numero).update({confirmado:true}); alertaSucesso('Matrícula confirmada'); mostrarPainelAdmin();}
-async function suspender(numero,ativo){ await db.collection('alunos').doc(numero).update({ativo:!ativo}); alertaSucesso(!ativo?'Aluno ativado':'Aluno suspenso'); mostrarPainelAdmin();}
-async function editarDivida(numero){ const nova=prompt('Valor da dívida:'); if(nova!==null){ await db.collection('alunos').doc(numero).update({divida:parseFloat(nova)}); alertaSucesso('Dívida atualizada'); mostrarPainelAdmin();}}
-async function verFormulario(id){ const doc = await db.collection('alunos').doc(id).get(); if(!doc.exists){ Swal.fire('Erro','Aluno não encontrado','error'); return;} const a=doc.data(); abrirModal('Formulário Aluno',`Nome: ${a.nome}<br>Número: ${a.numero}<br>Email: ${a.email}<br>Status: ${a.ativo?'Ativo':'Suspenso'}`);}
-function abrirModal(titulo,conteudo){ document.getElementById('modalTitulo').innerText=titulo; document.getElementById('conteudoFormulario').innerHTML=conteudo; document.getElementById('modalFormulario').style.display='flex';}
-function fecharModal(){ document.getElementById('modalFormulario').style.display='none';}
+// ===== ABRIR MODAL =====
+function abrirModal(titulo, conteudoHTML) {
+    const modal = document.getElementById('modalFormulario');
+    document.getElementById('modalTitulo').innerText = titulo;
+    document.getElementById('conteudoFormulario').innerHTML = conteudoHTML;
+    modal.style.display = 'flex';
+}
+
+function fecharModal() {
+    document.getElementById('modalFormulario').style.display = 'none';
+}
+
+// ===== VER FORMULÁRIO DO ALUNO =====
+async function verFormulario(id) {
+    try {
+        const doc = await db.collection('alunos').doc(id).get();
+        if (!doc.exists) {
+            Swal.fire({ icon: 'error', title: 'Erro', text: 'Aluno não encontrado', timer: 2000, showConfirmButton: false });
+            return;
+        }
+
+        const a = doc.data();
+        abrirModal('📄 Formulário do Aluno', `
+            <p><strong>Nome:</strong> ${a.nome}</p>
+            <p><strong>Número:</strong> ${a.numero}</p>
+            <p><strong>Email:</strong> ${a.email}</p>
+            <p><strong>Plano:</strong> ${a.plano || '—'}</p>
+            <p><strong>Status:</strong> ${a.status || 'Ativo'}</p>
+        `);
+
+    } catch (e) {
+        console.error(e);
+        Swal.fire({ icon: 'error', title: 'Erro', text: 'Falha ao buscar formulário', timer: 2000, showConfirmButton: false });
+    }
+}
+
+// ===== REGISTRAR PAGAMENTO =====
+function registrarPagamento(id) {
+    abrirModal('💰 Registrar Pagamento', `
+        <input id="valorPagamento" placeholder="Valor pago">
+        <button onclick="salvarPagamento('${id}')">Confirmar</button>
+    `);
+}
+
+async function salvarPagamento(id) {
+    const valor = document.getElementById('valorPagamento').value;
+    if (!valor) return Swal.fire({ icon: 'warning', title: 'Aviso', text: 'Informe o valor', timer: 2000, showConfirmButton: false });
+
+    await db.collection('pagamentos').add({
+        alunoId: id,
+        valor: parseFloat(valor),
+        data: new Date().toLocaleDateString()
+    });
+
+    fecharModal();
+    Swal.fire({ icon: 'success', title: 'Sucesso', text: 'Pagamento registrado', timer: 2000, showConfirmButton: false });
+}
+
+// ===== EDITAR PLANO =====
+function editarPlano(id) {
+    abrirModal('✏️ Editar Plano', `
+        <select id="novoPlano">
+            <option value="Basico">Básico</option>
+            <option value="Premium">Premium</option>
+            <option value="VIP">VIP</option>
+        </select>
+        <button onclick="salvarPlano('${id}')">Salvar</button>
+    `);
+}
+
+async function salvarPlano(id) {
+    const plano = document.getElementById('novoPlano').value;
+    await db.collection('alunos').doc(id).update({ plano });
+    fecharModal();
+    Swal.fire({ icon: 'success', title: 'Sucesso', text: 'Plano atualizado', timer: 2000, showConfirmButton: false });
+}
+
+// ===== FECHAR ANO =====
+function fecharAno(id) {
+    abrirModal('⚠️ Fechar Ano', `
+        <p>Tem certeza que deseja fechar o ano deste aluno?</p>
+        <button onclick="confirmarFecharAno('${id}')">SIM, fechar</button>
+    `);
+}
+
+async function confirmarFecharAno(id) {
+    await db.collection('alunos').doc(id).update({ status: 'Encerrado' });
+    fecharModal();
+    Swal.fire({ icon: 'success', title: 'Sucesso', text: 'Ano fechado com sucesso', timer: 2000, showConfirmButton: false });
+}
+
+// ===== SAIR DO SISTEMA =====
+function sair() {
+    mostrarPagina('home');
+
+    // Limpa dados sensíveis do painel do aluno
+    ['perfilNome','perfilNumero','perfilClasse','perfilTurma','perfilNascimento','perfilContato',
+     'listaNotas','listaExtrato','listaCalendario','listaHistorico','mediaFinalAluno','statusAcademicoAluno'].forEach(id => {
+        const el = document.getElementById(id);
+        if(el) el.innerText = '';
+    });
+
+    Swal.fire({ icon: 'success', title: 'Sucesso', text: 'Você saiu com sucesso!', timer: 2000, showConfirmButton: false });
+}
