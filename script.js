@@ -149,16 +149,6 @@ async function mostrarPainelAluno(aluno){
 
     const disciplinas = aluno.disciplina; // array de disciplinas selecionadas
 
-    // Cria estrutura para cada disciplina e trimestre
-    const dados = {};
-    disciplinas.forEach(d => {
-        dados[d] = {
-            1:{teste1:'-',teste2:'-',trabalho:'-',final:'-'},
-            2:{teste1:'-',teste2:'-',trabalho:'-',final:'-'},
-            3:{teste1:'-',teste2:'-',trabalho:'-',final:'-'}
-        };
-    });
-
     // --- Cria tabela ---
     const tabela = document.createElement('table');
     tabela.innerHTML = `<tr>
