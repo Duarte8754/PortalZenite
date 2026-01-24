@@ -141,6 +141,103 @@ async function mostrarPainelAluno(aluno){
   mostrarAba('perfil');
 }
 
+// ===== NOTAS =====
+
+    // --- Notas ---
+    const listaNotas = document.getElementById('listaNotas');
+    listaNotas.innerHTML = '';
+
+    const disciplinas = aluno.disciplina; // array de disciplinas selecionadas
+
+    // Cria estrutura para cada disciplina e trimestre
+    const dados = {};
+    disciplinas.forEach(d => {
+        dados[d] = {
+            1:{teste1:'-',teste2:'-',trabalho:'-',final:'-'},
+            2:{teste1:'-',teste2:'-',trabalho:'-',final:'-'},
+            3:{teste1:'-',teste2:'-',trabalho:'-',final:'-'}
+        };
+    });
+
+    // Pega notas do Firestore
+    const notasSnap = await db.collection('notas').where('numero','==',aluno.numero).get();
+    notasSnap.forEach(doc => {
+        const n = doc.data();
+        if(dados[n.disciplina] && dados[n.disciplina][n.trimestre]){
+            dados[n.disciplina][n.trimestre][n.tipo] = n.nota;
+        }
+    });
+
+    // Função para calcular média de cada trimestre
+    function mediaTrimestre(tri){
+        const notas = ['teste1','teste2','trabalho','final'].map(t => tri[t]).filter(v => typeof v === 'number');
+        if(!notas.length) return '-';
+        return (notas.reduce((a,b)=>a+b,0)/notas.length).toFixed(1);
+    }
+
+    // --- Cria tabela ---
+    const tabela = document.createElement('table');
+    tabela.innerHTML = `<tr>
+        <th>Disciplina</th>
+        <th>Trimestre</th>
+        <th>Teste 1</th>
+        <th>Teste 2</th>
+        <th>Trabalho</th>
+        <th>Final</th>
+        <th>Média Trimestre</th>
+    </tr>`;
+
+    let somaMedias = 0;
+    let contadorMedias = 0;
+
+    disciplinas.forEach(disc => {
+        [1,2,3].forEach(t => {
+            const mediaT = mediaTrimestre(dados[disc][t]);
+            if(mediaT !== '-') { somaMedias += parseFloat(mediaT); contadorMedias++; }
+
+            tabela.innerHTML += `<tr>
+                <td>${disc}</td>
+                <td>${t}</td>
+                <td>${dados[disc][t].teste1}</td>
+                <td>${dados[disc][t].teste2}</td>
+                <td>${dados[disc][t].trabalho}</td>
+                <td>${dados[disc][t].final}</td>
+                <td>${mediaT}</td>
+            </tr>`;
+        });
+    });
+
+    // Média final anual
+    const mediaFinalAnual = contadorMedias ? (somaMedias/contadorMedias).toFixed(1) : '-';
+
+    let corMedia = 'black';
+    let statusTexto = '';
+    if(mediaFinalAnual !== '-') {
+        if(mediaFinalAnual >= 10){
+            corMedia = 'green';
+            statusTexto = 'Aprovado';
+        } else {
+            corMedia = 'red';
+            statusTexto = 'Perigo de reprovar';
+        }
+    }
+
+    tabela.innerHTML += `<tr style="background:#e8f5e9">
+        <td colspan="6"><strong>MÉDIA FINAL ANUAL</strong></td>
+        <td><strong style="color:${corMedia}">${mediaFinalAnual} (${statusTexto})</strong></td>
+    </tr>`;
+
+    listaNotas.appendChild(tabela);
+
+    // Atualiza status acadêmico no painel
+    document.getElementById('statusAcademicoAluno').innerText = statusTexto;
+    document.getElementById('statusAcademicoAluno').style.color = corMedia;
+    document.getElementById('mediaFinalAluno').innerText = mediaFinalAnual;
+
+    // Mostrar aba perfil como padrão
+    mostrarAba('perfil');
+      }
+
 // ===== PAINEL ADMIN =====
 async function mostrarPainelAdmin(){
   mostrarPagina('painelAdmin');
