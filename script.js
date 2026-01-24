@@ -1,287 +1,179 @@
-/***********************
- * FIREBASE CONFIG
- ***********************/
+// ===== FIREBASE CONFIG =====
 const firebaseConfig = {
-  apiKey: "SUA_API_KEY",
-  authDomain: "SEU_AUTH_DOMAIN",
-  projectId: "SEU_PROJECT_ID",
-  storageBucket: "SEU_BUCKET",
-  messagingSenderId: "SEU_SENDER_ID",
-  appId: "SEU_APP_ID"
+  apiKey: "AIzaSyAk2_prEtJXNPanJFRGHxbQqXi1TVhX0e8",
+  authDomain: "portal-de-aluno-zenite-e816a.firebaseapp.com",
+  projectId: "portal-de-aluno-zenite-e816a",
+  storageBucket: "portal-de-aluno-zenite-e816a.firebasestorage.app",
+  messagingSenderId: "491945820334",
+  appId: "1:491945820334:web:9032740671388bbf056d3f"
 };
-
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-/***********************
- * ANIMAÇÃO TÍTULO
- ***********************/
-const texto = "ZÊNITE PORTAL";
-let i = 0;
-const titleSpan = document.getElementById("title-text");
-
-function escreverTitulo() {
-  if (i < texto.length) {
-    titleSpan.innerHTML += texto.charAt(i);
-    i++;
-    setTimeout(escreverTitulo, 120);
-  }
+// ===== NAVEGAÇÃO =====
+function mostrarPagina(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
 }
-escreverTitulo();
+function mostrarInscricao(){ mostrarPagina('inscricao'); }
+function mostrarLogin(){ mostrarPagina('login'); }
+function voltarHome(){ mostrarPagina('home'); }
 
-/***********************
- * NAVEGAÇÃO DE PÁGINAS
- ***********************/
-function mostrarPagina(id) {
-  document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
-  document.getElementById(id).classList.add("active");
+// ===== GERAÇÃO DE ALUNO E SENHA =====
+function gerarNumeroAluno(){ return '2007'+Math.floor(10000+Math.random()*90000); }
+function gerarSenha(nome, numero){ 
+  const primeiroNome = nome.split(' ')[0].toLowerCase();
+  return `${primeiroNome}${numero}@IZ.com`;
 }
 
-function mostrarInscricao() { mostrarPagina("inscricao"); }
-function mostrarLogin() { mostrarPagina("login"); }
-function voltarHome() { mostrarPagina("home"); }
-
-/***********************
- * GERAR NÚMERO DO ALUNO
- ***********************/
-async function gerarNumeroAluno() {
-  const snap = await db.collection("alunos").orderBy("numero", "desc").limit(1).get();
-  if (snap.empty) return 20070001;
-  return snap.docs[0].data().numero + 1;
-}
-
-/***********************
- * INSCRIÇÃO
- ***********************/
-document.getElementById("formInscricao").addEventListener("submit", async e => {
+// ===== INSCRIÇÃO =====
+document.getElementById('formInscricao').addEventListener('submit', async e=>{
   e.preventDefault();
+  const disciplinasSelecionadas = Array.from(document.querySelectorAll('#disciplinasCheckboxes input[name="disciplinas"]:checked')).map(cb=>cb.value);
+  if(disciplinasSelecionadas.length===0) return Swal.fire('Erro','Selecione pelo menos uma disciplina!','error');
 
-  const nome = document.getElementById("nome").value.trim();
-  const email = document.getElementById("email").value.trim();
-  const telefone = document.getElementById("telefone").value;
-  const whatsapp = document.getElementById("whatsapp").value;
-  const paiMae = document.getElementById("paiMae").value;
-  const classe = document.getElementById("classe").value;
-  const nascimento = document.getElementById("nascimento").value;
+  const alunoNumero = gerarNumeroAluno();
+  const alunoSenha = gerarSenha(document.getElementById('nome').value, alunoNumero);
 
-  const disciplinas = [...document.querySelectorAll("input[name='disciplinas']:checked")]
-    .map(d => d.value);
+  const aluno = {
+    nome: document.getElementById('nome').value,
+    email: document.getElementById('email').value,
+    telefone: document.getElementById('telefone').value,
+    whatsapp: document.getElementById('whatsapp').value,
+    paiMae: document.getElementById('paiMae').value,
+    classe: document.getElementById('classe').value,
+    disciplina: disciplinasSelecionadas,
+    nascimento: document.getElementById('nascimento').value,
+    turma: ['A','B','C'][Math.floor(Math.random()*3)],
+    dataInscricao: new Date().toLocaleDateString(),
+    numero: alunoNumero,
+    senha: alunoSenha,
+    ativo:true,
+    confirmado:false,
+    divida:0,
+    planoPagamento:{total:5000, parcelas:5},
+    statusAcademico:'Reprovado'
+  };
 
-  if (disciplinas.length === 0) {
-    alert("Selecione pelo menos uma disciplina");
-    return;
-  }
-
-  const numero = await gerarNumeroAluno();
-  const primeiroNome = nome.split(" ")[0].toLowerCase();
-  const senha = `${primeiroNome}${numero}@IZ.com`;
-
-  // cria auth
-  await auth.createUserWithEmailAndPassword(email, senha);
-
-  await db.collection("alunos").add({
-    nome,
-    email,
-    telefone,
-    whatsapp,
-    paiMae,
-    classe,
-    nascimento,
-    disciplinas,
-    numero,
-    senha,
-    divida: 0,
-    status: "Ativo",
-    tipo: "aluno"
-  });
-
-  alert(
-    `Inscrição concluída!\n\nNúmero: ${numero}\nSenha: ${senha}`
-  );
-
-  mostrarLogin();
+  try{
+    await db.collection('alunos').doc(aluno.numero).set(aluno);
+    Swal.fire('Sucesso',`Número: ${aluno.numero}\nSenha: ${aluno.senha}`,'success');
+    document.getElementById('formInscricao').reset();
+    voltarHome();
+  }catch(err){ Swal.fire('Erro', err.message,'error'); console.error(err);}
 });
 
-/***********************
- * LOGIN
- ***********************/
-document.getElementById("formLogin").addEventListener("submit", async e => {
+// ===== LOGIN =====
+document.getElementById('formLogin').addEventListener('submit', async e=>{
   e.preventDefault();
+  const usuario=document.getElementById('loginUsuario').value;
+  const senha=document.getElementById('loginSenha').value;
 
-  const usuario = document.getElementById("loginUsuario").value.trim();
-  const senha = document.getElementById("loginSenha").value;
+  // Admin
+  if(usuario==='zenite' && senha==='adminzenite'){ mostrarPainelAdmin(); return; }
 
-  // login por email
-  if (usuario.includes("@")) {
-    await auth.signInWithEmailAndPassword(usuario, senha);
-    carregarPainelAluno(usuario);
-  } else {
-    // login por número
-    const snap = await db.collection("alunos").where("numero", "==", Number(usuario)).get();
-    if (snap.empty) return alert("Aluno não encontrado");
+  try{
+    let alunoSnap = await db.collection('alunos').doc(usuario).get();
+    if(!alunoSnap.exists){
+      const snapshot = await db.collection('alunos').where('email','==',usuario).get();
+      if(snapshot.empty) return Swal.fire('Erro','Aluno não encontrado','error');
+      alunoSnap = snapshot.docs[0];
+    }
+    const alunoData = alunoSnap.data();
+    if(!alunoData.confirmado) return Swal.fire('Erro','Conta não confirmada','error');
+    if(alunoData.senha!==senha) return Swal.fire('Erro','Senha incorreta','error');
 
-    const aluno = snap.docs[0].data();
-    await auth.signInWithEmailAndPassword(aluno.email, senha);
-    carregarPainelAluno(aluno.email);
-  }
+    mostrarPainelAluno(alunoData);
+  }catch(err){ Swal.fire('Erro',err.message,'error'); console.error(err);}
 });
 
-/***********************
- * PAINEL ALUNO
- ***********************/
-async function carregarPainelAluno(email) {
-  const snap = await db.collection("alunos").where("email", "==", email).get();
-  const aluno = snap.docs[0].data();
-
-  document.getElementById("perfilNome").innerText = aluno.nome;
-  document.getElementById("perfilNumero").innerText = aluno.numero;
-  document.getElementById("perfilClasse").innerText = aluno.classe;
-  document.getElementById("perfilNascimento").innerText = aluno.nascimento;
-  document.getElementById("perfilContato").innerText = aluno.whatsapp;
-  document.getElementById("totalDivida").innerText = aluno.divida;
-
-  carregarNotas(aluno);
-  carregarExtrato(aluno);
-  carregarCalendario();
-  carregarHistorico(aluno);
-
-  mostrarPagina("painelAluno");
-  mostrarAba("perfil");
+// ===== PAINEL ALUNO =====
+function mostrarAba(nome){
+  document.querySelectorAll('.aba').forEach(a=>a.classList.remove('active'));
+  const aba = document.getElementById('aba'+nome.charAt(0).toUpperCase()+nome.slice(1));
+  if(aba) aba.classList.add('active');
 }
 
-/***********************
- * ABAS
- ***********************/
-function mostrarAba(nome) {
-  document.querySelectorAll(".aba").forEach(a => a.style.display = "none");
-  document.getElementById("aba" + nome.charAt(0).toUpperCase() + nome.slice(1)).style.display = "block";
+async function mostrarPainelAluno(aluno){
+  mostrarPagina('painelAluno');
+  document.getElementById('perfilNome').innerText=aluno.nome;
+  document.getElementById('perfilNumero').innerText=aluno.numero;
+  document.getElementById('perfilClasse').innerText=aluno.classe;
+  document.getElementById('perfilTurma').innerText=aluno.turma;
+  document.getElementById('perfilNascimento').innerText=aluno.nascimento;
+  document.getElementById('perfilContato').innerText=`Tel: ${aluno.telefone} / WhatsApp: ${aluno.whatsapp}`;
+  document.getElementById('valorTotal').innerText=aluno.planoPagamento?.total||0;
+  document.getElementById('parcelas').innerText=aluno.planoPagamento?.parcelas||0;
+  document.getElementById('totalDivida').innerText=aluno.divida;
+
+  // Listas vazias (preparar para preencher notas, extrato, histórico, calendário)
+  document.getElementById('listaNotas').innerHTML='';
+  document.getElementById('listaExtrato').innerHTML='';
+  document.getElementById('listaHistorico').innerHTML='';
+  document.getElementById('listaCalendario').innerHTML='';
+
+  mostrarAba('perfil');
 }
 
-/***********************
- * NOTAS + MÉDIA
- ***********************/
-async function carregarNotas(aluno) {
-  const lista = document.getElementById("listaNotas");
-  lista.innerHTML = "";
+// ===== PAINEL ADMIN =====
+async function mostrarPainelAdmin(){
+  mostrarPagina('painelAdmin');
 
-  const snap = await db.collection("notas")
-    .where("numero", "==", aluno.numero).get();
-
-  let soma = 0, qtd = 0;
-
-  snap.forEach(doc => {
-    const n = doc.data();
-    const div = document.createElement("div");
-    div.innerText = `${n.disciplina} | T${n.trimestre} | ${n.tipo}: ${n.nota}`;
-    lista.appendChild(div);
-
-    soma += n.nota;
-    qtd++;
-  });
-
-  if (qtd > 0) {
-    const media = (soma / qtd).toFixed(1);
-    document.getElementById("mediaFinalAluno").innerText = media;
-
-    const status = media >= 10 ? "Aprovado" : "Perigo de reprovar";
-    const span = document.getElementById("statusAcademicoAluno");
-    span.innerText = status;
-    span.style.color = media >= 10 ? "green" : "red";
-  }
-}
-
-/***********************
- * ADMIN – DISCIPLINAS DINÂMICAS
- ***********************/
-document.getElementById("notaAluno").addEventListener("change", async e => {
-  const numero = Number(e.target.value);
-  const select = document.getElementById("notaDisciplina");
-  select.innerHTML = '<option value="">Selecione a disciplina</option>';
-
-  const snap = await db.collection("alunos").where("numero", "==", numero).get();
-  if (snap.empty) return;
-
-  const aluno = snap.docs[0].data();
-  aluno.disciplinas.forEach(d => {
-    const op = document.createElement("option");
-    op.value = d;
-    op.innerText = d;
-    select.appendChild(op);
-  });
-});
-
-/***********************
- * LANÇAR NOTA
- ***********************/
-document.getElementById("formNota").addEventListener("submit", async e => {
-  e.preventDefault();
-
-  await db.collection("notas").add({
-    numero: Number(notaAluno.value),
-    disciplina: notaDisciplina.value,
-    nota: Number(notaValor.value),
-    trimestre: Number(notaTrimestre.value),
-    tipo: notaTipo.value
-  });
-
-  alert("Nota lançada com sucesso");
-});
-
-/***********************
- * CALENDÁRIO
- ***********************/
-async function carregarCalendario() {
-  const lista = document.getElementById("listaCalendario");
-  lista.innerHTML = "";
-
-  const snap = await db.collection("calendario").get();
-  snap.forEach(doc => {
-    const li = document.createElement("li");
-    li.innerText = `${doc.data().data} - ${doc.data().evento}`;
-    lista.appendChild(li);
+  const tabela=document.getElementById('tabelaAlunos');
+  tabela.innerHTML=`<tr>
+    <th>Nome</th><th>Número</th><th>Status</th><th>Status Académico</th><th>Dívida</th><th>Ações</th>
+  </tr>`;
+  const snapshot = await db.collection('alunos').get();
+  snapshot.forEach(doc=>{
+    const a=doc.data();
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${a.nome}</td>
+      <td>${a.numero}</td>
+      <td>${a.ativo?'Ativo':'Suspenso'}</td>
+      <td>${a.statusAcademico}</td>
+      <td>${a.divida}</td>
+      <td>
+        <button onclick="confirmar('${a.numero}')">Confirmar</button>
+        <button onclick="verFormulario('${a.numero}')">Ver Formulário</button>
+        <button onclick="suspender('${a.numero}',${a.ativo})">${a.ativo?'Suspender':'Ativar'}</button>
+        <button onclick="editarDivida('${a.numero}')">Editar Dívida</button>
+      </td>`;
+    tabela.appendChild(tr);
   });
 }
 
-/***********************
- * EXTRATO
- ***********************/
-async function carregarExtrato(aluno) {
-  const lista = document.getElementById("listaExtrato");
-  lista.innerHTML = "";
+// ===== ALERTAS SWEETALERT2 =====
+function alertaSucesso(msg){ Swal.fire('Sucesso',msg,'success'); }
+function alertaErro(msg){ Swal.fire('Erro',msg,'error'); }
 
-  const snap = await db.collection("pagamentos")
-    .where("numero", "==", aluno.numero).get();
+// ===== LOGOUT =====
+document.getElementById('btnSair')?.addEventListener('click',logout);
+function logout(){ mostrarPagina('home'); Swal.fire('Logout','Você saiu com sucesso!','success'); }
 
-  snap.forEach(doc => {
-    const li = document.createElement("li");
-    li.innerText = `${doc.data().data} - ${doc.data().valor} (${doc.data().status})`;
-    lista.appendChild(li);
-  });
+// ===== TÍTULO ANIMADO =====
+const title = "Portal Zênite";
+const titleElement = document.getElementById('title-text');
+let index=0;
+function typeWriter(){
+  if(index<title.length){
+    const span=document.createElement('span');
+    span.textContent=title[index];
+    titleElement.appendChild(span);
+    span.style.opacity=0;
+    span.style.transform='translateY(-20px)';
+    span.style.transition='all 0.3s ease';
+    setTimeout(()=>{span.style.opacity=1;span.style.transform='translateY(0)';},50);
+    index++;
+    setTimeout(typeWriter,150);
+  }else{ setTimeout(()=>{titleElement.innerHTML=''; index=0; typeWriter();},2000);}
 }
+typeWriter();
 
-/***********************
- * HISTÓRICO
- ***********************/
-async function carregarHistorico(aluno) {
-  const lista = document.getElementById("listaHistorico");
-  lista.innerHTML = "";
-
-  const snap = await db.collection("historico")
-    .where("numero", "==", aluno.numero).get();
-
-  snap.forEach(doc => {
-    const h = doc.data();
-    const li = document.createElement("li");
-    li.innerText = `${h.anoLetivo} - ${h.disciplina} - ${h.mediaFinal}`;
-    lista.appendChild(li);
-  });
-}
-
-/***********************
- * LOGOUT
- ***********************/
-function logout() {
-  auth.signOut();
-  mostrarPagina("home");
-      }
+// ===== FUNÇÕES ADMIN SIMPLES =====
+async function confirmar(numero){ await db.collection('alunos').doc(numero).update({confirmado:true}); alertaSucesso('Matrícula confirmada'); mostrarPainelAdmin();}
+async function suspender(numero,ativo){ await db.collection('alunos').doc(numero).update({ativo:!ativo}); alertaSucesso(!ativo?'Aluno ativado':'Aluno suspenso'); mostrarPainelAdmin();}
+async function editarDivida(numero){ const nova=prompt('Valor da dívida:'); if(nova!==null){ await db.collection('alunos').doc(numero).update({divida:parseFloat(nova)}); alertaSucesso('Dívida atualizada'); mostrarPainelAdmin();}}
+async function verFormulario(id){ const doc = await db.collection('alunos').doc(id).get(); if(!doc.exists){ Swal.fire('Erro','Aluno não encontrado','error'); return;} const a=doc.data(); abrirModal('Formulário Aluno',`Nome: ${a.nome}<br>Número: ${a.numero}<br>Email: ${a.email}<br>Status: ${a.ativo?'Ativo':'Suspenso'}`);}
+function abrirModal(titulo,conteudo){ document.getElementById('modalTitulo').innerText=titulo; document.getElementById('conteudoFormulario').innerHTML=conteudo; document.getElementById('modalFormulario').style.display='flex';}
+function fecharModal(){ document.getElementById('modalFormulario').style.display='none';}
