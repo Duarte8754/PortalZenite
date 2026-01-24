@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Portal Zênite</title>
 
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <link rel="stylesheet" href="style.css">
 
 <!-- Firebase -->
@@ -14,166 +17,152 @@
 </head>
 
 <body>
-
 <div class="container">
 
-<!-- HOME -->
-<div id="home" class="page active">
-  <h1 class="animated-title">
-    <span id="title-text"></span><span class="cursor">|</span>
-  </h1>
+  <!-- HOME -->
+  <div id="home" class="page active">
+    <h1 class="animated-title">
+      <span id="title-text"></span><span class="cursor">|</span>
+    </h1>
+    <p>ZÊNITE PORTAL — Conectado hoje. Preparado para amanhã.</p>
+    <button onclick="mostrarInscricao()">Inscrição</button>
+    <button onclick="mostrarLogin()">Login</button>
+  </div>
 
-  <p>ZÊNITE PORTAL — Conectado hoje. Preparado para amanhã.</p>
+  <!-- INSCRIÇÃO -->
+  <div id="inscricao" class="page">
+    <h2>Formulário de Inscrição</h2>
+    <form id="formInscricao">
+      <input id="nome" placeholder="Nome completo" required>
+      <input id="email" type="email" placeholder="Email" required>
+      <input id="telefone" placeholder="Telefone" required>
+      <input id="whatsapp" placeholder="WhatsApp" required>
+      <input id="paiMae" placeholder="Nome do pai/mãe" required>
+      <select id="classe" required>
+        <option value="">Selecione a classe</option>
+        <option disabled>7ª Classe (indisponível)</option>
+        <option disabled>8ª Classe (indisponível)</option>
+        <option>9ª Classe</option>
+        <option>10ª Classe</option>
+        <option>11ª Classe</option>
+        <option>12ª Classe</option>
+      </select>
+      <input id="nascimento" type="date" required>
 
-  <button onclick="mostrarInscricao()">Inscrição</button>
-  <button onclick="mostrarLogin()">Login</button>
-</div>
+      <h4>Selecione as disciplinas:</h4>
+      <div id="disciplinasCheckboxes">
+        <label><input type="checkbox" name="disciplinas" value="Matemática"> Matemática</label>
+        <label><input type="checkbox" name="disciplinas" value="Português"> Português</label>
+        <label><input type="checkbox" name="disciplinas" value="Física"> Física</label>
+        <label><input type="checkbox" name="disciplinas" value="Química"> Química</label>
+        <label><input type="checkbox" name="disciplinas" value="Biologia"> Biologia</label>
+        <label><input type="checkbox" name="disciplinas" value="História"> História</label>
+        <label><input type="checkbox" name="disciplinas" value="Geografia"> Geografia</label>
+      </div>
+      <button type="submit">Enviar Inscrição</button>
+    </form>
+    <button onclick="voltarHome()">Voltar</button>
+  </div>
 
-<!-- INSCRIÇÃO -->
-<div id="inscricao" class="page">
-  <h2>Formulário de Inscrição</h2>
+  <!-- LOGIN -->
+  <div id="login" class="page">
+    <h2>Login</h2>
+    <form id="formLogin">
+      <input id="loginUsuario" placeholder="Email ou Número do aluno" required>
+      <input id="loginSenha" type="password" placeholder="Senha" required>
+      <button type="submit">Entrar</button>
+    </form>
+    <button onclick="voltarHome()">Voltar</button>
+  </div>
 
-  <form id="formInscricao">
-    <input id="nome" placeholder="Nome completo" required>
-    <input id="email" type="email" placeholder="Email" required>
-    <input id="telefone" placeholder="Telefone" required>
-    <input id="whatsapp" placeholder="WhatsApp" required>
-    <input id="paiMae" placeholder="Nome do pai/mãe" required>
-
-    <!-- CLASSE -->
-    <select id="classe" required>
-      <option value="">Selecione a classe</option>
-      <option disabled>7ª Classe (indisponível)</option>
-      <option disabled>8ª Classe (indisponível)</option>
-      <option>9ª Classe</option>
-      <option>10ª Classe</option>
-      <option>11ª Classe</option>
-      <option>12ª Classe</option>
-    </select>
-
-    <label>Data de nascimento</label>
-    <input id="nascimento" type="date" required>
-
-    <h4>Disciplinas</h4>
-    <div id="disciplinasCheckboxes">
-      <label><input type="checkbox" name="disciplinas" value="Matemática"> Matemática</label>
-      <label><input type="checkbox" name="disciplinas" value="Português"> Português</label>
-      <label><input type="checkbox" name="disciplinas" value="Física"> Física</label>
-      <label><input type="checkbox" name="disciplinas" value="Química"> Química</label>
-      <label><input type="checkbox" name="disciplinas" value="Biologia"> Biologia</label>
-      <label><input type="checkbox" name="disciplinas" value="História"> História</label>
-      <label><input type="checkbox" name="disciplinas" value="Geografia"> Geografia</label>
+  <!-- PAINEL ALUNO -->
+  <div id="painelAluno" class="page">
+    <h2>Painel do Aluno</h2>
+    <div class="abas">
+      <button onclick="mostrarAba('perfil')">Perfil</button>
+      <button onclick="mostrarAba('notas')">Notas</button>
+      <button onclick="mostrarAba('pagamento')">Pagamento</button>
+      <button onclick="mostrarAba('extrato')">Extrato</button>
+      <button onclick="mostrarAba('calendarioAluno')">Calendário</button>
+      <button onclick="mostrarAba('dividas')">Dívidas</button>
+      <button onclick="mostrarAba('historico')">Histórico</button>
     </div>
 
-    <button type="submit">Enviar Inscrição</button>
-  </form>
+    <div id="abaPerfil" class="aba">
+      <p>Nome: <span id="perfilNome"></span></p>
+      <p>Número: <span id="perfilNumero"></span></p>
+      <p>Classe: <span id="perfilClasse"></span></p>
+      <p>Turma: <span id="perfilTurma"></span></p>
+      <p>Data de nascimento: <span id="perfilNascimento"></span></p>
+      <p>Contato: <span id="perfilContato"></span></p>
+      <p>Média Final: <span id="mediaFinalAluno">-</span></p>
+      <p>Status Académico: <span id="statusAcademicoAluno">-</span></p>
+    </div>
 
-  <button onclick="voltarHome()">Voltar</button>
-</div>
+    <div id="abaNotas" class="aba">
+      <div id="listaNotas"></div>
+    </div>
 
-<!-- LOGIN -->
-<div id="login" class="page">
-  <h2>Login</h2>
+    <div id="abaPagamento" class="aba">
+      <p>Total: <span id="valorTotal">0</span></p>
+      <p>Parcelas: <span id="parcelas">0</span></p>
+    </div>
 
-  <form id="formLogin">
-    <input id="loginUsuario" placeholder="Email ou Número do aluno" required>
-    <input id="loginSenha" type="password" placeholder="Senha" required>
-    <button type="submit">Entrar</button>
-  </form>
+    <div id="abaExtrato" class="aba">
+      <ul id="listaExtrato"></ul>
+    </div>
 
-  <button onclick="voltarHome()">Voltar</button>
-</div>
+    <div id="abaCalendarioAluno" class="aba">
+      <ul id="listaCalendario"></ul>
+    </div>
 
-<!-- PAINEL DO ALUNO -->
-<div id="painelAluno" class="page">
-  <h2>Painel do Aluno</h2>
+    <div id="abaDividas" class="aba">
+      <p>Total em dívida: <span id="totalDivida">0</span></p>
+    </div>
 
-  <div class="abas">
-    <button onclick="mostrarAba('perfil')">Perfil</button>
-    <button onclick="mostrarAba('notas')">Notas</button>
-    <button onclick="mostrarAba('pagamento')">Pagamento</button>
-    <button onclick="mostrarAba('extrato')">Extrato</button>
-    <button onclick="mostrarAba('calendarioAluno')">Calendário</button>
-    <button onclick="mostrarAba('dividas')">Dívidas</button>
-    <button onclick="mostrarAba('historico')">Histórico</button>
+    <div id="abaHistorico" class="aba">
+      <ul id="listaHistorico"></ul>
+    </div>
+
+    <button id="btnSair">Sair</button>
   </div>
 
-  <div id="abaPerfil" class="aba">
-    <p>Nome: <span id="perfilNome"></span></p>
-    <p>Número: <span id="perfilNumero"></span></p>
-    <p>Classe: <span id="perfilClasse"></span></p>
-    <p>Turma: <span id="perfilTurma"></span></p>
-    <p>Nascimento: <span id="perfilNascimento"></span></p>
-    <p>Contato: <span id="perfilContato"></span></p>
-    <p>Média Final: <span id="mediaFinalAluno">-</span></p>
-    <p>Status Académico: <span id="statusAcademicoAluno">-</span></p>
+  <!-- PAINEL ADMIN -->
+  <div id="painelAdmin" class="page">
+    <h2>Painel do Administrador</h2>
+
+    <table id="tabelaAlunos"></table>
+
+    <h3>Lançar Nota</h3>
+    <form id="formNota">
+      <input id="notaAluno" placeholder="Número do aluno" required>
+      <select id="notaDisciplina"></select>
+      <input id="notaValor" type="number" min="0" max="20" required>
+      <select id="notaTrimestre">
+        <option value="1">1º Trimestre</option>
+        <option value="2">2º Trimestre</option>
+        <option value="3">3º Trimestre</option>
+      </select>
+      <select id="notaTipo">
+        <option value="teste1">Teste 1</option>
+        <option value="teste2">Teste 2</option>
+        <option value="trabalho">Trabalho</option>
+        <option value="final">Final</option>
+      </select>
+      <button type="submit">Lançar Nota</button>
+    </form>
+
+    <h3>Calendário</h3>
+    <ul id="adminCalendario"></ul>
+
+    <form id="formEvento">
+      <input id="eventoData" type="date" required>
+      <input id="eventoDesc" placeholder="Descrição do evento" required>
+      <button type="submit">Adicionar Evento</button>
+    </form>
+
+    <button onclick="logout()">Sair</button>
   </div>
-
-  <div id="abaNotas" class="aba">
-    <div id="listaNotas"></div>
-  </div>
-
-  <div id="abaPagamento" class="aba">
-    <p>Total: <span id="valorTotal">0</span></p>
-    <p>Parcelas: <span id="parcelas">0</span></p>
-  </div>
-
-  <div id="abaExtrato" class="aba">
-    <ul id="listaExtrato"></ul>
-  </div>
-
-  <div id="abaCalendarioAluno" class="aba">
-    <ul id="listaCalendario"></ul>
-  </div>
-
-  <div id="abaDividas" class="aba">
-    <p>Total em dívida: <span id="totalDivida">0</span></p>
-  </div>
-
-  <div id="abaHistorico" class="aba">
-    <ul id="listaHistorico"></ul>
-  </div>
-
-  <button id="btnSair">Sair</button>
-</div>
-
-<!-- PAINEL ADMIN -->
-<div id="painelAdmin" class="page">
-  <h2>Painel do Administrador</h2>
-
-  <table id="tabelaAlunos"></table>
-
-  <h3>Lançar Nota</h3>
-  <form id="formNota">
-    <input id="notaAluno" placeholder="Número do aluno" required>
-    <select id="notaDisciplina"></select>
-    <input id="notaValor" type="number" min="0" max="20" required>
-    <select id="notaTrimestre">
-      <option value="1">1º Trimestre</option>
-      <option value="2">2º Trimestre</option>
-      <option value="3">3º Trimestre</option>
-    </select>
-    <select id="notaTipo">
-      <option value="teste1">Teste 1</option>
-      <option value="teste2">Teste 2</option>
-      <option value="trabalho">Trabalho</option>
-      <option value="final">Final</option>
-    </select>
-    <button type="submit">Lançar Nota</button>
-  </form>
-
-  <h3>Calendário</h3>
-  <ul id="adminCalendario"></ul>
-
-  <form id="formEvento">
-    <input id="eventoData" type="date" required>
-    <input id="eventoDesc" placeholder="Evento" required>
-    <button type="submit">Adicionar Evento</button>
-  </form>
-
-  <button onclick="logout()">Sair</button>
-</div>
-
 </div>
 
 <!-- MODAL -->
@@ -187,4 +176,4 @@
 
 <script src="script.js"></script>
 </body>
-</html>
+                 </html>
