@@ -138,49 +138,6 @@ async function mostrarPainelAluno(aluno){
   document.getElementById('listaHistorico').innerHTML='';
   document.getElementById('listaCalendario').innerHTML='';
 
-}
-
-// ===== NOTAS =====
-
-    // --- Notas ---
-    const listaNotas = document.getElementById('listaNotas');
-    listaNotas.innerHTML = '';
-
-    const disciplinas = aluno.disciplina; // array de disciplinas selecionadas
-
-    // --- Cria tabela ---
-    const tabela = document.createElement('table');
-    tabela.innerHTML = `<tr>
-        <th>Disciplina</th>
-        <th>Trimestre</th>
-        <th>Teste 1</th>
-        <th>Teste 2</th>
-        <th>Trabalho</th>
-        <th>Final</th>
-        <th>Média Trimestre</th>
-    </tr>`;
-
-    let somaMedias = 0;
-    let contadorMedias = 0;
-
-    disciplinas.forEach(disc => {
-        [1,2,3].forEach(t => {
-            const mediaT = mediaTrimestre(dados[disc][t]);
-            if(mediaT !== '-') { somaMedias += parseFloat(mediaT); contadorMedias++; }
-
-            tabela.innerHTML += `<tr>
-                <td>${disc}</td>
-                <td>${t}</td>
-                <td>${dados[disc][t].teste1}</td>
-                <td>${dados[disc][t].teste2}</td>
-                <td>${dados[disc][t].trabalho}</td>
-                <td>${dados[disc][t].final}</td>
-                <td>${mediaT}</td>
-            </tr>`;
-        });
-    });
-;
-
     // Mostrar aba perfil como padrão
     mostrarAba('perfil');
       }
