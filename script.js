@@ -179,33 +179,7 @@ async function mostrarPainelAluno(aluno){
             </tr>`;
         });
     });
-
-    // Média final anual
-    const mediaFinalAnual = contadorMedias ? (somaMedias/contadorMedias).toFixed(1) : '-';
-
-    let corMedia = 'black';
-    let statusTexto = '';
-    if(mediaFinalAnual !== '-') {
-        if(mediaFinalAnual >= 10){
-            corMedia = 'green';
-            statusTexto = 'Aprovado';
-        } else {
-            corMedia = 'red';
-            statusTexto = 'Perigo de reprovar';
-        }
-    }
-
-    tabela.innerHTML += `<tr style="background:#e8f5e9">
-        <td colspan="6"><strong>MÉDIA FINAL ANUAL</strong></td>
-        <td><strong style="color:${corMedia}">${mediaFinalAnual} (${statusTexto})</strong></td>
-    </tr>`;
-
-    listaNotas.appendChild(tabela);
-
-    // Atualiza status acadêmico no painel
-    document.getElementById('statusAcademicoAluno').innerText = statusTexto;
-    document.getElementById('statusAcademicoAluno').style.color = corMedia;
-    document.getElementById('mediaFinalAluno').innerText = mediaFinalAnual;
+;
 
     // Mostrar aba perfil como padrão
     mostrarAba('perfil');
