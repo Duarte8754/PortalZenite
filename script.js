@@ -162,8 +162,12 @@ async function mostrarPainelAdmin(){
       <td>
         <button onclick="confirmar('${a.numero}')">Confirmar</button>
         <button onclick="verFormulario('${a.numero}')">Ver Formulário</button>
+        <button onclick="registrarPagamento('${a.numero}')">Registrar Pagamento</button>
+        <button onclick="editarPlanoPagamento('${a.numero}')">Editar Plano</button>
         <button onclick="suspender('${a.numero}',${a.ativo})">${a.ativo?'Suspender':'Ativar'}</button>
+        <button onclick="excluir('${a.numero}')">Excluir</button>
         <button onclick="editarDivida('${a.numero}')">Editar Dívida</button>
+        <button onclick="fecharAno('${a.numero}')">Fechar Ano</button>
       </td>`;
     tabela.appendChild(tr);
   });
