@@ -67,25 +67,50 @@ document.getElementById('formInscricao').addEventListener('submit', async e=>{
 // ===== LOGIN =====
 document.getElementById('formLogin').addEventListener('submit', async e=>{
   e.preventDefault();
-  const usuario=document.getElementById('loginUsuario').value;
-  const senha=document.getElementById('loginSenha').value;
+  const usuario = document.getElementById('loginUsuario').value;
+  const senha = document.getElementById('loginSenha').value;
 
-  // Admin
-  if(usuario==='zenite' && senha==='adminzenite'){ mostrarPainelAdmin(); return; }
+  // --- Login admin ---
+  if(usuario === 'zenite' && senha === 'adminzenite'){
+    mostrarPainelAdmin();
+    return;
+  }
 
   try{
+    // --- Procurar aluno por número ---
     let alunoSnap = await db.collection('alunos').doc(usuario).get();
+
+    // --- Se não achar pelo número, procurar por email ---
     if(!alunoSnap.exists){
       const snapshot = await db.collection('alunos').where('email','==',usuario).get();
-      if(snapshot.empty) return Swal.fire('Erro','Aluno não encontrado','error');
+      if(snapshot.empty){
+        Swal.fire('Erro','Aluno não encontrado','error');
+        return;
+      }
       alunoSnap = snapshot.docs[0];
     }
-    const alunoData = alunoSnap.data();
-    if(!alunoData.confirmado) return Swal.fire('Erro','Conta não confirmada','error');
-    if(alunoData.senha!==senha) return Swal.fire('Erro','Senha incorreta','error');
 
+    const alunoData = alunoSnap.data();
+
+    // --- Verifica confirmação da conta ---
+    if(!alunoData.confirmado){
+      Swal.fire('Erro','Conta não confirmada, aguarde aprovação do administrador','error');
+      return;
+    }
+
+    // --- Verifica senha ---
+    if(alunoData.senha !== senha){
+      Swal.fire('Erro','Senha incorreta','error');
+      return;
+    }
+
+    // --- Login válido: mostra painel do aluno ---
     mostrarPainelAluno(alunoData);
-  }catch(err){ Swal.fire('Erro',err.message,'error'); console.error(err);}
+
+  } catch(err){
+    console.error(err);
+    Swal.fire('Erro', err.message, 'error');
+  }
 });
 
 // ===== PAINEL ALUNO =====
