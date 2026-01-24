@@ -294,16 +294,24 @@ async function mostrarPainelAdmin(){
       <td>${a.ativo?'Ativo':'Suspenso'}</td>
       <td>${a.statusAcademico}</td>
       <td>${a.divida}</td>
-      <td>
-        <button onclick="confirmar('${a.numero}')">Confirmar</button>
-        <button onclick="verFormulario('${a.numero}')">Ver Formulário</button>
-        <button onclick="registrarPagamento('${a.numero}')">Registrar Pagamento</button>
-        <button onclick="editarPlanoPagamento('${a.numero}')">Editar Plano</button>
-        <button onclick="suspender('${a.numero}',${a.ativo})">${a.ativo?'Suspender':'Ativar'}</button>
-        <button onclick="excluir('${a.numero}')">Excluir</button>
-        <button onclick="editarDivida('${a.numero}')">Editar Dívida</button>
-        <button onclick="fecharAno('${a.numero}')">Fechar Ano</button>
-      </td>`;
+      <td class="acoes">
+  <div class="gerir-container">
+    <button class="btn-gerir" onclick="toggleGerir(this)">Gerir</button>
+
+    <div class="gerir-menu">
+      <button onclick="confirmar('${a.numero}')">Confirmar</button>
+      <button onclick="verFormulario('${a.numero}')">Ver Formulário</button>
+      <button onclick="registrarPagamento('${a.numero}')">Registrar Pagamento</button>
+      <button onclick="editarPlanoPagamento('${a.numero}')">Editar Plano</button>
+      <button onclick="suspender('${a.numero}',${a.ativo})">
+        ${a.ativo ? 'Suspender' : 'Ativar'}
+      </button>
+      <button onclick="excluir('${a.numero}')">Excluir</button>
+      <button onclick="editarDivida('${a.numero}')">Editar Dívida</button>
+      <button onclick="fecharAno('${a.numero}')">Fechar Ano</button>
+    </div>
+  </div>
+</td>`;
     tabela.appendChild(tr);
   });
 }
