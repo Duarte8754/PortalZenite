@@ -159,22 +159,6 @@ async function mostrarPainelAluno(aluno){
         };
     });
 
-    // Pega notas do Firestore
-    const notasSnap = await db.collection('notas').where('numero','==',aluno.numero).get();
-    notasSnap.forEach(doc => {
-        const n = doc.data();
-        if(dados[n.disciplina] && dados[n.disciplina][n.trimestre]){
-            dados[n.disciplina][n.trimestre][n.tipo] = n.nota;
-        }
-    });
-
-    // Função para calcular média de cada trimestre
-    function mediaTrimestre(tri){
-        const notas = ['teste1','teste2','trabalho','final'].map(t => tri[t]).filter(v => typeof v === 'number');
-        if(!notas.length) return '-';
-        return (notas.reduce((a,b)=>a+b,0)/notas.length).toFixed(1);
-    }
-
     // --- Cria tabela ---
     const tabela = document.createElement('table');
     tabela.innerHTML = `<tr>
