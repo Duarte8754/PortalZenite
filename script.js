@@ -138,7 +138,6 @@ async function mostrarPainelAluno(aluno){
   document.getElementById('listaHistorico').innerHTML='';
   document.getElementById('listaCalendario').innerHTML='';
 
-  mostrarAba('perfil');
 }
 
 // ===== NOTAS =====
