@@ -3,177 +3,201 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Portal Zênite</title>
-
-<!-- SweetAlert2 -->
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
+<title>Portal do Aluno</title>
 <link rel="stylesheet" href="style.css">
-
 <!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 </head>
-
 <body>
 <div class="container">
-
-  <!-- HOME -->
-  <div id="home" class="page active">
+<div id="home" class="page active">
+  <div class="home-content">
+    <!-- Nome do Sistema Animado -->
     <h1 class="animated-title">
-      <span id="title-text"></span><span class="cursor">|</span>
+      <span id="title-text"></span>
+      <span class="cursor">|</span>
     </h1>
-    <p>ZÊNITE PORTAL — Conectado hoje. Preparado para amanhã.</p>
-    <button onclick="mostrarInscricao()">Inscrição</button>
-    <button onclick="mostrarLogin()">Login</button>
-  </div>
 
-  <!-- INSCRIÇÃO -->
-  <div id="inscricao" class="page">
+<h2 class="zenite">Conectado hoje. Preparado para amanhã.</h2>
+
+    <!-- Mensagens iniciais -->
+    <div class="sub-texts">
+      <span class="sub-text">ZÊNITE PORTAL - o lugar do teu sucesso</span>
+      <span class="sub-text">clica no botão Inscrição ou login</span>
+      <span class="sub-text">depois rola pra baixo</span>
+    </div>
+
+    <!-- Botões -->
+    <div class="buttons-home">
+      <button onclick="mostrarInscricao()">Inscrição</button>
+      <button onclick="mostrarLogin()">Login</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- INSCRIÇÃO -->
+<div id="inscricao" class="page">
+  <div class="form-banner">
     <h2>Formulário de Inscrição</h2>
-    <form id="formInscricao">
-      <input id="nome" placeholder="Nome completo" required>
-      <input id="email" type="email" placeholder="Email" required>
-      <input id="telefone" placeholder="Telefone" required>
-      <input id="whatsapp" placeholder="WhatsApp" required>
-      <input id="paiMae" placeholder="Nome do pai/mãe" required>
-      <select id="classe" required>
-        <option value="">Selecione a classe</option>
-        <option disabled>7ª Classe (indisponível)</option>
-        <option disabled>8ª Classe (indisponível)</option>
-        <option>9ª Classe</option>
-        <option>10ª Classe</option>
-        <option>11ª Classe</option>
-        <option>12ª Classe</option>
-      </select>
-      <input id="nascimento" type="date" required>
+    <p>Preencha todos os campos corretamente para garantir sua matrícula.</p>
+  </div><form id="formInscricao" class="form-inscricao">
+  <input type="text" placeholder="Nome completo" id="nome" required>
+  <input type="email" placeholder="Email" id="email" required>
+  <input type="text" placeholder="Telefone" id="telefone" required>
+  <input type="text" placeholder="WhatsApp" id="whatsapp" required>
+  <input type="text" placeholder="Nome do pai/mãe" id="paiMae" required>
+  <input type="text" placeholder="Classe" id="classe" required>
+  <input type="date" placeholder="Data de nascimento" id="nascimento" required>
 
-      <h4>Selecione as disciplinas:</h4>
-      <div id="disciplinasCheckboxes">
-        <label><input type="checkbox" name="disciplinas" value="Matemática"> Matemática</label>
-        <label><input type="checkbox" name="disciplinas" value="Português"> Português</label>
-        <label><input type="checkbox" name="disciplinas" value="Física"> Física</label>
-        <label><input type="checkbox" name="disciplinas" value="Química"> Química</label>
-        <label><input type="checkbox" name="disciplinas" value="Biologia"> Biologia</label>
-        <label><input type="checkbox" name="disciplinas" value="História"> História</label>
-        <label><input type="checkbox" name="disciplinas" value="Geografia"> Geografia</label>
-      </div>
-      <button type="submit">Enviar Inscrição</button>
-    </form>
-    <button onclick="voltarHome()">Voltar</button>
+  <h4>Selecione as disciplinas:</h4>
+  <div id="disciplinasCheckboxes">
+    <label><input type="checkbox" name="disciplinas" value="Matemática"> Matemática</label>
+    <label><input type="checkbox" name="disciplinas" value="Português"> Português</label>
+    <label><input type="checkbox" name="disciplinas" value="Física"> Física</label>
+    <label><input type="checkbox" name="disciplinas" value="Química"> Química</label>
+    <label><input type="checkbox" name="disciplinas" value="Biologia"> Biologia</label>
+    <label><input type="checkbox" name="disciplinas" value="História"> História</label>
+    <label><input type="checkbox" name="disciplinas" value="Geografia"> Geografia</label>
   </div>
 
-  <!-- LOGIN -->
-  <div id="login" class="page">
+  <button type="submit">Enviar Inscrição</button>
+</form>
+  <button onclick="voltarHome()" class="btn-voltar">Voltar</button>
+</div>
+
+<!-- LOGIN -->
+<div id="login" class="page">
+  <div class="form-banner">
     <h2>Login</h2>
-    <form id="formLogin">
-      <input id="loginUsuario" placeholder="Email ou Número do aluno" required>
-      <input id="loginSenha" type="password" placeholder="Senha" required>
-      <button type="submit">Entrar</button>
-    </form>
-    <button onclick="voltarHome()">Voltar</button>
+    <p>Digite seu e-mail ou número de aluno e senha para acessar seu painel.</p>
+  </div>
+  <form id="formLogin" class="form-login">
+    <input type="text" placeholder="Email ou Número do aluno" id="loginUsuario" required>
+    <input type="password" placeholder="Senha" id="loginSenha" required>
+    <button type="submit">Entrar</button>
+  </form>
+  <button onclick="voltarHome()" class="btn-voltar">Voltar</button>
+</div>
+
+<!-- PAINEL DO ALUNO -->
+<div id="painelAluno" class="page">
+  <h2>Painel do Aluno</h2>
+  <div class="abas">
+    <button onclick="mostrarAba('perfil')">MeuPerfil</button>
+    <button onclick="mostrarAba('notas')">Notas</button>
+    <button onclick="mostrarAba('pagamento')">Plano de Pagamento</button>
+    <button onclick="mostrarAba('extrato')">Extrato</button>
+    <button onclick="mostrarAba('calendarioAluno')">Calendário</button>
+    <button onclick="mostrarAba('dividas')">Saldo Negativo:</button>
+    <button onclick="mostrarAba('historico')">Histórico</button>
   </div>
 
-  <!-- PAINEL ALUNO -->
-  <div id="painelAluno" class="page">
-    <h2>Painel do Aluno</h2>
-    <div class="abas">
-      <button onclick="mostrarAba('perfil')">Perfil</button>
-      <button onclick="mostrarAba('notas')">Notas</button>
-      <button onclick="mostrarAba('pagamento')">Pagamento</button>
-      <button onclick="mostrarAba('extrato')">Extrato</button>
-      <button onclick="mostrarAba('calendarioAluno')">Calendário</button>
-      <button onclick="mostrarAba('dividas')">Dívidas</button>
-      <button onclick="mostrarAba('historico')">Histórico</button>
-    </div>
-
-    <div id="abaPerfil" class="aba">
-      <p>Nome: <span id="perfilNome"></span></p>
-      <p>Número: <span id="perfilNumero"></span></p>
-      <p>Classe: <span id="perfilClasse"></span></p>
-      <p>Turma: <span id="perfilTurma"></span></p>
-      <p>Data de nascimento: <span id="perfilNascimento"></span></p>
-      <p>Contato: <span id="perfilContato"></span></p>
-      <p>Média Final: <span id="mediaFinalAluno">-</span></p>
-      <p>Status Académico: <span id="statusAcademicoAluno">-</span></p>
-    </div>
-
-    <div id="abaNotas" class="aba">
-      <div id="listaNotas"></div>
-    </div>
-
-    <div id="abaPagamento" class="aba">
-      <p>Total: <span id="valorTotal">0</span></p>
-      <p>Parcelas: <span id="parcelas">0</span></p>
-    </div>
-
-    <div id="abaExtrato" class="aba">
-      <ul id="listaExtrato"></ul>
-    </div>
-
-    <div id="abaCalendarioAluno" class="aba">
-      <ul id="listaCalendario"></ul>
-    </div>
-
-    <div id="abaDividas" class="aba">
-      <p>Total em dívida: <span id="totalDivida">0</span></p>
-    </div>
-
-    <div id="abaHistorico" class="aba">
-      <ul id="listaHistorico"></ul>
-    </div>
-
-    <button id="btnSair">Sair</button>
+  <!-- ABA PERFIL -->
+  <div id="abaPerfil" class="aba">
+    <h3>Perfil do Aluno</h3>
+    <p>Nome: <span id="perfilNome"></span></p>
+    <p>Número: <span id="perfilNumero"></span></p>
+    <p>Classe: <span id="perfilClasse"></span></p>
+    <p>Turma: <span id="perfilTurma"></span></p>
+    <p>Data de nascimento: <span id="perfilNascimento"></span></p>
+    <p>Contato: <span id="perfilContato"></span></p>
+    <p>Média Final: <span id="mediaFinalAluno">-</span></p>
+    <p>Status Académico: <span id="statusAcademicoAluno">-</span></p>
   </div>
 
-  <!-- PAINEL ADMIN -->
-  <div id="painelAdmin" class="page">
-    <h2>Painel do Administrador</h2>
+  <!-- ABA NOTAS -->
+  <div id="abaNotas" class="aba">
+    <h3>Notas</h3>
+    <div id="listaNotas"></div>
+  </div>
 
-    <table id="tabelaAlunos"></table>
+  <!-- ABA PAGAMENTO -->
+  <div id="abaPagamento" class="aba">
+    <h3>Plano de Pagamento</h3>
+    <p>Valor total da matrícula: <span id="valorTotal">0</span></p>
+    <p>Parcelas: <span id="parcelas">0</span></p>
+  </div>
 
-    <h3>Lançar Nota</h3>
-    <form id="formNota">
-      <input id="notaAluno" placeholder="Número do aluno" required>
-      <select id="notaDisciplina"></select>
-      <input id="notaValor" type="number" min="0" max="20" required>
-      <select id="notaTrimestre">
-        <option value="1">1º Trimestre</option>
-        <option value="2">2º Trimestre</option>
-        <option value="3">3º Trimestre</option>
-      </select>
-      <select id="notaTipo">
+  <!-- ABA EXTRATO -->
+  <div id="abaExtrato" class="aba">
+    <h3>Extrato</h3>
+    <ul id="listaExtrato"></ul>
+  </div>
+
+  <!-- ABA CALENDÁRIO -->
+  <div id="abaCalendarioAluno" class="aba">
+    <h3>Calendário Escolar</h3>
+    <ul id="listaCalendario"></ul>
+  </div>
+
+  <!-- ABA DÍVIDAS -->
+  <div id="abaDividas" class="aba">
+    <h3>Saldo Negativo</h3>
+    <p>Total em dívida: <span id="totalDivida">0</span></p>
+  </div>
+
+  <!-- ABA HISTÓRICO -->
+  <div id="abaHistorico" class="aba">
+    <h3>Histórico Académico</h3>
+    <ul id="listaHistorico"></ul>
+  </div>
+
+  <button onclick="logout()">Sair</button>
+</div>
+
+<!-- PAINEL DO ADMIN -->
+<div id="painelAdmin" class="page">
+  <h2>Painel do Administrador</h2>
+
+  <h3>Alunos</h3>
+  <table id="tabelaAlunos">
+    <tr>
+      <th>Nome</th>
+      <th>Número</th>
+      <th>Status</th>
+      <th>Status Académico</th>
+      <th>Dívida</th>
+      <th>Ações</th>
+    </tr>
+  </table>
+
+  <h3>Calendário Escolar</h3>
+  <ul id="adminCalendario"></ul>
+<h3>Lançar Nota</h3>
+<form id="formNota">
+    <input type="text" placeholder="Número do aluno" id="notaAluno" required>
+    <select id="notaDisciplina" required>
+        <option value="">Selecione a disciplina</option>
+    </select>
+    <input type="number" placeholder="Nota" id="notaValor" required min="0" max="20">
+    <select id="notaTrimestre" required>
+        <option value="1">Trimestre 1</option>
+        <option value="2">Trimestre 2</option>
+        <option value="3">Trimestre 3</option>
+    </select>
+    <select id="notaTipo" required>
         <option value="teste1">Teste 1</option>
         <option value="teste2">Teste 2</option>
         <option value="trabalho">Trabalho</option>
-        <option value="final">Final</option>
-      </select>
-      <button type="submit">Lançar Nota</button>
-    </form>
+        <option value="final">Teste Final</option>
+    </select>
+    <button type="submit">Lançar Nota</button>
+</form>
 
-    <h3>Calendário</h3>
-    <ul id="adminCalendario"></ul>
+  <h3>Adicionar Evento</h3>
+  <form id="formEvento">
+    <input type="date" placeholder="Data" id="eventoData" required>
+    <input type="text" placeholder="Descrição do evento" id="eventoDesc" required>
+    <button type="submit">Adicionar Evento</button>
+  </form>
 
-    <form id="formEvento">
-      <input id="eventoData" type="date" required>
-      <input id="eventoDesc" placeholder="Descrição do evento" required>
-      <button type="submit">Adicionar Evento</button>
-    </form>
-
-    <button onclick="logout()">Sair</button>
-  </div>
+  <button onclick="logout()">Sair</button>
 </div>
 
-<!-- MODAL -->
-<div id="modalFormulario" class="modal">
-  <div class="modal-content">
-    <h2 id="modalTitulo"></h2>
-    <div id="conteudoFormulario"></div>
-    <button onclick="fecharModal()">Fechar</button>
-  </div>
 </div>
-
 <script src="script.js"></script>
 </body>
-                 </html>
+    </html>
