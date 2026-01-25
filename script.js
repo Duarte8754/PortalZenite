@@ -11,22 +11,6 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-// ===== SISTEMA DE ALERTAS GLOBAL =====
-class AlertSystem {
-    static async showSuccess(message, title = 'Sucesso!') {
-        return Swal.fire({
-            icon: 'success',
-            title: title,
-            text: message,
-            confirmButtonText: 'OK',
-            confirmButtonColor: '#3085d6',
-            timer: 3000,
-            timerProgressBar: true
-        });
-    }
-
-
-
 // ===== NAVEGAÇÃO =====
 function mostrarInscricao(){ mostrarPagina('inscricao'); }
 function mostrarLogin(){ mostrarPagina('login'); }
@@ -45,53 +29,53 @@ function calcularMedia(valores){
   return (notas.reduce((a,b)=>a+b,0)/notas.length).toFixed(1);
 }
 async function avaliarAluno(numero, mediaFinal, divida){
-  let status='Reprovado';
-  if(divida>0) status='Bloqueado';
-  else if(mediaFinal>=10) status='Aprovado';
-  await db.collection('alunos').doc(numero).update({statusAcademico:status});
-  return status;
+  let  status = 'Reprovado' ;
+  if ( divida > 0 )  status = 'Bloqueado' ;
+  else  if ( mediaFinal >= 10 )  status = 'Aprovado' ;
+  await  db.collection ( ' alunos ' ) . doc ( numero ) .update ( { statusAcademico : status } ) ;​
+   status de retorno ;
 }
 
 // ===== INSCRIÇÃO =====
-document.getElementById('formInscricao').addEventListener('submit', async e => {
-    e.preventDefault(); // não recarrega a página
-    try {
-        const checkboxEls = document.querySelectorAll('#disciplinasCheckboxes input[name="disciplinas"]:checked');
-        const disciplinasSelecionadas = Array.from(checkboxEls).map(cb => cb.value);
-        if (disciplinasSelecionadas.length === 0) { alert('Selecione pelo menos uma disciplina!'); return; }
+document.getElementById ( ' formInscricao ') . addEventListener (' submit ', async e => {
+    e . preventDefault ( ) ; //não recarregue a página
+    tentar  {
+        const  checkboxEls = document.querySelectorAll ( ' # disciplinasCheckboxes input[name= " disciplinas"]:checked' ) ;
+        const  disciplinasSelecionadas = Array . from ( checkboxEls ) . map ( cb => cb . value ) ;
+        if  ( disciplinasSelecionadas . length === 0 )  {  alert ( 'Selecione pelo menos uma disciplina!' ) ; retornar ; }
 
-        const aluno = {
-            nome: document.getElementById('nome').value,
-            email: document.getElementById('email').value,
-            telefone: document.getElementById('telefone').value,
-            whatsapp: document.getElementById('whatsapp').value,
-            paiMae: document.getElementById('paiMae').value,
-            classe: document.getElementById('classe').value,
-            disciplina: disciplinasSelecionadas,
-            nascimento: document.getElementById('nascimento').value,
-            turma: ['A','B','C'][Math.floor(Math.random()*3)],
-            dataInscricao: new Date().toLocaleDateString(),
-            numero: gerarNumeroAluno(),
-            senha: gerarSenha(),
-            ativo: true,
-            confirmado: false,
-            divida: 0,
-            planoPagamento: { total: 450, parcelas: 1},
-            statusAcademico: 'Reprovado'
-        };
+        const  aluno = {
+            nome : document.getElementById ( ' nome ' ) . value ,
+            email : document.getElementById ( ' email ' ) . value ,
+            telefone : documento . getElementById ( 'telefone' ) . valor ,
+            whatsapp : document.getElementById ( ' whatsapp ' ) . value ,
+            paiMae : document.getElementById ( ' paiMae ' ) . value ,
+            classe : documento . getElementById ( 'classe' ) . valor ,
+            disciplina : disciplinasSelecionadas ,
+            nascimento : documento . getElementById ( 'nascimento' ) . valor ,
+            turma : [ 'A' , ' B ' , ' C ' ] [ Math.floor ( Math.random ( ) * 3 ) ] ,
+            dataInscricao : new  Date ( ) . toLocaleDateString ( ) ,
+            numero : gerarNumeroAluno ( ) ,
+            senha : gerarSenha ( ) ,
+            ativo : verdadeiro ,
+            confirmado : falso ,
+            divina : 0 ,
+            planoPagamento : {  total : 450 , parcelas : 1 } ,
+            statusAcademico : 'Reprovado'
+        } ;
 
-        await db.collection('alunos').doc(aluno.numero).set(aluno);
-        alert(`Inscrição realizada, com sucesso, guarde teu código de aluno e a senha, não compartinhe. antes de clicar ok transcreve a sua senha e código.!\nNúmero do Aluno: ${aluno.numero}\nSenha: ${aluno.senha}`);
-        document.getElementById('formInscricao').reset();
-        voltarHome();
-    } catch (err) {
-        alert('Erro ao registrar aluno: ' + err.message);
-        console.error(err);
+        aguarde  db . coleção ( 'alunos' ) . doc ( aluno . numero ) . conjunto ( aluno ) ;
+        alert ( `Inscrição realizada, com sucesso, guarde seu código de aluno e a senha, não compartinhe. antes de clicar ok transcreva sua senha e código.! \n Número do Aluno: ${ aluno . numero } \n Senha: ${ aluno . senha } ` ) ;
+        document.getElementById ( ' formInscricao ' ) . reset ( ) ;
+        voltarHome ( ) ;
+    }  catch  ( err )  {
+        alert ( 'Erro ao registrador aluno: ' + mensagem de erro ) ;
+        console.error ( err ) ;​​
     }
-});
+} ) ;
 
 // ===== LOGIN =====
-document.getElementById('formLogin').addEventListener('submit', async e=>{
+.getElementById('formLogin').addEventListener('submit', async e=>{
   e.preventDefault();
   const usuario = document.getElementById('loginUsuario').value;
   const senha = document.getElementById('loginSenha').value;
