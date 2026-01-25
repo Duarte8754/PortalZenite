@@ -12,56 +12,66 @@ const auth = firebase.auth();
 const db = firebase.firestore();
 
 // ===== NAVEGAÇÃO =====
+function mostrarInscricao(){ mostrarPagina('inscricao'); }
+function mostrarLogin(){ mostrarPagina('login'); }
+function voltarHome(){ mostrarPagina('home'); }
 function mostrarPagina(id){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.getElementById(id).classList.add('active');
 }
-function mostrarInscricao(){ mostrarPagina('inscricao'); }
-function mostrarLogin(){ mostrarPagina('login'); }
-function voltarHome(){ mostrarPagina('home'); }
 
-// ===== GERAÇÃO DE ALUNO E SENHA =====
+// ===== FUNÇÕES AUXILIARES =====
 function gerarNumeroAluno(){ return '2007'+Math.floor(10000+Math.random()*90000); }
-function gerarSenha(nome, numero){ 
-  const primeiroNome = nome.split(' ')[0].toLowerCase();
-  return `${primeiroNome}${numero}@IZ.com`;
+function gerarSenha(){ return Math.random().toString(36).slice(-8); }
+function calcularMedia(valores){
+  const notas = Object.values(valores).filter(v=>typeof v==='number');
+  if(!notas.length) return 0;
+  return (notas.reduce((a,b)=>a+b,0)/notas.length).toFixed(1);
+}
+async function avaliarAluno(numero, mediaFinal, divida){
+  let status='Reprovado';
+  if(divida>0) status='Bloqueado';
+  else if(mediaFinal>=10) status='Aprovado';
+  await db.collection('alunos').doc(numero).update({statusAcademico:status});
+  return status;
 }
 
 // ===== INSCRIÇÃO =====
-document.getElementById('formInscricao').addEventListener('submit', async e=>{
-  e.preventDefault();
-  const disciplinasSelecionadas = Array.from(document.querySelectorAll('#disciplinasCheckboxes input[name="disciplinas"]:checked')).map(cb=>cb.value);
-  if(disciplinasSelecionadas.length===0) return Swal.fire('Erro','Selecione pelo menos uma disciplina!','error');
+document.getElementById('formInscricao').addEventListener('submit', async e => {
+    e.preventDefault(); // não recarrega a página
+    try {
+        const checkboxEls = document.querySelectorAll('#disciplinasCheckboxes input[name="disciplinas"]:checked');
+        const disciplinasSelecionadas = Array.from(checkboxEls).map(cb => cb.value);
+        if (disciplinasSelecionadas.length === 0) { alert('Selecione pelo menos uma disciplina!'); return; }
 
-  const alunoNumero = gerarNumeroAluno();
-  const alunoSenha = gerarSenha(document.getElementById('nome').value, alunoNumero);
+        const aluno = {
+            nome: document.getElementById('nome').value,
+            email: document.getElementById('email').value,
+            telefone: document.getElementById('telefone').value,
+            whatsapp: document.getElementById('whatsapp').value,
+            paiMae: document.getElementById('paiMae').value,
+            classe: document.getElementById('classe').value,
+            disciplina: disciplinasSelecionadas,
+            nascimento: document.getElementById('nascimento').value,
+            turma: ['A','B','C'][Math.floor(Math.random()*3)],
+            dataInscricao: new Date().toLocaleDateString(),
+            numero: gerarNumeroAluno(),
+            senha: gerarSenha(),
+            ativo: true,
+            confirmado: false,
+            divida: 0,
+            planoPagamento: { total: 5000, parcelas: 5 },
+            statusAcademico: 'Reprovado'
+        };
 
-  const aluno = {
-    nome: document.getElementById('nome').value,
-    email: document.getElementById('email').value,
-    telefone: document.getElementById('telefone').value,
-    whatsapp: document.getElementById('whatsapp').value,
-    paiMae: document.getElementById('paiMae').value,
-    classe: document.getElementById('classe').value,
-    disciplina: disciplinasSelecionadas,
-    nascimento: document.getElementById('nascimento').value,
-    turma: ['A','B','C'][Math.floor(Math.random()*3)],
-    dataInscricao: new Date().toLocaleDateString(),
-    numero: alunoNumero,
-    senha: alunoSenha,
-    ativo:true,
-    confirmado:false,
-    divida:0,
-    planoPagamento:{total:5000, parcelas:5},
-    statusAcademico:'Reprovado'
-  };
-
-  try{
-    await db.collection('alunos').doc(aluno.numero).set(aluno);
-    Swal.fire('Sucesso',`Número: ${aluno.numero}\nSenha: ${aluno.senha}`,'success');
-    document.getElementById('formInscricao').reset();
-    voltarHome();
-  }catch(err){ Swal.fire('Erro', err.message,'error'); console.error(err);}
+        await db.collection('alunos').doc(aluno.numero).set(aluno);
+        alert(`Inscrição realizada, com sucesso, guarde teu código de aluno e a senha, não compartinhe. antes de clicar ok transcreve a sua senha e código.!\nNúmero do Aluno: ${aluno.numero}\nSenha: ${aluno.senha}`);
+        document.getElementById('formInscricao').reset();
+        voltarHome();
+    } catch (err) {
+        alert('Erro ao registrar aluno: ' + err.message);
+        console.error(err);
+    }
 });
 
 // ===== LOGIN =====
@@ -69,68 +79,45 @@ document.getElementById('formLogin').addEventListener('submit', async e=>{
   e.preventDefault();
   const usuario = document.getElementById('loginUsuario').value;
   const senha = document.getElementById('loginSenha').value;
-
-  // --- Login admin ---
-  if(usuario === 'zenite' && senha === 'adminzenite'){
-    mostrarPainelAdmin();
-    return;
-  }
+  if(usuario==='zenite'&&senha==='adminzenite'){ mostrarPainelAdmin(); return; }
 
   try{
-    // --- Procurar aluno por número ---
-    let alunoSnap = await db.collection('alunos').doc(usuario).get();
-
-    // --- Se não achar pelo número, procurar por email ---
-    if(!alunoSnap.exists){
-      const snapshot = await db.collection('alunos').where('email','==',usuario).get();
-      if(snapshot.empty){
-        Swal.fire('Erro','Aluno não encontrado','error');
-        return;
-      }
-      alunoSnap = snapshot.docs[0];
+    let snapshot=await db.collection('alunos').where('email','==',usuario).get();
+    let alunoData;
+    if(snapshot.empty){
+      const snapNum=await db.collection('alunos').doc(usuario).get();
+      if(!snapNum.exists) throw new Error('Aluno não encontrado');
+      if(snapNum.data().senha!==senha) throw new Error('Senha incorreta');
+      alunoData=snapNum.data();
+    }else{
+      const data=snapshot.docs[0].data();
+      if(data.senha!==senha) throw new Error('Senha incorreta');
+      alunoData=data;
     }
-
-    const alunoData = alunoSnap.data();
-
-    // --- Verifica confirmação da conta ---
-    if(!alunoData.confirmado){
-      Swal.fire('Erro','Conta não confirmada, aguarde aprovação do administrador','error');
-      return;
-    }
-
-    // --- Verifica senha ---
-    if(alunoData.senha !== senha){
-      Swal.fire('Erro','Senha incorreta','error');
-      return;
-    }
-
-    // --- Login válido: mostra painel do aluno ---
     mostrarPainelAluno(alunoData);
-
-  } catch(err){
-    console.error(err);
-    Swal.fire('Erro', err.message, 'error');
-  }
+  }catch(err){ alert(err.message); }
 });
 
-// ===== PAINEL ALUNO =====
+// ===== ABAS DO ALUNO =====
 function mostrarAba(nome){
   document.querySelectorAll('.aba').forEach(a=>a.classList.remove('active'));
   const aba = document.getElementById('aba'+nome.charAt(0).toUpperCase()+nome.slice(1));
   if(aba) aba.classList.add('active');
 }
 
+// ===== PAINEL DO ALUNO =====
 async function mostrarPainelAluno(aluno){
   mostrarPagina('painelAluno');
-  document.getElementById('perfilNome').innerText=aluno.nome;
-  document.getElementById('perfilNumero').innerText=aluno.numero;
-  document.getElementById('perfilClasse').innerText=aluno.classe;
-  document.getElementById('perfilTurma').innerText=aluno.turma;
-  document.getElementById('perfilNascimento').innerText=aluno.nascimento;
-  document.getElementById('perfilContato').innerText=`Tel: ${aluno.telefone} / WhatsApp: ${aluno.whatsapp}`;
-  document.getElementById('valorTotal').innerText=aluno.planoPagamento?.total||0;
-  document.getElementById('parcelas').innerText=aluno.planoPagamento?.parcelas||0;
-  document.getElementById('totalDivida').innerText=aluno.divida;
+
+  // PERFIL
+  document.getElementById('perfilNome').innerText = aluno.nome;
+  document.getElementById('perfilNumero').innerText = aluno.numero;
+  document.getElementById('perfilClasse').innerText = aluno.classe;
+  document.getElementById('perfilTurma').innerText = aluno.turma;
+  document.getElementById('perfilNascimento').innerText = aluno.nascimento;
+  document.getElementById('perfilContato').innerText = `Tel: ${aluno.telefone} / WhatsApp: ${aluno.whatsapp}`;
+  document.getElementById('valorTotal').innerText = aluno.planoPagamento?.total || 0;
+  document.getElementById('parcelas').innerText = aluno.planoPagamento?.parcelas || 0;
 
 // NOTAS
 const listaNotas = document.getElementById('listaNotas');
@@ -204,7 +191,7 @@ const mediaFinalAnual = contadorMedias ? (somaMedias/contadorMedias).toFixed(1) 
 let corMedia = 'black';
 let statusTexto = '';
 if(mediaFinalAnual !== '-') {
-    if(mediaFinalAnual > = 10){
+    if(mediaFinalAnual >= 10){
         corMedia = 'green';
         statusTexto = 'Aprovado';
     } else {
@@ -272,215 +259,162 @@ if(mediaFinalAnual !== '-') {
     li.innerText=`Ano ${h.anoLetivo}: ${h.disciplina} - Média: ${h.mediaFinal} - Status: ${h.statusAcademico}`;
     listaHistorico.appendChild(li);
   });
-  
-    // Mostrar aba perfil como padrão
-    mostrarAba('perfil');
-      }
+
+  mostrarAba('perfil');
+}
 
 // ===== PAINEL ADMIN =====
 async function mostrarPainelAdmin(){
   mostrarPagina('painelAdmin');
 
+  // LISTAR ALUNOS
+  const snapshot=await db.collection('alunos').get();
   const tabela=document.getElementById('tabelaAlunos');
   tabela.innerHTML=`<tr>
     <th>Nome</th><th>Número</th><th>Status</th><th>Status Académico</th><th>Dívida</th><th>Ações</th>
   </tr>`;
-  const snapshot = await db.collection('alunos').get();
   snapshot.forEach(doc=>{
     const a=doc.data();
     const tr=document.createElement('tr');
-    tr.innerHTML=`<td>${a.nome}</td>
+    tr.innerHTML=`
+      <td>${a.nome}</td>
       <td>${a.numero}</td>
       <td>${a.ativo?'Ativo':'Suspenso'}</td>
       <td>${a.statusAcademico}</td>
       <td>${a.divida}</td>
-      <td class="acoes">
-  <div class="gerir-container">
-    <button class="btn-gerir" onclick="toggleGerir(this)">Gerir</button>
-
-    <div class="gerir-menu">
-      <button onclick="confirmar('${a.numero}')">Confirmar</button>
-      <button onclick="verFormulario('${a.numero}')">Ver Formulário</button>
-      <button onclick="registrarPagamento('${a.numero}')">Registrar Pagamento</button>
-      <button onclick="editarPlanoPagamento('${a.numero}')">Editar Plano</button>
-      <button onclick="suspender('${a.numero}',${a.ativo})">
-        ${a.ativo ? 'Suspender' : 'Ativar'}
-      </button>
-      <button onclick="excluir('${a.numero}')">Excluir</button>
-      <button onclick="editarDivida('${a.numero}')">Editar Dívida</button>
-      <button onclick="fecharAno('${a.numero}')">Fechar Ano</button>
-    </div>
-  </div>
-</td>`;
+      <td>
+        <button onclick="confirmar('${a.numero}')">Confirmar</button>
+        <button onclick="verFormulario('${a.numero}')">Ver Formulário</button>
+        <button onclick="registrarPagamento('${a.numero}')">Registrar Pagamento</button>
+        <button onclick="editarPlanoPagamento('${a.numero}')">Editar Plano</button>
+        <button onclick="suspender('${a.numero}',${a.ativo})">${a.ativo?'Suspender':'Ativar'}</button>
+        <button onclick="excluir('${a.numero}')">Excluir</button>
+        <button onclick="editarDivida('${a.numero}')">Editar Dívida</button>
+        <button onclick="fecharAno('${a.numero}')">Fechar Ano</button>
+      </td>`;
     tabela.appendChild(tr);
+  });
+
+  // CALENDÁRIO
+  const calSnap=await db.collection('calendario').get();
+  const lista=document.getElementById('adminCalendario');
+  lista.innerHTML='';
+  calSnap.forEach(doc => {
+    const li = document.createElement('li');
+    li.innerHTML = `${doc.data().data}: ${doc.data().evento} 
+      <button onclick="editarEvento('${doc.id}')">Editar</button>
+      <button onclick="limparEvento('${doc.id}')">Limpar</button>`;
+    lista.appendChild(li);
   });
 }
 
-// ===== ALERTAS SWEETALERT2 =====
-function alertaSucesso(msg){ Swal.fire('Sucesso',msg,'success'); }
-function alertaErro(msg){ Swal.fire('Erro',msg,'error'); }
+// ===== Preencher disciplinas no select do admin =====
+document.getElementById('notaAluno').addEventListener('change', async e => {
+  const numero = e.target.value;
+  const selectDisciplina = document.getElementById('notaDisciplina');
+  selectDisciplina.innerHTML = '<option value="">Selecione a disciplina</option>';
 
-// ===== LOGOUT =====
-document.getElementById('btnSair')?.addEventListener('click',logout);
-function logout(){ mostrarPagina('home'); Swal.fire('Logout','Você saiu com sucesso!','success'); }
+  if (!numero) return;
+  try {
+      const doc = await db.collection('alunos').doc(numero).get();
+      if (!doc.exists) { alert('Aluno não encontrado'); return; }
+      doc.data().disciplina.forEach(d => {
+          const option = document.createElement('option');
+          option.value = d;
+          option.textContent = d;
+          selectDisciplina.appendChild(option);
+      });
+  } catch(err) {
+      console.error(err);
+      alert('Erro ao buscar disciplinas do aluno');
+  }
+});
+
+// ===== FUNÇÕES ADMIN =====
+async function confirmar(numero){ await db.collection('alunos').doc(numero).update({confirmado:true}); alert('Matrícula confirmada'); mostrarPainelAdmin(); }
+async function suspender(numero, ativo){ await db.collection('alunos').doc(numero).update({ativo:!ativo}); alert(`Aluno ${!ativo?'ativado':'suspenso'}`); mostrarPainelAdmin(); }
+async function excluir(numero){ if(confirm('Deseja realmente excluir este aluno?')){ await db.collection('alunos').doc(numero).delete(); alert('Aluno excluído'); mostrarPainelAdmin(); } }
+async function editarDivida(numero){ const nova=prompt('Informe o valor da dívida:'); if(nova!==null){ await db.collection('alunos').doc(numero).update({divida:parseFloat(nova)}); alert('Dívida atualizada'); mostrarPainelAdmin(); } }
+
+// ===== LANÇAR NOTA =====
+document.getElementById('formNota').addEventListener('submit', async e=>{
+  e.preventDefault();
+  const numero = document.getElementById('notaAluno').value;
+  const disciplina = document.getElementById('notaDisciplina').value;
+  const valor = parseFloat(document.getElementById('notaValor').value);
+  const trimestre = parseInt(document.getElementById('notaTrimestre').value);
+  const tipo = document.getElementById('notaTipo').value;
+  if(!numero || !disciplina){ alert('Preencha o número do aluno e selecione a disciplina'); return; }
+  try{ await db.collection('notas').add({numero, disciplina, nota:valor, trimestre, tipo}); alert('Nota lançada com sucesso!'); }
+  catch(err){ alert('Erro ao lançar nota: '+err.message); console.error(err); }
+});
+
+// ===== ADICIONAR EVENTO =====
+document.getElementById('formEvento').addEventListener('submit',async e=>{
+  e.preventDefault();
+  const data=document.getElementById('eventoData').value;
+  const evento=document.getElementById('eventoDesc').value;
+  await db.collection('calendario').add({data,evento});
+  alert('Evento adicionado');
+  mostrarPainelAdmin();
+});
 
 // ===== TÍTULO ANIMADO =====
 const title = "Portal Zênite";
 const titleElement = document.getElementById('title-text');
-let index=0;
-function typeWriter(){
-  if(index<title.length){
-    const span=document.createElement('span');
-    span.textContent=title[index];
-    titleElement.appendChild(span);
-    span.style.opacity=0;
-    span.style.transform='translateY(-20px)';
-    span.style.transition='all 0.3s ease';
-    setTimeout(()=>{span.style.opacity=1;span.style.transform='translateY(0)';},50);
-    index++;
-    setTimeout(typeWriter,150);
-  }else{ setTimeout(()=>{titleElement.innerHTML=''; index=0; typeWriter();},2000);}
+let index = 0;
+function typeWriter() {
+    if (index < title.length) {
+        const span = document.createElement('span');
+        span.textContent = title[index];
+        titleElement.appendChild(span);
+        span.style.opacity = 0;
+        span.style.transform = 'translateY(-20px)';
+        span.style.transition = 'all 0.3s ease';
+        setTimeout(()=>{ span.style.opacity=1; span.style.transform='translateY(0)'; },50);
+        index++;
+        setTimeout(typeWriter, 150);
+    } else {
+        setTimeout(()=>{ titleElement.innerHTML=''; index=0; typeWriter(); },2000);
+    }
 }
 typeWriter();
 
-// ===== ABRIR MODAL =====
-function abrirModal(titulo, conteudoHTML) {
-    const modal = document.getElementById('modalFormulario');
-    document.getElementById('modalTitulo').innerText = titulo;
-    document.getElementById('conteudoFormulario').innerHTML = conteudoHTML;
-    modal.style.display = 'flex';
-}
-
-function fecharModal() {
-    document.getElementById('modalFormulario').style.display = 'none';
-}
-
-// ===== VER FORMULÁRIO DO ALUNO =====
-async function verFormulario(id) {
-    try {
-        const doc = await db.collection('alunos').doc(id).get();
-        if (!doc.exists) {
-            Swal.fire({ icon: 'error', title: 'Erro', text: 'Aluno não encontrado', timer: 2000, showConfirmButton: false });
-            return;
-        }
-
-        const a = doc.data();
-        abrirModal('📄 Formulário do Aluno', `
-            <p><strong>Nome:</strong> ${a.nome}</p>
-            <p><strong>Número:</strong> ${a.numero}</p>
-            <p><strong>Email:</strong> ${a.email}</p>
-            <p><strong>Plano:</strong> ${a.plano || '—'}</p>
-            <p><strong>Status:</strong> ${a.status || 'Ativo'}</p>
-        `);
-
-    } catch (e) {
-        console.error(e);
-        Swal.fire({ icon: 'error', title: 'Erro', text: 'Falha ao buscar formulário', timer: 2000, showConfirmButton: false });
-    }
-}
-
-// ===== REGISTRAR PAGAMENTO =====
-function registrarPagamento(id) {
-    abrirModal('💰 Registrar Pagamento', `
-        <input id="valorPagamento" placeholder="Valor pago">
-        <button onclick="salvarPagamento('${id}')">Confirmar</button>
-    `);
-}
-
-async function salvarPagamento(id) {
-    const valor = document.getElementById('valorPagamento').value;
-    if (!valor) return Swal.fire({ icon: 'warning', title: 'Aviso', text: 'Informe o valor', timer: 2000, showConfirmButton: false });
-
-    await db.collection('pagamentos').add({
-        alunoId: id,
-        valor: parseFloat(valor),
-        data: new Date().toLocaleDateString()
-    });
-
-    fecharModal();
-    Swal.fire({ icon: 'success', title: 'Sucesso', text: 'Pagamento registrado', timer: 2000, showConfirmButton: false });
-}
-
-// ===== EDITAR PLANO =====
-function editarPlano(id) {
-    abrirModal('✏️ Editar Plano', `
-        <select id="novoPlano">
-            <option value="Basico">Básico</option>
-            <option value="Premium">Premium</option>
-            <option value="VIP">VIP</option>
-        </select>
-        <button onclick="salvarPlano('${id}')">Salvar</button>
-    `);
-}
-
-async function salvarPlano(id) {
-    try {
-        const plano = document.getElementById('novoPlano').value;
-        if (!plano) return Swal.fire({ icon: 'warning', title: 'Aviso', text: 'Selecione um plano', timer: 2000, showConfirmButton: false });
-
-        await db.collection('alunos').doc(id).update({ plano });
-        fecharModal();
-        Swal.fire({ icon: 'success', title: 'Sucesso', text: 'Plano atualizado', timer: 2000, showConfirmButton: false });
-        mostrarPainelAdmin(); // atualiza tabela após mudança
-    } catch (err) {
-        console.error(err);
-        Swal.fire({ icon: 'error', title: 'Erro', text: 'Falha ao atualizar plano', timer: 2000, showConfirmButton: false });
-    }
-     }
-
-// ===== SUSPENDER / ATIVAR ALUNO =====
-async function suspender(numero, ativo) {
-    try {
-        await db.collection('alunos').doc(numero).update({ ativo: !ativo });
-        Swal.fire({
-            icon: 'success',
-            title: 'Sucesso',
-            text: `Aluno ${!ativo ? 'ativado' : 'suspenso'} com sucesso!`,
-            timer: 2000,
-            showConfirmButton: false
-        });
-        mostrarPainelAdmin(); // atualiza tabela após mudança
-    } catch (err) {
-        console.error(err);
-        Swal.fire({ icon: 'error', title: 'Erro', text: 'Falha ao alterar status', timer: 2000, showConfirmButton: false });
-    }
-}
-
-// ===== FECHAR ANO =====
-function fecharAno(id) {
-    abrirModal('⚠️ Fechar Ano', `
-        <p>Tem certeza que deseja fechar o ano deste aluno?</p>
-        <button onclick="confirmarFecharAno('${id}')">SIM, fechar</button>
-    `);
-}
-
-async function confirmarFecharAno(id) {
-    await db.collection('alunos').doc(id).update({ status: 'Encerrado' });
-    fecharModal();
-    Swal.fire({ icon: 'success', title: 'Sucesso', text: 'Ano fechado com sucesso', timer: 2000, showConfirmButton: false });
-}
-
-function toggleGerir(botao) {
-  const menu = botao.nextElementSibling;
-
-  // Fecha outros menus abertos
-  document.querySelectorAll('.gerir-menu').forEach(m => {
-    if (m !== menu) m.style.display = 'none';
-  });
-
-  menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
-      }
-
-// ===== SAIR DO SISTEMA =====
+// FUNÇÃO PARA SAIR DO SISTEMA
 function sair() {
+    // Volta para a página inicial
+    mostrarPagina('home');
+    
+    // Limpa dados sensíveis do painel do aluno
+    document.getElementById('perfilNome').innerText = '';
+    document.getElementById('perfilNumero').innerText = '';
+    document.getElementById('perfilClasse').innerText = '';
+    document.getElementById('perfilTurma').innerText = '';
+    document.getElementById('perfilNascimento').innerText = '';
+    document.getElementById('perfilContato').innerText = '';
+    document.getElementById('listaNotas').innerHTML = '';
+    document.getElementById('listaExtrato').innerHTML = '';
+    document.getElementById('listaCalendario').innerHTML = '';
+    document.getElementById('listaHistorico').innerHTML = '';
+}
+
+// LIGA O BOTÃO AO SCRIPT
+document.getElementById('btnSair').addEventListener('click', sair);
+
+// Função para sair (logout)
+function logout() {
+    // Limpa qualquer dado do usuário que estiver no painel
+    document.getElementById('perfilNome').innerText = '';
+    document.getElementById('perfilNumero').innerText = '';
+    document.getElementById('perfilClasse').innerText = '';
+    document.getElementById('perfilTurma').innerText = '';
+    document.getElementById('perfilNascimento').innerText = '';
+    document.getElementById('perfilContato').innerText = '';
+    document.getElementById('mediaFinalAluno').innerText = '-';
+    document.getElementById('statusAcademicoAluno').innerText = '-';
+
+    // Volta para a tela inicial
     mostrarPagina('home');
 
-    // Limpa dados sensíveis do painel do aluno
-    ['perfilNome','perfilNumero','perfilClasse','perfilTurma','perfilNascimento','perfilContato',
-     'listaNotas','listaExtrato','listaCalendario','listaHistorico','mediaFinalAluno','statusAcademicoAluno'].forEach(id => {
-        const el = document.getElementById(id);
-        if(el) el.innerText = '';
-    });
-
-    Swal.fire({ icon: 'success', title: 'Sucesso', text: 'Você saiu com sucesso!', timer: 2000, showConfirmButton: false });
+    alert('Você saiu com sucesso!');
 }
