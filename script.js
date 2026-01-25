@@ -25,87 +25,7 @@ class AlertSystem {
         });
     }
 
-    static async showError(message, title = 'Erro!') {
-        return Swal.fire({
-            icon: 'error',
-            title: title,
-            text: message,
-            confirmButtonText: 'OK',
-            confirmButtonColor: '#d33'
-        });
-    }
 
-    static async showWarning(message, title = 'Atenção!') {
-        return Swal.fire({
-            icon: 'warning',
-            title: title,
-            text: message,
-            confirmButtonText: 'OK',
-            confirmButtonColor: '#f0ad4e'
-        });
-    }
-
-    static async showInfo(message, title = 'Informação') {
-        return Swal.fire({
-            icon: 'info',
-            title: title,
-            text: message,
-            confirmButtonText: 'OK',
-            confirmButtonColor: '#17a2b8'
-        });
-    }
-
-    static async showConfirm(message, title = 'Confirmação') {
-        return Swal.fire({
-            title: title,
-            text: message,
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonText: 'Sim',
-            cancelButtonText: 'Não',
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33'
-        });
-    }
-
-    static async showInscricaoSuccess(aluno) {
-        return Swal.fire({
-            title: '🎉 Inscrição Realizada com Sucesso!',
-            html: `
-                <div style="text-align: left; padding: 15px; background: #f8f9fa; border-radius: 10px; margin: 15px 0;">
-                    <p><strong>⚠️ ATENÇÃO: GUARDE ESTAS INFORMAÇÕES!</strong></p>
-                    <p style="color: #d32f2f;">Não compartilhe com ninguém.</p>
-                    <hr>
-                    <p><strong>Número do Aluno:</strong><br>
-                    <span style="font-size: 1.2em; color: #1976d2; font-weight: bold;">${aluno.numero}</span></p>
-                    <p><strong>Senha:</strong><br>
-                    <span style="font-size: 1.2em; color: #388e3c; font-weight: bold;">${aluno.senha}</span></p>
-                    <hr>
-                    <p style="font-size: 0.9em; color: #666;">
-                        <strong>Recomendação:</strong> Anote ou tire print desta tela antes de clicar em OK.
-                    </p>
-                </div>
-            `,
-            icon: 'success',
-            confirmButtonText: 'OK, Entendi',
-            confirmButtonColor: '#3085d6',
-            width: 600,
-            allowOutsideClick: false,
-            allowEscapeKey: false
-        });
-    }
-}
-
-// Substituir alert() globalmente
-window.originalAlert = window.alert;
-window.alert = (message) => AlertSystem.showInfo(message);
-
-// Substituir confirm() globalmente
-window.originalConfirm = window.confirm;
-window.confirm = async (message) => {
-    const result = await AlertSystem.showConfirm(message);
-    return result.isConfirmed;
-};
 
 // ===== NAVEGAÇÃO =====
 function mostrarInscricao(){ mostrarPagina('inscricao'); }
@@ -134,14 +54,11 @@ async function avaliarAluno(numero, mediaFinal, divida){
 
 // ===== INSCRIÇÃO =====
 document.getElementById('formInscricao').addEventListener('submit', async e => {
-    e.preventDefault();
+    e.preventDefault(); // não recarrega a página
     try {
         const checkboxEls = document.querySelectorAll('#disciplinasCheckboxes input[name="disciplinas"]:checked');
         const disciplinasSelecionadas = Array.from(checkboxEls).map(cb => cb.value);
-        if (disciplinasSelecionadas.length === 0) { 
-            await AlertSystem.showWarning('Selecione pelo menos uma disciplina!', 'Formulário Incompleto'); 
-            return; 
-        }
+        if (disciplinasSelecionadas.length === 0) { alert('Selecione pelo menos uma disciplina!'); return; }
 
         const aluno = {
             nome: document.getElementById('nome').value,
@@ -159,19 +76,16 @@ document.getElementById('formInscricao').addEventListener('submit', async e => {
             ativo: true,
             confirmado: false,
             divida: 0,
-            planoPagamento: { total: 270, parcelas: 5 },
+            planoPagamento: { total: 450, parcelas: 1},
             statusAcademico: 'Reprovado'
         };
 
         await db.collection('alunos').doc(aluno.numero).set(aluno);
-        
-        // Substitua o alert antigo por este:
-        await AlertSystem.showInscricaoSuccess(aluno);
-        
+        alert(`Inscrição realizada, com sucesso, guarde teu código de aluno e a senha, não compartinhe. antes de clicar ok transcreve a sua senha e código.!\nNúmero do Aluno: ${aluno.numero}\nSenha: ${aluno.senha}`);
         document.getElementById('formInscricao').reset();
         voltarHome();
     } catch (err) {
-        await AlertSystem.showError('Erro ao registrar aluno: ' + err.message, 'Erro na Inscrição');
+        alert('Erro ao registrar aluno: ' + err.message);
         console.error(err);
     }
 });
