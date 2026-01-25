@@ -286,7 +286,7 @@ async function mostrarPainelAdmin(){
         <button onclick="confirmar('${a.numero}')">Confirmar</button>
         <button onclick="verFormulario('${a.numero}')">Ver Formulário</button>
         <button onclick="registrarPagamento('${a.numero}')">Registrar Pagamento</button>
-        <button onclick="editarPlanoPagamento('${a.numero}')">Editar Plano</button>
+        <button onclick="editarPlano('${a.numero}')">Editar Plano</button>
         <button onclick="suspender('${a.numero}',${a.ativo})">${a.ativo?'Suspender':'Ativar'}</button>
         <button onclick="excluir('${a.numero}')">Excluir</button>
         <button onclick="editarDivida('${a.numero}')">Editar Dívida</button>
@@ -335,6 +335,28 @@ async function confirmar(numero){ await db.collection('alunos').doc(numero).upda
 async function suspender(numero, ativo){ await db.collection('alunos').doc(numero).update({ativo:!ativo}); alert(`Aluno ${!ativo?'ativado':'suspenso'}`); mostrarPainelAdmin(); }
 async function excluir(numero){ if(confirm('Deseja realmente excluir este aluno?')){ await db.collection('alunos').doc(numero).delete(); alert('Aluno excluído'); mostrarPainelAdmin(); } }
 async function editarDivida(numero){ const nova=prompt('Informe o valor da dívida:'); if(nova!==null){ await db.collection('alunos').doc(numero).update({divida:parseFloat(nova)}); alert('Dívida atualizada'); mostrarPainelAdmin(); } }
+async function verFormulario(id) {
+  try {
+    const doc = await db.collection('alunos').doc(id).get();
+    if (!doc.exists) {
+      abrirModal('Erro', '<p>Aluno não encontrado</p>');
+      return;
+    }
+
+    const a = doc.data();
+
+    abrirModal('📄 Formulário do Aluno', `
+      <p><strong>Nome:</strong> ${a.nome}</p>
+      <p><strong>Número:</strong> ${a.numero}</p>
+      <p><strong>Email:</strong> ${a.email}</p>
+      <p><strong>Plano:</strong> ${a.plano || '—'}</p>
+      <p><strong>Status:</strong> ${a.status || 'Ativo'}</p>
+    `);
+
+  } catch (e) {
+    console.error(e);
+  }
+  }
 
 // ===== LANÇAR NOTA =====
 document.getElementById('formNota').addEventListener('submit', async e=>{
