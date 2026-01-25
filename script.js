@@ -51,14 +51,21 @@ async function avaliarAluno(numero, mediaFinal, divida){
   return status;
 }
 
-// ===== INSCRIÇÃO =====
+// ===== INSCRIÇÃO COM MODAL =====
 document.getElementById('formInscricao').addEventListener('submit', async e => {
     e.preventDefault(); // não recarrega a página
     try {
+        // Pega disciplinas selecionadas
         const checkboxEls = document.querySelectorAll('#disciplinasCheckboxes input[name="disciplinas"]:checked');
         const disciplinasSelecionadas = Array.from(checkboxEls).map(cb => cb.value);
-        if (disciplinasSelecionadas.length === 0) { alert('Selecione pelo menos uma disciplina!'); return; }
 
+        // Verifica se selecionou pelo menos uma disciplina
+        if (disciplinasSelecionadas.length === 0) { 
+            await mostrarModal('Selecione pelo menos uma disciplina!'); 
+            return; 
+        }
+
+        // Cria objeto do aluno
         const aluno = {
             nome: document.getElementById('nome').value,
             email: document.getElementById('email').value,
@@ -79,12 +86,31 @@ document.getElementById('formInscricao').addEventListener('submit', async e => {
             statusAcademico: 'Reprovado'
         };
 
+        // Confirma antes de salvar
+        const ok = await mostrarModal(
+            `Deseja realmente realizar a inscrição?\n\n` +
+            `Nome: ${aluno.nome}\nClasse: ${aluno.classe}\n` +
+            `Disciplinas: ${aluno.disciplina.join(', ')}`
+        );
+        if(!ok) return;
+
+        // Salva no Firestore
         await db.collection('alunos').doc(aluno.numero).set(aluno);
-        alert(`Inscrição realizada, com sucesso, guarde teu código de aluno e a senha, não compartinhe. antes de clicar ok transcreve a sua senha e código.!\nNúmero do Aluno: ${aluno.numero}\nSenha: ${aluno.senha}`);
+
+        // Mostra sucesso com código e senha
+        await mostrarModal(
+            `Inscrição realizada com sucesso!\n\n` +
+            `Número do Aluno: ${aluno.numero}\n` +
+            `Senha: ${aluno.senha}\n\n` +
+            `Guarde estes dados e não compartilhe.`
+        );
+
+        // Reseta formulário e volta para home
         document.getElementById('formInscricao').reset();
         voltarHome();
+
     } catch (err) {
-        alert('Erro ao registrar aluno: ' + err.message);
+        await mostrarModal('Erro ao registrar aluno: ' + err.message);
         console.error(err);
     }
 });
