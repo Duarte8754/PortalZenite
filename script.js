@@ -11,6 +11,21 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
+function mostrarModal(mensagem) {
+  return new Promise((resolve) => {
+    const modal = document.getElementById('modalConfirm');
+    const msg = document.getElementById('modalMensagem');
+    const btnSim = document.getElementById('modalSim');
+    const btnNao = document.getElementById('modalNao');
+
+    msg.innerText = mensagem;
+    modal.style.display = 'flex';
+
+    btnSim.onclick = () => { modal.style.display='none'; resolve(true); };
+    btnNao.onclick = () => { modal.style.display='none'; resolve(false); };
+  });
+}
+
 // ===== NAVEGAÇÃO =====
 function mostrarInscricao(){ mostrarPagina('inscricao'); }
 function mostrarLogin(){ mostrarPagina('login'); }
@@ -331,33 +346,29 @@ document.getElementById('notaAluno').addEventListener('change', async e => {
 });
 
 // ===== FUNÇÕES ADMIN =====
+
 // ===== 1. CONFIRMAR MATRÍCULA =====
 async function confirmar(numero){
-  await db.collection('alunos').doc(numero).update({
-    confirmado: true
-  });
-  alert('Matrícula confirmada com sucesso');
+  const ok = await mostrarModal('Deseja confirmar a matrícula deste aluno?');
+  if(!ok) return;
+
+  await db.collection('alunos').doc(numero).update({ confirmado:true });
+  await mostrarModal('Matrícula confirmada com sucesso!');
   mostrarPainelAdmin();
 }
 
 // ===== 2. VER FORMULÁRIO DO ALUNO =====
 async function verFormulario(numero){
   const doc = await db.collection('alunos').doc(numero).get();
-  if(!doc.exists){ alert('Aluno não encontrado'); return; }
+  if(!doc.exists){ await mostrarModal('Aluno não encontrado'); return; }
   const a = doc.data();
 
-  alert(`
-NOME: ${a.nome}
-NÚMERO: ${a.numero}
-EMAIL: ${a.email}
-TELEFONE: ${a.telefone}
-WHATSAPP: ${a.whatsapp}
-PAI/MÃE: ${a.paiMae}
-CLASSE: ${a.classe}
-DISCIPLINAS: ${a.disciplina.join(', ')}
-DATA INSCRIÇÃO: ${a.dataInscricao}
-CONFIRMADO: ${a.confirmado ? 'SIM' : 'NÃO'}
-`);
+  await mostrarModal(
+    `NOME: ${a.nome}\nNÚMERO: ${a.numero}\nEMAIL: ${a.email}\nTELEFONE: ${a.telefone}\n` +
+    `WHATSAPP: ${a.whatsapp}\nPAI/MÃE: ${a.paiMae}\nCLASSE: ${a.classe}\n` +
+    `DISCIPLINAS: ${a.disciplina.join(', ')}\nDATA INSCRIÇÃO: ${a.dataInscricao}\n` +
+    `CONFIRMADO: ${a.confirmado ? 'SIM' : 'NÃO'}`
+  );
 }
 
 // ===== 3. REGISTRAR PAGAMENTO =====
@@ -372,14 +383,12 @@ async function registrarPagamento(numero){
     status: 'Pago'
   });
 
-  // Atualiza dívida
   const alunoRef = db.collection('alunos').doc(numero);
   const doc = await alunoRef.get();
   const novaDivida = Math.max(0, (doc.data().divida || 0) - parseFloat(valor));
-
   await alunoRef.update({ divida: novaDivida });
 
-  alert('Pagamento registrado com sucesso');
+  await mostrarModal('Pagamento registrado com sucesso');
   mostrarPainelAdmin();
 }
 
@@ -387,37 +396,34 @@ async function registrarPagamento(numero){
 async function editarPlanoPagamento(numero){
   const total = prompt('Novo valor total do plano:');
   if(total === null) return;
-
   const parcelas = prompt('Número de parcelas:');
   if(parcelas === null) return;
 
   await db.collection('alunos').doc(numero).update({
-    planoPagamento: {
-      total: parseFloat(total),
-      parcelas: parseInt(parcelas)
-    }
+    planoPagamento: { total: parseFloat(total), parcelas: parseInt(parcelas) }
   });
 
-  alert('Plano de pagamento atualizado');
+  await mostrarModal('Plano de pagamento atualizado com sucesso');
   mostrarPainelAdmin();
 }
 
 // ===== 5. SUSPENDER / ATIVAR ALUNO =====
 async function suspender(numero, ativo){
-  await db.collection('alunos').doc(numero).update({
-    ativo: !ativo
-  });
-  alert(`Aluno ${ativo ? 'suspenso' : 'ativado'} com sucesso`);
+  const ok = await mostrarModal(`Deseja realmente ${ativo ? 'suspender' : 'ativar'} este aluno?`);
+  if(!ok) return;
+
+  await db.collection('alunos').doc(numero).update({ ativo: !ativo });
+  await mostrarModal(`Aluno ${!ativo ? 'ativado' : 'suspenso'} com sucesso`);
   mostrarPainelAdmin();
 }
 
 // ===== 6. EXCLUIR ALUNO =====
 async function excluir(numero){
-  if(!confirm('Deseja realmente excluir este aluno?')) return;
+  const ok = await mostrarModal('Deseja realmente excluir este aluno?');
+  if(!ok) return;
 
   await db.collection('alunos').doc(numero).delete();
-
-  alert('Aluno excluído definitivamente');
+  await mostrarModal('Aluno excluído definitivamente');
   mostrarPainelAdmin();
 }
 
@@ -426,23 +432,22 @@ async function editarDivida(numero){
   const novaDivida = prompt('Informe o novo valor da dívida:');
   if(novaDivida === null) return;
 
-  await db.collection('alunos').doc(numero).update({
-    divida: parseFloat(novaDivida)
-  });
-
-  alert('Dívida atualizada com sucesso');
+  await db.collection('alunos').doc(numero).update({ divida: parseFloat(novaDivida) });
+  await mostrarModal('Dívida atualizada com sucesso');
   mostrarPainelAdmin();
 }
 
 // ===== 8. FECHAR ANO LETIVO =====
 async function fecharAno(numero){
+  const ok = await mostrarModal('Deseja realmente fechar o ano letivo deste aluno?');
+  if(!ok) return;
+
   const alunoRef = db.collection('alunos').doc(numero);
   const alunoDoc = await alunoRef.get();
-  if(!alunoDoc.exists){ alert('Aluno não encontrado'); return; }
+  if(!alunoDoc.exists){ await mostrarModal('Aluno não encontrado'); return; }
 
   const aluno = alunoDoc.data();
 
-  // Salva histórico
   await db.collection('historico').add({
     numero: aluno.numero,
     anoLetivo: new Date().getFullYear(),
@@ -451,15 +456,11 @@ async function fecharAno(numero){
     statusAcademico: aluno.statusAcademico
   });
 
-  // Limpa notas e reseta status
-  await alunoRef.update({
-    statusAcademico: 'Reprovado',
-    confirmado: false
-  });
-
-  alert('Ano letivo fechado e histórico salvo');
+  await alunoRef.update({ statusAcademico: 'Reprovado', confirmado: false });
+  await mostrarModal('Ano letivo fechado e histórico salvo');
   mostrarPainelAdmin();
-    }
+}
+
 // ===== LANÇAR NOTA =====
 document.getElementById('formNota').addEventListener('submit', async e=>{
   e.preventDefault();
