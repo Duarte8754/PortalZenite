@@ -38,36 +38,38 @@
   </div>
 </div>
 
-
-<!-- INSCRIÇÃO -->
+<!-- PÁGINA INSCRIÇÃO -->
 <div id="inscricao" class="page">
-  <div class="form-banner">
-    <h2>Formulário de Inscrição</h2>
-    <p>Preencha todos os campos corretamente para garantir sua matrícula.</p>
-  </div><form id="formInscricao" class="form-inscricao">
-  <input type="text" placeholder="Nome completo" id="nome" required>
-  <input type="email" placeholder="Email" id="email" required>
-  <input type="text" placeholder="Telefone" id="telefone" required>
-  <input type="text" placeholder="WhatsApp" id="whatsapp" required>
-  <input type="text" placeholder="Nome do pai/mãe" id="paiMae" required>
-  <input type="text" placeholder="Classe" id="classe" required>
-  <input type="date" placeholder="Data de nascimento" id="nascimento" required>
+  <h2>Formulário de Inscrição</h2>
+  <form id="formInscricao">
+    <input type="text" id="nome" placeholder="Nome completo" required><br>
+    <input type="email" id="email" placeholder="Email" required><br>
+    <input type="text" id="telefone" placeholder="Telefone" required><br>
+    <input type="text" id="whatsapp" placeholder="WhatsApp"><br>
+    <input type="text" id="paiMae" placeholder="Nome do pai/mãe" required><br>
+    <input type="date" id="nascimento" placeholder="Data de nascimento" required><br>
 
-  <h4>Selecione as disciplinas:</h4>
-  <div id="disciplinasCheckboxes">
-    <label><input type="checkbox" name="disciplinas" value="Matemática"> Matemática</label>
-    <label><input type="checkbox" name="disciplinas" value="Português"> Português</label>
-    <label><input type="checkbox" name="disciplinas" value="Física"> Física</label>
-    <label><input type="checkbox" name="disciplinas" value="Química"> Química</label>
-    <label><input type="checkbox" name="disciplinas" value="Biologia"> Biologia</label>
-    <label><input type="checkbox" name="disciplinas" value="História"> História</label>
-    <label><input type="checkbox" name="disciplinas" value="Geografia"> Geografia</label>
-  </div>
+    <!-- CLASSE -->
+    <select id="classe" required>
+      <option value="">Selecione a classe</option>
+    </select><br>
 
-  <button type="submit">Enviar Inscrição</button>
-</form>
-  <button onclick="voltarHome()" class="btn-voltar">Voltar</button>
-</div>
+    <!-- ÁREA (11ª e 12ª) -->
+    <select id="area" required style="display:none;">
+      <option value="">Selecione a área</option>
+      <option value="Letras">Letras</option>
+      <option value="Ciências B">Ciências (Biologia/Química)</option>
+      <option value="Ciências C">Ciências (Desenho/Artes)</option>
+    </select><br>
+
+    <!-- DISCIPLINAS -->
+    <div id="disciplinasCheckboxes"></div>
+
+    <button type="submit">Inscrever</button>
+    <button type="button" onclick="voltarHome()">Voltar</button>
+  </form>
+      </div>
+
 
 <!-- LOGIN -->
 <div id="login" class="page">
