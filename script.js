@@ -51,40 +51,88 @@ async function avaliarAluno(numero, mediaFinal, divida){
   return status;
 }
 
-// ===== INSCRIÇÃO COM MODAL =====
-document.getElementById('formInscricao').addEventListener('submit', async e => {
-    e.preventDefault(); // não recarrega a página
-    try {
-        // Pega disciplinas selecionadas
-        const checkboxEls = document.querySelectorAll('#disciplinasCheckboxes input[name="disciplinas"]:checked');
-        const disciplinasSelecionadas = Array.from(checkboxEls).map(cb => cb.value);
+// ===== POPULAR CLASSES =====
+const selectClasse = document.getElementById('classe');
+const selectArea = document.getElementById('area');
+const disciplinasDiv = document.getElementById('disciplinasCheckboxes');
 
-        // Verifica se selecionou pelo menos uma disciplina
-        if (disciplinasSelecionadas.length === 0) { 
-            await mostrarModal('Selecione pelo menos uma disciplina!'); 
-            return; 
-        }
+// Disciplinas por classe e área
+const disciplinas = {
+  7:['Matemática','Português','Inglês','Educação Física'],
+  8:['Matemática','Português','Inglês','Educação Física'],
+  9:['Matemática','Português','Inglês','Filosofia','História','Geografia','Educação Física'],
+  10:['Matemática','Português','Inglês','Filosofia','História','Geografia','Educação Física'],
+  11:{
+    Letras:['Português','Inglês','Filosofia','História','Geografia','Literatura','Educação Física','TICs'],
+    "Ciências B":['Matemática','Física','Química','Biologia','Filosofia','Educação Física','TICs'],
+    "Ciências C":['Matemática','Física','Desenho','Biologia','Filosofia','Educação Física','TICs']
+  },
+  12:{
+    Letras:['Português','Inglês','Filosofia','História','Geografia','Literatura','Educação Física','TICs'],
+    "Ciências B":['Matemática','Física','Química','Biologia','Filosofia','Educação Física','TICs'],
+    "Ciências C":['Matemática','Física','Desenho','Biologia','Filosofia','Educação Física','TICs']
+  }
+};
 
-        // Cria objeto do aluno
-        const aluno = {
-            nome: document.getElementById('nome').value,
-            email: document.getElementById('email').value,
-            telefone: document.getElementById('telefone').value,
-            whatsapp: document.getElementById('whatsapp').value,
-            paiMae: document.getElementById('paiMae').value,
-            classe: document.getElementById('classe').value,
-            disciplina: disciplinasSelecionadas,
-            nascimento: document.getElementById('nascimento').value,
-            turma: ['A','B','C'][Math.floor(Math.random()*3)],
-            dataInscricao: new Date().toLocaleDateString(),
-            numero: gerarNumeroAluno(),
-            senha: gerarSenha(),
-            ativo: true,
-            confirmado: false,
-            divida: 0,
-            planoPagamento: { total: 5000, parcelas: 5 },
-            statusAcademico: 'Reprovado'
-        };
+// Preenche o select de classes (7 a 12)
+for(let i=7;i<=12;i++){
+  const opt = document.createElement('option');
+  opt.value = i;
+  opt.textContent = i+'ª Classe';
+  selectClasse.appendChild(opt);
+}
+
+// Atualiza áreas e disciplinas ao selecionar classe
+selectClasse.addEventListener('change',()=>{
+  const classe = parseInt(selectClasse.value);
+  disciplinasDiv.innerHTML='';
+  if(classe===11 || classe===12){
+    selectArea.style.display='block';
+  } else {
+    selectArea.style.display='none';
+    if(disciplinas[classe]){
+      disciplinasDiv.innerHTML = disciplinas[classe].map(d => `<label><input type="checkbox" name="disciplinas" value="${d}"> ${d}</label><br>`).join('');
+    }
+  }
+});
+
+// Atualiza disciplinas ao selecionar área
+selectArea.addEventListener('change',()=>{
+  const classe = parseInt(selectClasse.value);
+  const area = selectArea.value;
+  if(disciplinas[classe][area]){
+    disciplinasDiv.innerHTML = disciplinas[classe][area].map(d => `<label><input type="checkbox" name="disciplinas" value="${d}"> ${d}</label><br>`).join('');
+  }
+});
+
+// ===== INSCRIÇÃO =====
+document.getElementById('formInscricao').addEventListener('submit', async e=>{
+  e.preventDefault();
+
+  const checkboxEls = document.querySelectorAll('#disciplinasCheckboxes input[name="disciplinas"]:checked');
+  const disciplinasSelecionadas = Array.from(checkboxEls).map(cb=>cb.value);
+  if(disciplinasSelecionadas.length===0){ alert('Selecione pelo menos uma disciplina!'); return; }
+
+  const aluno = {
+    nome: document.getElementById('nome').value,
+    email: document.getElementById('email').value,
+    telefone: document.getElementById('telefone').value,
+    whatsapp: document.getElementById('whatsapp').value,
+    paiMae: document.getElementById('paiMae').value,
+    classe: selectClasse.value,
+    area: selectArea.value || null,
+    disciplina: disciplinasSelecionadas,
+    nascimento: document.getElementById('nascimento').value,
+    turma:['A','B','C'][Math.floor(Math.random()*3)],
+    dataInscricao: new Date().toLocaleDateString(),
+    numero: gerarNumeroAluno(),
+    senha: gerarSenha(),
+    ativo:true,
+    confirmado:false,
+    divida:0,
+    planoPagamento:{total:5000,parcelas:5},
+    statusAcademico:'Reprovado'
+  };
 
         // Confirma antes de salvar
         const ok = await mostrarModal(
