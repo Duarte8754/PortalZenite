@@ -153,10 +153,11 @@ document.getElementById('formInscricao').addEventListener('submit', async e=>{
             `Guarde estes dados e não compartilhe. Faça captura de ecrã ou anota num papel`
         );
 
-        // Reseta formulário e volta para home
-        document.getElementById('formInscricao').reset();
-        voltarHome();
-
+  document.getElementById('formInscricao').reset();
+  disciplinasDiv.innerHTML='';
+  selectArea.style.display='none';
+  voltarHome();
+});
     } catch (err) {
         await mostrarModal('Erro ao registrar aluno: ' + err.message);
         console.error(err);
