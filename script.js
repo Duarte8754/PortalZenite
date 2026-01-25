@@ -102,7 +102,7 @@ document.getElementById('formInscricao').addEventListener('submit', async e => {
             `Inscrição realizada com sucesso!\n\n` +
             `Número do Aluno: ${aluno.numero}\n` +
             `Senha: ${aluno.senha}\n\n` +
-            `Guarde estes dados e não compartilhe.`
+            `Guarde estes dados e não compartilhe. Faça captura de ecrã ou anota num papel`
         );
 
         // Reseta formulário e volta para home
@@ -327,7 +327,7 @@ async function mostrarPainelAdmin(){
         <button onclick="confirmar('${a.numero}')">Confirmar</button>
         <button onclick="verFormulario('${a.numero}')">Ver Formulário</button>
         <button onclick="registrarPagamento('${a.numero}')">Registrar Pagamento</button>
-        <button onclick="editarPlanoPagamento('${a.numero}')">Editar Plano</button>
+        <button onclick="editarPlano('${a.numero}')">Editar Plano</button>
         <button onclick="suspender('${a.numero}',${a.ativo})">${a.ativo?'Suspender':'Ativar'}</button>
         <button onclick="excluir('${a.numero}')">Excluir</button>
         <button onclick="editarDivida('${a.numero}')">Editar Dívida</button>
