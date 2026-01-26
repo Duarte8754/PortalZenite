@@ -56,14 +56,11 @@ async function avaliarAluno(numero, mediaFinal, divida){
 // =======================
 const disciplinasPorClasseCurso = {
   "9ª Classe": {
-    "Letras": ["Português", "Matemática", "História", "Geografia", "Educação Física"],
-    "Ciências B/Q": ["Português", "Matemática", "Ciências Naturais", "Educação Física"],
-    "Ciências D/A": ["Português", "Matemática", "Educação Visual", "Educação Física"]
+    "Disciplinas": ["Português", "Matemática", "Física", "Química", "Biológica", "Inglês", "Francês", "História", "Geografia", "Noções de empreendedorismo"],
   },
   "10ª Classe": {
-    "Letras": ["Português", "Matemática", "História", "Geografia", "Filosofia"],
-    "Ciências B/Q": ["Português", "Matemática", "Física", "Química", "Biologia"],
-    "Ciências D/A": ["Português", "Matemática", "Desenho", "Educação Visual"]
+    "Disciplinas": ["Português", "Matemática", "Física", "Química", "Biológica", "Inglês", "Francês", "História", "Geografia", "Noções de empreendedorismo"],
+  },
   },
   "11ª Classe": {
     "Letras": ["Português", "Inglês", "História", "Geografia", "Filosofia"],
