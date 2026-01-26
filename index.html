@@ -9,7 +9,6 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-
 </head>
 <body>
 <div class="container">
@@ -38,106 +37,36 @@
   </div>
 </div>
 
-<!-- =======================
-     ÁREA DE INSCRIÇÃO
-======================== -->
-<section id="inscricao" class="page">
 
-  <h2>Inscrição de Aluno</h2>
+<!-- INSCRIÇÃO -->
+<div id="inscricao" class="page">
+  <div class="form-banner">
+    <h2>Formulário de Inscrição</h2>
+    <p>Preencha todos os campos corretamente para garantir sua matrícula.</p>
+  </div><form id="formInscricao" class="form-inscricao">
+  <input type="text" placeholder="Nome completo" id="nome" required>
+  <input type="email" placeholder="Email" id="email" required>
+  <input type="text" placeholder="Telefone" id="telefone" required>
+  <input type="text" placeholder="WhatsApp" id="whatsapp" required>
+  <input type="text" placeholder="Nome do pai/mãe" id="paiMae" required>
+  <input type="text" placeholder="Classe" id="classe" required>
+  <input type="date" placeholder="Data de nascimento" id="nascimento" required>
 
-  <!-- FORMULÁRIO -->
-  <form id="formInscricao">
+  <h4>Selecione as disciplinas:</h4>
+  <div id="disciplinasCheckboxes">
+    <label><input type="checkbox" name="disciplinas" value="Matemática"> Matemática</label>
+    <label><input type="checkbox" name="disciplinas" value="Português"> Português</label>
+    <label><input type="checkbox" name="disciplinas" value="Física"> Física</label>
+    <label><input type="checkbox" name="disciplinas" value="Química"> Química</label>
+    <label><input type="checkbox" name="disciplinas" value="Biologia"> Biologia</label>
+    <label><input type="checkbox" name="disciplinas" value="História"> História</label>
+    <label><input type="checkbox" name="disciplinas" value="Geografia"> Geografia</label>
+  </div>
 
-    <!-- DADOS PESSOAIS -->
-    <fieldset>
-      <legend>Dados do Aluno</legend>
-
-      <input type="text" id="nome" placeholder="Nome" required>
-
-      <input type="text" id="apelido" placeholder="Apelido" required>
-
-      <input type="date" id="nascimento" required>
-
-    </fieldset>
-
-    <!-- CONTACTOS -->
-    <fieldset>
-      <legend>Contactos</legend>
-
-      <input type="email" id="email" placeholder="Email" required>
-
-      <input type="text" id="telefone" placeholder="Telefone" required>
-
-      <input type="text" id="whatsapp" placeholder="WhatsApp">
-
-    </fieldset>
-
-    <!-- ENCARREGADO -->
-    <fieldset>
-      <legend>Encarregado</legend>
-
-      <input type="text" id="paiMae" placeholder="Nome do Pai/Mãe ou Encarregado" required>
-
-    </fieldset>
-
-    <!-- DADOS ACADÉMICOS -->
-    <fieldset>
-      <legend>Dados Académicos</legend>
-
-      <!-- CLASSE -->
-      <label>Classe</label>
-      <select id="classe" required>
-        <option value="">Selecione a classe</option>
-        <option value="9ª Classe">9ª Classe</option>
-        <option value="10ª Classe">10ª Classe</option>
-        <option value="11ª Classe">11ª Classe</option>
-        <option value="12ª Classe">12ª Classe</option>
-      </select>
-
-      <!-- CURSO -->
-      <label>Curso</label>
-      <select id="curso" required>
-        <option value="">Selecione o curso</option>
-        <option value="Letras">Letras</option>
-        <option value="Ciências B/Q">Ciências (Biologia / Química)</option>
-        <option value="Ciências D/A">Ciências (Desenho / Artes)</option>
-      </select>
-
-    </fieldset>
-
-    <!-- DISCIPLINAS -->
-    <fieldset>
-      <legend>Disciplinas</legend>
-
-      <!-- IMPORTANTE:
-           IDs e name EXATOS para o teu JS -->
-      <div id="disciplinasCheckboxes">
-
-        <label><input type="checkbox" name="disciplinas" value="Português"> Português</label>
-        <label><input type="checkbox" name="disciplinas" value="Matemática"> Matemática</label>
-        <label><input type="checkbox" name="disciplinas" value="Inglês"> Inglês</label>
-        <label><input type="checkbox" name="disciplinas" value="Física"> Física</label>
-        <label><input type="checkbox" name="disciplinas" value="Química"> Química</label>
-        <label><input type="checkbox" name="disciplinas" value="Biologia"> Biologia</label>
-        <label><input type="checkbox" name="disciplinas" value="História"> História</label>
-        <label><input type="checkbox" name="disciplinas" value="Geografia"> Geografia</label>
-        <label><input type="checkbox" name="disciplinas" value="Filosofia"> Filosofia</label>
-        <label><input type="checkbox" name="disciplinas" value="Educação Física"> Educação Física</label>
-        <label><input type="checkbox" name="disciplinas" value="TICs"> TICs</label>
-
-      </div>
-    </fieldset>
-
-    <!-- BOTÕES -->
-    <div style="margin-top:20px;">
-      <button type="submit">Confirmar Inscrição</button>
-      <button type="button" onclick="voltarHome()">Cancelar</button>
-    </div>
-
-  </form>
-
-      </section>
-
+  <button type="submit">Enviar Inscrição</button>
+</form>
+  <button onclick="voltarHome()" class="btn-voltar">Voltar</button>
+</div>
 
 <!-- LOGIN -->
 <div id="login" class="page">
@@ -268,18 +197,7 @@
   <button onclick="logout()">Sair</button>
 </div>
 
- <!-- Modal Global do sistema -->
-<div id="modalConfirm" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
-  <div style="background:white; padding:20px; border-radius:8px; width:320px; max-width:90%; text-align:center; color:black; box-shadow:0 5px 15px rgba(0,0,0,0.3); font-family:Arial,sans-serif;">
-    <p id="modalMensagem"></p>
-    <div style="margin-top:20px;">
-      <button id="modalSim" style="margin-right:10px; background:orange; color:white; border:none; padding:10px 20px; border-radius:5px; cursor:pointer;">Sim</button>
-      <button id="modalNao" style="background:orange; color:white; border:none; padding:10px 20px; border-radius:5px; cursor:pointer;">Não</button>
-    </div>
-  </div>
-</div>
-  
 </div>
 <script src="script.js"></script>
 </body>
-  </html>
+        </html>
