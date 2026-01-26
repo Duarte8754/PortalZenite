@@ -108,124 +108,79 @@ function atualizarDisciplinas() {
 document.getElementById("classe").addEventListener("change", atualizarDisciplinas);
 document.getElementById("curso").addEventListener("change", atualizarDisciplinas);
 
-// =======================
-// FORMULÁRIO DE INSCRIÇÃO (COMPLETO)
-// =======================
-document.getElementById("formInscricao").addEventListener("submit", async function (e) {
-  e.preventDefault();
+// ===== INSCRIÇÃO COM MODAL E SENHA PERSONALIZADA =====
+document.getElementById('formInscricao').addEventListener('submit', async e => {
+    e.preventDefault(); // não recarrega a página
+    try {
+        // Pega disciplinas selecionadas
+        const checkboxEls = document.querySelectorAll('#disciplinasCheckboxes input[name="disciplinas"]:checked');
+        const disciplinasSelecionadas = Array.from(checkboxEls).map(cb => cb.value);
 
-  // ===== COLETA DE DADOS =====
-  const nome = document.getElementById("nome").value.trim();
-  const apelido = document.getElementById("apelido").value.trim();
-  const nascimento = document.getElementById("nascimento").value;
-  const email = document.getElementById("email").value.trim();
-  const telefone = document.getElementById("telefone").value.trim();
-  const whatsapp = document.getElementById("whatsapp").value.trim();
-  const paiMae = document.getElementById("paiMae").value.trim();
-  const classe = document.getElementById("classe").value;
-  const curso = document.getElementById("curso").value;
+        // Verifica se selecionou pelo menos uma disciplina
+        if (disciplinasSelecionadas.length === 0) { 
+            await mostrarModal('Selecione pelo menos uma disciplina!'); 
+            return; 
+        }
 
-  const disciplinasMarcadas = Array.from(
-    document.querySelectorAll('#disciplinasCheckboxes input[name="disciplinas"]:checked')
-  ).map(el => el.value);
+        // Gera número do aluno: 2007 + 4 números aleatórios
+        const numeroAluno = '2007' + Math.floor(1000 + Math.random() * 9000);
 
-  // ===== VALIDAÇÕES =====
-  if (
-    !nome || !apelido || !nascimento || !email ||
-    !telefone || !paiMae || !classe || !curso
-  ) {
-    mostrarModal(
-      "⚠️ Campos em falta",
-      "Preencha todos os campos obrigatórios.",
-      () => {}
-    );
-    return;
-  }
+        // Pega o primeiro nome do aluno e transforma em minúscula
+        const nomeCompleto = document.getElementById('nome').value.trim();
+        const primeiroNome = nomeCompleto.split(' ')[0].toLowerCase();
 
-  if (disciplinasMarcadas.length === 0) {
-    mostrarModal(
-      "⚠️ Disciplinas",
-      "Selecione pelo menos uma disciplina.",
-      () => {}
-    );
-    return;
-  }
+        // Cria senha: primeiro nome + código do aluno + "@IZ.com"
+        const senhaAluno = `${primeiroNome}${numeroAluno}@IZ.com`;
 
-  // ===== CONFIRMAÇÃO =====
-  mostrarModal(
-    "Confirmar Inscrição",
-    `
-      Confirma a inscrição de:<br><br>
-      <b>${nome} ${apelido}</b><br>
-      Classe: <b>${classe}</b><br>
-      Curso: <b>${curso}</b>
-    `,
-    async function (confirmado) {
-
-      if (!confirmado) {
-        mostrarModal("Cancelado", "Inscrição cancelada.", () => {});
-        return;
-      }
-
-      try {
-        // ===== GERA CREDENCIAIS =====
-        const numeroAluno = gerarNumeroAluno();
-        const senhaAluno = gerarSenha();
-
-        // ===== OBJETO DO ALUNO =====
+        // Cria objeto do aluno
         const aluno = {
-          nome,
-          apelido,
-          nascimento,
-          email,
-          telefone,
-          whatsapp,
-          paiMae,
-          classe,
-          curso,
-          disciplina: disciplinasMarcadas,
-          numero: numeroAluno,
-          senha: senhaAluno,
-          turma: ["A", "B", "C"][Math.floor(Math.random() * 3)],
-          dataInscricao: new Date().toLocaleDateString(),
-          ativo: true,
-          confirmado: false,
-          divida: 0,
-          planoPagamento: { total: 5000, parcelas: 5 },
-          statusAcademico: "Reprovado"
+            nome: nomeCompleto,
+            email: document.getElementById('email').value,
+            telefone: document.getElementById('telefone').value,
+            whatsapp: document.getElementById('whatsapp').value,
+            paiMae: document.getElementById('paiMae').value,
+            classe: document.getElementById('classe').value,
+            disciplina: disciplinasSelecionadas,
+            nascimento: document.getElementById('nascimento').value,
+            turma: ['A','B','C'][Math.floor(Math.random()*3)],
+            dataInscricao: new Date().toLocaleDateString(),
+            numero: numeroAluno,
+            senha: senhaAluno,
+            ativo: true,
+            confirmado: false,
+            divida: 0,
+            planoPagamento: { total: 5000, parcelas: 5 },
+            statusAcademico: 'Reprovado'
         };
 
-        // ===== GUARDA NO FIREBASE =====
-        await db.collection("alunos").doc(numeroAluno).set(aluno);
+        // Confirma antes de salvar
+        const ok = await mostrarModal(
+            `Deseja realmente realizar a inscrição?\n\n` +
+            `Nome: ${aluno.nome}\nClasse: ${aluno.classe}\n` +
+            `Disciplinas: ${aluno.disciplina.join(', ')}`
+        );
+        if(!ok) return;
 
-        // ===== SUCESSO =====
-        mostrarModal(
-          "🎉 Inscrição Concluída",
-          `
-            <strong>Guarde estes dados:</strong><br><br>
-            <b>Número do Aluno:</b> ${numeroAluno}<br>
-            <b>Senha:</b> ${senhaAluno}<br><br>
-            ⚠️ Estes dados não serão mostrados novamente.
-          `,
-          () => {
-            document.getElementById("formInscricao").reset();
-            document.getElementById("disciplinasCheckboxes").innerHTML = "";
-            voltarHome();
-          }
+        // Salva no Firestore
+        await db.collection('alunos').doc(aluno.numero).set(aluno);
+
+        // Mostra sucesso com código e senha
+        await mostrarModal(
+            `Inscrição realizada com sucesso!\n\n` +
+            `Número do Aluno: ${aluno.numero}\n` +
+            `Senha: ${aluno.senha}\n\n` +
+            `Guarde estes dados e não compartilhe.`
         );
 
-      } catch (err) {
+        // Reseta formulário e volta para home
+        document.getElementById('formInscricao').reset();
+        voltarHome();
+
+    } catch (err) {
+        await mostrarModal('Erro ao registrar aluno: ' + err.message);
         console.error(err);
-        mostrarModal(
-          "❌ Erro",
-          "Erro ao registrar a inscrição. Tente novamente.",
-          () => {}
-        );
-      }
     }
-  );
 });
-
 
 // ===== LOGIN =====
 document.getElementById('formLogin').addEventListener('submit', async e=>{
