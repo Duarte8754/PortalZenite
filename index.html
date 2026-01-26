@@ -38,37 +38,105 @@
   </div>
 </div>
 
-<!-- PÁGINA INSCRIÇÃO -->
-<div id="inscricao" class="page">
-  <h2>Formulário de Inscrição</h2>
+<!-- =======================
+     ÁREA DE INSCRIÇÃO
+======================== -->
+<section id="inscricao" class="page">
+
+  <h2>Inscrição de Aluno</h2>
+
+  <!-- FORMULÁRIO -->
   <form id="formInscricao">
-    <input type="text" id="nome" placeholder="Nome completo" required><br>
-    <input type="email" id="email" placeholder="Email" required><br>
-    <input type="text" id="telefone" placeholder="Telefone" required><br>
-    <input type="text" id="whatsapp" placeholder="WhatsApp"><br>
-    <input type="text" id="paiMae" placeholder="Nome do pai/mãe" required><br>
-    <input type="date" id="nascimento" placeholder="Data de nascimento" required><br>
 
-    <!-- CLASSE -->
-    <select id="classe" required>
-      <option value="">Selecione a classe</option>
-    </select><br>
+    <!-- DADOS PESSOAIS -->
+    <fieldset>
+      <legend>Dados do Aluno</legend>
 
-    <!-- ÁREA (11ª e 12ª) -->
-    <select id="area" required style="display:none;">
-      <option value="">Selecione a área</option>
-      <option value="Letras">Letras</option>
-      <option value="Ciências B">Ciências (Biologia/Química)</option>
-      <option value="Ciências C">Ciências (Desenho/Artes)</option>
-    </select><br>
+      <input type="text" id="nome" placeholder="Nome" required>
+
+      <input type="text" id="apelido" placeholder="Apelido" required>
+
+      <input type="date" id="nascimento" required>
+
+    </fieldset>
+
+    <!-- CONTACTOS -->
+    <fieldset>
+      <legend>Contactos</legend>
+
+      <input type="email" id="email" placeholder="Email" required>
+
+      <input type="text" id="telefone" placeholder="Telefone" required>
+
+      <input type="text" id="whatsapp" placeholder="WhatsApp">
+
+    </fieldset>
+
+    <!-- ENCARREGADO -->
+    <fieldset>
+      <legend>Encarregado</legend>
+
+      <input type="text" id="paiMae" placeholder="Nome do Pai/Mãe ou Encarregado" required>
+
+    </fieldset>
+
+    <!-- DADOS ACADÉMICOS -->
+    <fieldset>
+      <legend>Dados Académicos</legend>
+
+      <!-- CLASSE -->
+      <label>Classe</label>
+      <select id="classe" required>
+        <option value="">Selecione a classe</option>
+        <option value="9ª Classe">9ª Classe</option>
+        <option value="10ª Classe">10ª Classe</option>
+        <option value="11ª Classe">11ª Classe</option>
+        <option value="12ª Classe">12ª Classe</option>
+      </select>
+
+      <!-- CURSO -->
+      <label>Curso</label>
+      <select id="curso" required>
+        <option value="">Selecione o curso</option>
+        <option value="Letras">Letras</option>
+        <option value="Ciências B/Q">Ciências (Biologia / Química)</option>
+        <option value="Ciências D/A">Ciências (Desenho / Artes)</option>
+      </select>
+
+    </fieldset>
 
     <!-- DISCIPLINAS -->
-    <div id="disciplinasCheckboxes"></div>
+    <fieldset>
+      <legend>Disciplinas</legend>
 
-    <button type="submit">Inscrever</button>
-    <button type="button" onclick="voltarHome()">Voltar</button>
-  </form>
+      <!-- IMPORTANTE:
+           IDs e name EXATOS para o teu JS -->
+      <div id="disciplinasCheckboxes">
+
+        <label><input type="checkbox" name="disciplinas" value="Português"> Português</label>
+        <label><input type="checkbox" name="disciplinas" value="Matemática"> Matemática</label>
+        <label><input type="checkbox" name="disciplinas" value="Inglês"> Inglês</label>
+        <label><input type="checkbox" name="disciplinas" value="Física"> Física</label>
+        <label><input type="checkbox" name="disciplinas" value="Química"> Química</label>
+        <label><input type="checkbox" name="disciplinas" value="Biologia"> Biologia</label>
+        <label><input type="checkbox" name="disciplinas" value="História"> História</label>
+        <label><input type="checkbox" name="disciplinas" value="Geografia"> Geografia</label>
+        <label><input type="checkbox" name="disciplinas" value="Filosofia"> Filosofia</label>
+        <label><input type="checkbox" name="disciplinas" value="Educação Física"> Educação Física</label>
+        <label><input type="checkbox" name="disciplinas" value="TICs"> TICs</label>
+
       </div>
+    </fieldset>
+
+    <!-- BOTÕES -->
+    <div style="margin-top:20px;">
+      <button type="submit">Confirmar Inscrição</button>
+      <button type="button" onclick="voltarHome()">Cancelar</button>
+    </div>
+
+  </form>
+
+      </section>
 
 
 <!-- LOGIN -->
