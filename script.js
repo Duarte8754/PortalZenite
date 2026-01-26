@@ -210,143 +210,163 @@ function mostrarAba(nome){
   if(aba) aba.classList.add('active');
 }
 
-// ===== FUNÇÃO COMPLETA DO PAINEL DO ALUNO (SEM ALTERAÇÃO DAS PARCELAS) =====
+// ===== PAINEL DO ALUNO =====
 async function mostrarPainelAluno(aluno){
-    mostrarPagina('painelAluno');
+  mostrarPagina('painelAluno');
 
-    // PERFIL
-    document.getElementById('perfilNome').innerText = aluno.nome;
-    document.getElementById('perfilNumero').innerText = aluno.numero;
-    document.getElementById('perfilClasse').innerText = aluno.classe;
-    document.getElementById('perfilTurma').innerText = aluno.turma;
-    document.getElementById('perfilNascimento').innerText = aluno.nascimento;
-    document.getElementById('perfilContato').innerText = `Tel: ${aluno.telefone} / WhatsApp: ${aluno.whatsapp}`;
-    document.getElementById('valorTotal').innerText = aluno.planoPagamento?.total || 0;
-    document.getElementById('parcelas').innerText = aluno.planoPagamento?.parcelas || 0;
+  // PERFIL
+  document.getElementById('perfilNome').innerText = aluno.nome;
+  document.getElementById('perfilNumero').innerText = aluno.numero;
+  document.getElementById('perfilClasse').innerText = aluno.classe;
+  document.getElementById('perfilTurma').innerText = aluno.turma;
+  document.getElementById('perfilNascimento').innerText = aluno.nascimento;
+  document.getElementById('perfilContato').innerText = `Tel: ${aluno.telefone} / WhatsApp: ${aluno.whatsapp}`;
+  document.getElementById('valorTotal').innerText = aluno.planoPagamento?.total || 0;
+  document.getElementById('parcelas').innerText = aluno.planoPagamento?.parcelas || 0;
 
-    // NOTAS
-    const listaNotas = document.getElementById('listaNotas');
-    listaNotas.innerHTML = '';
+// NOTAS
+const listaNotas = document.getElementById('listaNotas');
+listaNotas.innerHTML = '';
 
-    const disciplinas = aluno.disciplina || [];
-    const dados = {};
-    disciplinas.forEach(d => {
-        dados[d] = {
-            1:{teste1:'-',teste2:'-',trabalho:'-',final:'-'},
-            2:{teste1:'-',teste2:'-',trabalho:'-',final:'-'},
-            3:{teste1:'-',teste2:'-',trabalho:'-',final:'-'}
-        };
-    });
+// Pega disciplinas do aluno
+const disciplinas = aluno.disciplina; // array de disciplinas selecionadas
 
-    const notasSnap = await db.collection('notas').where('numero','==',aluno.numero).get();
-    notasSnap.forEach(doc => {
-        const n = doc.data();
-        if(dados[n.disciplina] && dados[n.disciplina][n.trimestre]){
-            dados[n.disciplina][n.trimestre][n.tipo] = n.nota;
-        }
-    });
+// Cria estrutura de dados por disciplina e trimestre
+const dados = {};
+disciplinas.forEach(d => {
+    dados[d] = {
+        1:{teste1:'-',teste2:'-',trabalho:'-',final:'-'},
+        2:{teste1:'-',teste2:'-',trabalho:'-',final:'-'},
+        3:{teste1:'-',teste2:'-',trabalho:'-',final:'-'}
+    };
+});
 
-    function mediaTrimestre(tri){
-        const notas = ['teste1','teste2','trabalho','final'].map(t => tri[t]).filter(v => typeof v === 'number');
-        if(!notas.length) return '-';
-        return (notas.reduce((a,b)=>a+b,0)/notas.length).toFixed(1);
+// Preenche com notas do Firestore
+const notasSnap = await db.collection('notas').where('numero','==',aluno.numero).get();
+notasSnap.forEach(doc => {
+    const n = doc.data();
+    if(dados[n.disciplina] && dados[n.disciplina][n.trimestre]){
+        dados[n.disciplina][n.trimestre][n.tipo] = n.nota;
     }
+});
 
-    const tabela = document.createElement('table');
-    tabela.innerHTML = `<tr>
-        <th>Disciplina</th>
-        <th>Trimestre</th>
-        <th>Teste 1</th>
-        <th>Teste 2</th>
-        <th>Trabalho</th>
-        <th>Final</th>
-        <th>Média Trimestre</th>
-    </tr>`;
+// Função para calcular média de uma disciplina em um trimestre
+function mediaTrimestre(tri){
+    const notas = ['teste1','teste2','trabalho','final'].map(t => tri[t]).filter(v => typeof v === 'number');
+    if(!notas.length) return '-';
+    return (notas.reduce((a,b)=>a+b,0)/notas.length).toFixed(1);
+}
 
-    let somaMedias = 0;
-    let contadorMedias = 0;
+// Cria a tabela
+const tabela = document.createElement('table');
+tabela.innerHTML = `<tr>
+<th>Disciplina</th>
+<th>Trimestre</th>
+<th>Teste 1</th>
+<th>Teste 2</th>
+<th>Trabalho</th>
+<th>Final</th>
+<th>Média Trimestre</th>
+</tr>`;
 
-    disciplinas.forEach(disc => {
-        [1,2,3].forEach(t => {
-            const mediaT = mediaTrimestre(dados[disc][t]);
-            if(mediaT !== '-') { somaMedias += parseFloat(mediaT); contadorMedias++; }
+let somaMedias = 0;
+let contadorMedias = 0;
 
-            tabela.innerHTML += `<tr>
-                <td>${disc}</td>
-                <td>${t}</td>
-                <td>${dados[disc][t].teste1}</td>
-                <td>${dados[disc][t].teste2}</td>
-                <td>${dados[disc][t].trabalho}</td>
-                <td>${dados[disc][t].final}</td>
-                <td>${mediaT}</td>
-            </tr>`;
-        });
+disciplinas.forEach(disc => {
+    [1,2,3].forEach(t => {
+        const mediaT = mediaTrimestre(dados[disc][t]);
+        if(mediaT !== '-') { somaMedias += parseFloat(mediaT); contadorMedias++; }
+
+        tabela.innerHTML += `<tr>
+            <td>${disc}</td>
+            <td>${t}</td>
+            <td>${dados[disc][t].teste1}</td>
+            <td>${dados[disc][t].teste2}</td>
+            <td>${dados[disc][t].trabalho}</td>
+            <td>${dados[disc][t].final}</td>
+            <td>${mediaT}</td>
+        </tr>`;
     });
+});
 
-    const mediaFinalAnual = contadorMedias ? (somaMedias/contadorMedias).toFixed(1) : '-';
-    let corMedia = 'black';
-    let statusTexto = '';
-    if(mediaFinalAnual !== '-') {
-        if(mediaFinalAnual >= 10){
-            corMedia = 'green';
-            statusTexto = 'Aprovado';
-        } else {
-            corMedia = 'red';
-            statusTexto = 'Perigo de reprovar';
-        }
+// Média final anual
+const mediaFinalAnual = contadorMedias ? (somaMedias/contadorMedias).toFixed(1) : '-';
+
+// Determina a cor conforme a média
+let corMedia = 'black';
+let statusTexto = '';
+if(mediaFinalAnual !== '-') {
+    if(mediaFinalAnual >= 10){
+        corMedia = 'green';
+        statusTexto = 'Aprovado';
+    } else {
+        corMedia = 'red';
+        statusTexto = 'Perigo de reprovar';
     }
+}
 
-    tabela.innerHTML += `<tr style="background:#e8f5e9">
-        <td colspan="6"><strong>MÉDIA FINAL ANUAL</strong></td>
-        <td><strong style="color:${corMedia}">${mediaFinalAnual} (${statusTexto})</strong></td>
-    </tr>`;
+// Adiciona linha da média anual na tabela
+tabela.innerHTML += `<tr style="background:#e8f5e9">
+    <td colspan="6"><strong>MÉDIA FINAL ANUAL</strong></td>
+    <td><strong style="color:${corMedia}">${mediaFinalAnual} (${statusTexto})</strong></td>
+</tr>`;
 
-    if(mediaFinalAnual !== '-') {
-        await avaliarAluno(aluno.numero, mediaFinalAnual, aluno.divida);
-        const statusSpan = document.getElementById('statusAcademicoAluno');
-        statusSpan.innerText = statusTexto;
-        statusSpan.style.color = corMedia;
-        document.getElementById('mediaFinalAluno').innerText = mediaFinalAnual;
-    }
+// Atualiza status acadêmico no painel
+if(mediaFinalAnual !== '-') {
+    await avaliarAluno(aluno.numero, mediaFinalAnual, aluno.divida);
+    const statusSpan = document.getElementById('statusAcademicoAluno');
+    statusSpan.innerText = statusTexto;
+    statusSpan.style.color = corMedia;
+    document.getElementById('mediaFinalAluno').innerText = mediaFinalAnual;
+}
 
-    listaNotas.appendChild(tabela);
+listaNotas.appendChild(tabela);
 
-    // EXTRATO
-    const listaExtrato=document.getElementById('listaExtrato');
-    listaExtrato.innerHTML='';
-    const pagamentosSnap=await db.collection('pagamentos').where('numero','==',aluno.numero).get();
-    pagamentosSnap.forEach(doc=>{
-        const li=document.createElement('li');
-        li.innerText=`${doc.data().data}: ${doc.data().valor} - ${doc.data().status}`;
-        listaExtrato.appendChild(li);
-    });
+// Atualiza status acadêmico
+if(mediaFinalAnual !== '-') {
+    const status = await avaliarAluno(aluno.numero, mediaFinalAnual, aluno.divida);
+    const statusSpan = document.getElementById('statusAcademicoAluno');
+    statusSpan.innerText = status;
+    statusSpan.style.color = status==='Aprovado'?'green':status==='Reprovado'?'red':'orange';
+    document.getElementById('mediaFinalAluno').innerText = mediaFinalAnual;
+}
 
-    // CALENDÁRIO
-    const calSnap=await db.collection('calendario').get();
-    const listaCalendario=document.getElementById('listaCalendario');
-    listaCalendario.innerHTML='';
-    calSnap.forEach(doc=>{
-        const li=document.createElement('li');
-        li.innerText=`${doc.data().data}: ${doc.data().evento}`;
-        listaCalendario.appendChild(li);
-    });
+  // EXTRATO
+  const listaExtrato=document.getElementById('listaExtrato');
+  listaExtrato.innerHTML='';
+  const pagamentosSnap=await db.collection('pagamentos').where('numero','==',aluno.numero).get();
+  pagamentosSnap.forEach(doc=>{
+    const li=document.createElement('li');
+    li.innerText=`${doc.data().data}: ${doc.data().valor} - ${doc.data().status}`;
+    listaExtrato.appendChild(li);
+  });
 
-    // DÍVIDAS
-    document.getElementById('totalDivida').innerText=aluno.divida;
+  // CALENDÁRIO
+  const calSnap=await db.collection('calendario').get();
+  const listaCalendario=document.getElementById('listaCalendario');
+  listaCalendario.innerHTML='';
+  calSnap.forEach(doc=>{
+    const li=document.createElement('li');
+    li.innerText=`${doc.data().data}: ${doc.data().evento}`;
+    listaCalendario.appendChild(li);
+  });
 
-    // HISTÓRICO
-    const histSnap=await db.collection('historico').where('numero','==',aluno.numero).get();
-    const listaHistorico=document.getElementById('listaHistorico');
-    listaHistorico.innerHTML='';
-    histSnap.forEach(doc=>{
-        const h=doc.data();
-        const li=document.createElement('li');
-        li.innerText=`Ano ${h.anoLetivo}: ${h.disciplina} - Média: ${h.mediaFinal} - Status: ${h.statusAcademico}`;
-        listaHistorico.appendChild(li);
-    });
+  // DÍVIDAS
+  document.getElementById('totalDivida').innerText=aluno.divida;
 
-    mostrarAba('perfil');
-      }
+  // HISTÓRICO
+  const histSnap=await db.collection('historico').where('numero','==',aluno.numero).get();
+  const listaHistorico=document.getElementById('listaHistorico');
+  listaHistorico.innerHTML='';
+  histSnap.forEach(doc=>{
+    const h=doc.data();
+    const li=document.createElement('li');
+    li.innerText=`Ano ${h.anoLetivo}: ${h.disciplina} - Média: ${h.mediaFinal} - Status: ${h.statusAcademico}`;
+    listaHistorico.appendChild(li);
+  });
+
+  mostrarAba('perfil');
+}
 
 // ===== PAINEL ADMIN =====
 async function mostrarPainelAdmin(){
@@ -529,87 +549,4 @@ async function fecharAno(numero){
   await alunoRef.update({ statusAcademico: 'Reprovado', confirmado: false });
   await mostrarModal('Ano letivo fechado e histórico salvo');
   mostrarPainelAdmin();
-}
-
-// ===== LANÇAR NOTA =====
-document.getElementById('formNota').addEventListener('submit', async e=>{
-  e.preventDefault();
-  const numero = document.getElementById('notaAluno').value;
-  const disciplina = document.getElementById('notaDisciplina').value;
-  const valor = parseFloat(document.getElementById('notaValor').value);
-  const trimestre = parseInt(document.getElementById('notaTrimestre').value);
-  const tipo = document.getElementById('notaTipo').value;
-  if(!numero || !disciplina){ alert('Preencha o número do aluno e selecione a disciplina'); return; }
-  try{ await db.collection('notas').add({numero, disciplina, nota:valor, trimestre, tipo}); alert('Nota lançada com sucesso!'); }
-  catch(err){ alert('Erro ao lançar nota: '+err.message); console.error(err); }
-});
-
-// ===== ADICIONAR EVENTO =====
-document.getElementById('formEvento').addEventListener('submit',async e=>{
-  e.preventDefault();
-  const data=document.getElementById('eventoData').value;
-  const evento=document.getElementById('eventoDesc').value;
-  await db.collection('calendario').add({data,evento});
-  alert('Evento adicionado');
-  mostrarPainelAdmin();
-});
-
-// ===== TÍTULO ANIMADO =====
-const title = "Portal Zênite";
-const titleElement = document.getElementById('title-text');
-let index = 0;
-function typeWriter() {
-    if (index < title.length) {
-        const span = document.createElement('span');
-        span.textContent = title[index];
-        titleElement.appendChild(span);
-        span.style.opacity = 0;
-        span.style.transform = 'translateY(-20px)';
-        span.style.transition = 'all 0.3s ease';
-        setTimeout(()=>{ span.style.opacity=1; span.style.transform='translateY(0)'; },50);
-        index++;
-        setTimeout(typeWriter, 150);
-    } else {
-        setTimeout(()=>{ titleElement.innerHTML=''; index=0; typeWriter(); },2000);
-    }
-}
-typeWriter();
-
-// FUNÇÃO PARA SAIR DO SISTEMA
-function sair() {
-    // Volta para a página inicial
-    mostrarPagina('home');
-    
-    // Limpa dados sensíveis do painel do aluno
-    document.getElementById('perfilNome').innerText = '';
-    document.getElementById('perfilNumero').innerText = '';
-    document.getElementById('perfilClasse').innerText = '';
-    document.getElementById('perfilTurma').innerText = '';
-    document.getElementById('perfilNascimento').innerText = '';
-    document.getElementById('perfilContato').innerText = '';
-    document.getElementById('listaNotas').innerHTML = '';
-    document.getElementById('listaExtrato').innerHTML = '';
-    document.getElementById('listaCalendario').innerHTML = '';
-    document.getElementById('listaHistorico').innerHTML = '';
-}
-
-// LIGA O BOTÃO AO SCRIPT
-document.getElementById('btnSair').addEventListener('click', sair);
-
-// Função para sair (logout)
-function logout() {
-    // Limpa qualquer dado do usuário que estiver no painel
-    document.getElementById('perfilNome').innerText = '';
-    document.getElementById('perfilNumero').innerText = '';
-    document.getElementById('perfilClasse').innerText = '';
-    document.getElementById('perfilTurma').innerText = '';
-    document.getElementById('perfilNascimento').innerText = '';
-    document.getElementById('perfilContato').innerText = '';
-    document.getElementById('mediaFinalAluno').innerText = '-';
-    document.getElementById('statusAcademicoAluno').innerText = '-';
-
-    // Volta para a tela inicial
-    mostrarPagina('home');
-
-    alert('Você saiu com sucesso!');
-}
+  }
