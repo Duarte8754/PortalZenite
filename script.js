@@ -210,9 +210,7 @@ function mostrarAba(nome){
   if(aba) aba.classList.add('active');
 }
 
-
-// ===== FUNÇÃO AUXILIAR =====
-// Gera a tabela de parcelas do aluno
+// ===== FUNÇÃO PARA GERAR TABELA DE PARCELAS =====
 function gerarTabelaParcelasAluno(plano) {
     if (!plano || !plano.total || !plano.parcelas) return '';
 
@@ -247,8 +245,8 @@ function gerarTabelaParcelasAluno(plano) {
     return tabelaHTML;
 }
 
-// ===== FUNÇÃO PARA MOSTRAR PLANO DE PAGAMENTO =====
-function mostrarPlanoPagamentoAluno(aluno) {
+// ===== FUNÇÃO PARA ATUALIZAR ABA DE PAGAMENTO =====
+function atualizarAbaPagamento(aluno) {
     const divPagamento = document.getElementById('abaPagamento');
 
     if (!aluno.planoPagamento || !aluno.planoPagamento.total) {
@@ -263,7 +261,7 @@ function mostrarPlanoPagamentoAluno(aluno) {
     `;
 }
 
-// ===== FUNÇÃO PRINCIPAL =====
+// ===== FUNÇÃO COMPLETA DO PAINEL DO ALUNO =====
 async function mostrarPainelAluno(aluno){
     mostrarPagina('painelAluno');
 
@@ -275,15 +273,14 @@ async function mostrarPainelAluno(aluno){
     document.getElementById('perfilNascimento').innerText = aluno.nascimento;
     document.getElementById('perfilContato').innerText = `Tel: ${aluno.telefone} / WhatsApp: ${aluno.whatsapp}`;
 
-    // PLANO DE PAGAMENTO
-    mostrarPlanoPagamentoAluno(aluno);
+    // ATUALIZA ABA DE PAGAMENTO COM TABELA DE PARCELAS
+    atualizarAbaPagamento(aluno);
 
     // NOTAS
     const listaNotas = document.getElementById('listaNotas');
     listaNotas.innerHTML = '';
 
-    const disciplinas = aluno.disciplina;
-
+    const disciplinas = aluno.disciplina || [];
     const dados = {};
     disciplinas.forEach(d => {
         dados[d] = {
@@ -339,7 +336,6 @@ async function mostrarPainelAluno(aluno){
     });
 
     const mediaFinalAnual = contadorMedias ? (somaMedias/contadorMedias).toFixed(1) : '-';
-
     let corMedia = 'black';
     let statusTexto = '';
     if(mediaFinalAnual !== '-') {
@@ -388,7 +384,7 @@ async function mostrarPainelAluno(aluno){
     });
 
     // DÍVIDAS
-    document.getElementById('totalDivida').innerText = aluno.divida;
+    document.getElementById('totalDivida').innerText=aluno.divida;
 
     // HISTÓRICO
     const histSnap=await db.collection('historico').where('numero','==',aluno.numero).get();
@@ -402,8 +398,7 @@ async function mostrarPainelAluno(aluno){
     });
 
     mostrarAba('perfil');
-}
-
+                                  }
 
 
 // ===== PAINEL ADMIN =====
