@@ -36,120 +36,178 @@ async function avaliarAluno(numero, mediaFinal, divida){
   return status;
 }
 
-// =============================
-// ALERTAS PERSONALIZADOS
-// =============================
-function mostrarAlerta(titulo, mensagem){
-  document.getElementById("alertTitle").innerText = titulo;
-  document.getElementById("alertMessage").innerText = mensagem;
-  document.getElementById("alertModal").style.display = "flex";
+// ============================
+// MODAL GLOBAL DE ALERTAS
+// ============================
+function mostrarAlerta(titulo, mensagem) {
+  const modal = document.getElementById("alertModal");
+  const title = document.getElementById("alertTitle");
+  const message = document.getElementById("alertMessage");
+
+  if (!modal) {
+    alert(titulo + "\n" + mensagem);
+    return;
+  }
+
+  title.textContent = titulo;
+  message.textContent = mensagem;
+  modal.style.display = "flex";
 }
 
-function fecharAlerta(){
-  document.getElementById("alertModal").style.display = "none";
+function fecharAlerta() {
+  const modal = document.getElementById("alertModal");
+  if (modal) modal.style.display = "none";
 }
 
-// =============================
-// DISCIPLINAS POR CLASSE / CURSO
-// =============================
-const disciplinasBase = [
-  "Português","Matemática","História",
-  "Geografia","Educação Física"
+// ============================
+// DISCIPLINAS
+// ============================
+const disciplinasComuns = [
+  "Português",
+  "Matemática",
+  "História",
+  "Geografia",
+  "Educação Física",
+  "Inglês",
+  "TICs",
+  "Filosofia"
 ];
 
-const disciplinasCursos = {
-  Letras: ["Literatura","Inglês","Filosofia"],
-  Ciencias: ["Biologia","Química","Física"],
-  Desenho: ["Desenho","Artes","Geometria Descritiva"]
+const disciplinasPorCurso = {
+  Letras: ["Literatura", "História", "Geografia"],
+  Ciencias: ["Biologia", "Química", "Física"],
+  Desenho: ["Desenho", "Artes", "Geometria Descritiva"]
 };
 
-// =============================
-// CONTROLO DE CLASSE
-// =============================
-document.getElementById("classe").addEventListener("change", () => {
-  const classe = document.getElementById("classe").value;
-  const curso = document.getElementById("curso");
-  const disciplinasDiv = document.getElementById("disciplinas");
+// ============================
+// ELEMENTOS
+// ============================
+const form = document.getElementById("formInscricao");
+const classe = document.getElementById("classe");
+const curso = document.getElementById("curso");
+const disciplinasDiv = document.getElementById("disciplinas");
 
-  disciplinasDiv.innerHTML = "";
-
-  if(classe === "11" || classe === "12"){
-    curso.style.display = "block";
-  } else {
-    curso.style.display = "none";
-    mostrarDisciplinas(disciplinasBase);
-  }
-});
-
-// =============================
-// CONTROLO DE CURSO
-// =============================
-document.getElementById("curso").addEventListener("change", () => {
-  const curso = document.getElementById("curso").value;
-  mostrarDisciplinas([...disciplinasBase, ...disciplinasCursos[curso]]);
-});
-
-// =============================
+// ============================
 // MOSTRAR DISCIPLINAS
-// =============================
-function mostrarDisciplinas(lista){
-  const div = document.getElementById("disciplinas");
-  div.innerHTML = "<h4>Disciplinas</h4>";
+// ============================
+function mostrarDisciplinas(lista) {
+  disciplinasDiv.innerHTML = "<h4>Disciplinas</h4>";
   lista.forEach(d => {
-    div.innerHTML += `<div>• ${d}</div>`;
+    const div = document.createElement("div");
+    div.textContent = "• " + d;
+    disciplinasDiv.appendChild(div);
   });
 }
 
-// =============================
-// GERAR NÚMERO DO ALUNO
-// =============================
-function gerarNumeroAluno(){
-  return "2007" + Math.floor(10000 + Math.random()*90000);
+// ============================
+// CLASSE → CONTROLE
+// ============================
+classe.addEventListener("change", () => {
+  disciplinasDiv.innerHTML = "";
+  curso.value = "";
+
+  if (classe.value === "9" || classe.value === "10") {
+    curso.style.display = "none";
+    mostrarDisciplinas(disciplinasComuns);
+  }
+
+  if (classe.value === "11" || classe.value === "12") {
+    curso.style.display = "block";
+  }
+});
+
+// ============================
+// CURSO → DISCIPLINAS
+// ============================
+curso.addEventListener("change", () => {
+  if (!curso.value) return;
+  const lista = disciplinasComuns.concat(disciplinasPorCurso[curso.value]);
+  mostrarDisciplinas(lista);
+});
+
+// ============================
+// GERAR NÚMERO E SENHA
+// ============================
+function gerarNumeroAluno() {
+  return "2007" + Math.floor(10000 + Math.random() * 90000);
 }
 
-// =============================
-// SUBMISSÃO DO FORMULÁRIO
-// =============================
-document.getElementById("formInscricao").addEventListener("submit", e => {
+// ============================
+// SUBMIT INSCRIÇÃO
+// ============================
+form.addEventListener("submit", function (e) {
   e.preventDefault();
 
+  // CAMPOS
   const nome = document.getElementById("nome").value.trim();
   const apelido = document.getElementById("apelido").value.trim();
-  const classe = document.getElementById("classe").value;
-  const curso = document.getElementById("curso").value;
+  const bi = document.getElementById("bi").value.trim();
+  const dataNascimento = document.getElementById("dataNascimento").value;
+  const provincia = document.getElementById("provincia").value.trim();
+  const distrito = document.getElementById("distrito").value.trim();
+  const telefone = document.getElementById("telefone").value.trim();
+  const whatsapp = document.getElementById("whatsapp").value.trim();
+  const email = document.getElementById("email").value.trim();
+  const nomePai = document.getElementById("nomePai").value.trim();
+  const nomeMae = document.getElementById("nomeMae").value.trim();
+  const nomeEncarregado = document.getElementById("nomeEncarregado").value.trim();
+  const telefoneEncarregado = document.getElementById("telefoneEncarregado").value.trim();
 
-  if(!nome || !apelido || !classe){
-    mostrarAlerta("Erro","Preencha todos os campos obrigatórios.");
+  if (
+    !nome || !apelido || !bi || !dataNascimento ||
+    !provincia || !distrito || !telefone ||
+    !email || !nomeEncarregado || !telefoneEncarregado ||
+    !classe.value
+  ) {
+    mostrarAlerta("Erro", "Preencha todos os campos obrigatórios.");
     return;
   }
 
-  if((classe === "11" || classe === "12") && !curso){
-    mostrarAlerta("Aviso","Selecione o curso.");
+  if ((classe.value === "11" || classe.value === "12") && !curso.value) {
+    mostrarAlerta("Erro", "Selecione o curso.");
     return;
   }
 
+  // GERAR CREDENCIAIS
   const numeroAluno = gerarNumeroAluno();
-  const senha = `${nome.toLowerCase()}${numeroAluno}@IZ.com`;
+  const senha = nome.toLowerCase() + numeroAluno + "@IZ.com";
 
-  // 🔥 FIREBASE
-  db.collection("alunos").add({
-    nome, apelido, classe, curso: curso || "Geral",
-    numeroAluno, senha,
+  // DADOS
+  const dados = {
+    nome,
+    apelido,
+    bi,
+    dataNascimento,
+    provincia,
+    distrito,
+    telefone,
+    whatsapp,
+    email,
+    nomePai,
+    nomeMae,
+    nomeEncarregado,
+    telefoneEncarregado,
+    classe: classe.value,
+    curso: curso.value || "Geral",
+    numeroAluno,
+    senha,
     criadoEm: firebase.firestore.FieldValue.serverTimestamp()
-  })
-  .then(() => {
-    mostrarAlerta(
-      "Inscrição concluída",
-      `Número: ${numeroAluno}\nSenha: ${senha}`
-    );
-    document.getElementById("formInscricao").reset();
-    document.getElementById("disciplinas").innerHTML = "";
-    document.getElementById("curso").style.display="none";
-  })
-  .catch(() => {
-    mostrarAlerta("Erro","Falha ao salvar no sistema.");
-  });
+  };
 
+  // FIREBASE
+  db.collection("alunos").add(dados)
+    .then(() => {
+      mostrarAlerta(
+        "Inscrição concluída",
+        `Número do Aluno: ${numeroAluno}\nSenha: ${senha}`
+      );
+      form.reset();
+      disciplinasDiv.innerHTML = "";
+      curso.style.display = "none";
+    })
+    .catch(() => {
+      mostrarAlerta("Erro", "Falha ao guardar os dados no sistema.");
+    });
 });
 
 
