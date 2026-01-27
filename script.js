@@ -47,6 +47,17 @@ document.getElementById('btnSair')?.addEventListener('click', () => {
   localStorage.removeItem('paginaAtual');
 });
 
+// ======================
+// FUNÇÃO VOLTAR / HOME
+// ======================
+function voltarHome() {
+    mostrarPagina('home');       // Mostra a página inicial
+    localStorage.setItem('paginaAtual', 'home'); // Atualiza o histórico da página
+}
+
+// LIGA O BOTÃO VOLTAR
+document.getElementById('btnVoltar')?.addEventListener('click', voltarHome);
+
 // ===== FUNÇÕES AUXILIARES =====
 function gerarNumeroAluno(){ return '2007'+Math.floor(10000+Math.random()*90000); }
 function gerarSenha(){ return Math.random().toString(36).slice(-8); }
