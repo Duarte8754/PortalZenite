@@ -11,6 +11,17 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
+// ===== MODAL =====
+function abrirModal(titulo, conteudoHTML) {
+  document.getElementById('modalTitulo').innerText = titulo;
+  document.getElementById('conteudoFormulario').innerHTML = conteudoHTML;
+  document.getElementById('modalFormulario').style.display = 'flex';
+}
+
+function fecharModal() {
+  document.getElementById('modalFormulario').style.display = 'none';
+}
+
 // ======================
 // NAVEGAÇÃO ENTRE PÁGINAS
 // ======================
@@ -504,15 +515,6 @@ document.getElementById('notaAluno').addEventListener('change', async e => {
       alert('Erro ao buscar disciplinas do aluno');
   }
 });
-
-// ===== FUNÇÕES DE MODAL =====
-function abrirModal(titulo, conteudoHTML) {
-    const modal = document.getElementById('modalFormulario');
-    if (!modal) return alert('❌ Modal não encontrado no HTML!');
-    document.getElementById('modalTitulo').innerText = titulo;
-    document.getElementById('conteudoFormulario').innerHTML = conteudoHTML;
-    modal.style.display = 'flex';
-}
 
 function fecharModal() {
     const modal = document.getElementById('modalFormulario');
