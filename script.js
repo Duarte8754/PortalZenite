@@ -11,28 +11,41 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-// ============================
+// ======================
 // NAVEGAÇÃO ENTRE PÁGINAS
-// ============================
-function mostrarPagina(id){
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  const sec = document.getElementById(id);
-  if(sec) sec.classList.add('active');
+// ======================
+
+// Função para mostrar uma página e esconder as outras
+function mostrarPagina(id) {
+  document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
+  const pagina = document.getElementById(id);
+  if (pagina) pagina.style.display = 'block';
+
+  // Salva a última página acessada
+  localStorage.setItem('paginaAtual', id);
 }
 
-// Botões da home
-document.getElementById('btnIrInscricao').addEventListener('click', ()=>mostrarPagina('inscricao'));
-document.getElementById('btnIrLogin').addEventListener('click', ()=>mostrarPagina('login'));
+// Inicializa a página ao carregar
+window.addEventListener('DOMContentLoaded', () => {
+  const paginaSalva = localStorage.getItem('paginaAtual') || 'home';
+  mostrarPagina(paginaSalva);
+});
 
-// Botões de voltar para home
-document.getElementById('btnVoltarHomeInscricao').addEventListener('click', ()=>mostrarPagina('home'));
-document.getElementById('btnVoltarHomeLogin').addEventListener('click', ()=>mostrarPagina('home'));
+// Funções auxiliares para navegação
+function mostrarInscricao() { mostrarPagina('inscricao'); }
+function mostrarLogin() { mostrarPagina('login'); }
+function mostrarHome() { mostrarPagina('home'); }
+function mostrarPainelAluno() { mostrarPagina('painelAluno'); }
+function mostrarPainelAdmin() { mostrarPagina('painelAdmin'); }
 
-// Botão sair do painel do aluno
-document.getElementById('btnSair').addEventListener('click', ()=>mostrarPagina('home'));
-
-// Botão sair do painel admin
-document.getElementById('btnSairAdmin').addEventListener('click', ()=>mostrarPagina('home'));
+// Exemplo: ligar botões a essas funções
+document.getElementById('btnInscricao')?.addEventListener('click', mostrarInscricao);
+document.getElementById('btnLogin')?.addEventListener('click', mostrarLogin);
+document.getElementById('btnHome')?.addEventListener('click', mostrarHome);
+document.getElementById('btnSair')?.addEventListener('click', () => {
+  mostrarHome();
+  localStorage.removeItem('paginaAtual');
+});
 
 // ===== FUNÇÕES AUXILIARES =====
 function gerarNumeroAluno(){ return '2007'+Math.floor(10000+Math.random()*90000); }
