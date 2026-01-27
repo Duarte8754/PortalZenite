@@ -205,6 +205,11 @@ form.addEventListener("submit", function (e) {
       disciplinasDiv.innerHTML = "";
       curso.style.display = "none";
     })
+
+    document.getElementById('formInscricao').reset();  
+    voltarHome();  
+
+    
     .catch(() => {
       mostrarAlerta("Erro", "Falha ao guardar os dados no sistema.");
     });
