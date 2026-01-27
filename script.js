@@ -36,43 +36,122 @@ async function avaliarAluno(numero, mediaFinal, divida){
   return status;
 }
 
-// ===== INSCRIÇÃO =====
-document.getElementById('formInscricao').addEventListener('submit', async e => {
-    e.preventDefault(); // não recarrega a página
-    try {
-        const checkboxEls = document.querySelectorAll('#disciplinasCheckboxes input[name="disciplinas"]:checked');
-        const disciplinasSelecionadas = Array.from(checkboxEls).map(cb => cb.value);
-        if (disciplinasSelecionadas.length === 0) { alert('Selecione pelo menos uma disciplina!'); return; }
+// =============================
+// ALERTAS PERSONALIZADOS
+// =============================
+function mostrarAlerta(titulo, mensagem){
+  document.getElementById("alertTitle").innerText = titulo;
+  document.getElementById("alertMessage").innerText = mensagem;
+  document.getElementById("alertModal").style.display = "flex";
+}
 
-        const aluno = {
-            nome: document.getElementById('nome').value,
-            email: document.getElementById('email').value,
-            telefone: document.getElementById('telefone').value,
-            whatsapp: document.getElementById('whatsapp').value,
-            paiMae: document.getElementById('paiMae').value,
-            classe: document.getElementById('classe').value,
-            disciplina: disciplinasSelecionadas,
-            nascimento: document.getElementById('nascimento').value,
-            turma: ['A','B','C'][Math.floor(Math.random()*3)],
-            dataInscricao: new Date().toLocaleDateString(),
-            numero: gerarNumeroAluno(),
-            senha: gerarSenha(),
-            ativo: true,
-            confirmado: false,
-            divida: 0,
-            planoPagamento: { total: 5000, parcelas: 5 },
-            statusAcademico: 'Reprovado'
-        };
+function fecharAlerta(){
+  document.getElementById("alertModal").style.display = "none";
+}
 
-        await db.collection('alunos').doc(aluno.numero).set(aluno);
-        alert(`Inscrição realizada, com sucesso, guarde teu código de aluno e a senha, não compartinhe. antes de clicar ok transcreve a sua senha e código.!\nNúmero do Aluno: ${aluno.numero}\nSenha: ${aluno.senha}`);
-        document.getElementById('formInscricao').reset();
-        voltarHome();
-    } catch (err) {
-        alert('Erro ao registrar aluno: ' + err.message);
-        console.error(err);
-    }
+// =============================
+// DISCIPLINAS POR CLASSE / CURSO
+// =============================
+const disciplinasBase = [
+  "Português","Matemática","História",
+  "Geografia","Educação Física"
+];
+
+const disciplinasCursos = {
+  Letras: ["Literatura","Inglês","Filosofia"],
+  Ciencias: ["Biologia","Química","Física"],
+  Desenho: ["Desenho","Artes","Geometria Descritiva"]
+};
+
+// =============================
+// CONTROLO DE CLASSE
+// =============================
+document.getElementById("classe").addEventListener("change", () => {
+  const classe = document.getElementById("classe").value;
+  const curso = document.getElementById("curso");
+  const disciplinasDiv = document.getElementById("disciplinas");
+
+  disciplinasDiv.innerHTML = "";
+
+  if(classe === "11" || classe === "12"){
+    curso.style.display = "block";
+  } else {
+    curso.style.display = "none";
+    mostrarDisciplinas(disciplinasBase);
+  }
 });
+
+// =============================
+// CONTROLO DE CURSO
+// =============================
+document.getElementById("curso").addEventListener("change", () => {
+  const curso = document.getElementById("curso").value;
+  mostrarDisciplinas([...disciplinasBase, ...disciplinasCursos[curso]]);
+});
+
+// =============================
+// MOSTRAR DISCIPLINAS
+// =============================
+function mostrarDisciplinas(lista){
+  const div = document.getElementById("disciplinas");
+  div.innerHTML = "<h4>Disciplinas</h4>";
+  lista.forEach(d => {
+    div.innerHTML += `<div>• ${d}</div>`;
+  });
+}
+
+// =============================
+// GERAR NÚMERO DO ALUNO
+// =============================
+function gerarNumeroAluno(){
+  return "2007" + Math.floor(10000 + Math.random()*90000);
+}
+
+// =============================
+// SUBMISSÃO DO FORMULÁRIO
+// =============================
+document.getElementById("formInscricao").addEventListener("submit", e => {
+  e.preventDefault();
+
+  const nome = document.getElementById("nome").value.trim();
+  const apelido = document.getElementById("apelido").value.trim();
+  const classe = document.getElementById("classe").value;
+  const curso = document.getElementById("curso").value;
+
+  if(!nome || !apelido || !classe){
+    mostrarAlerta("Erro","Preencha todos os campos obrigatórios.");
+    return;
+  }
+
+  if((classe === "11" || classe === "12") && !curso){
+    mostrarAlerta("Aviso","Selecione o curso.");
+    return;
+  }
+
+  const numeroAluno = gerarNumeroAluno();
+  const senha = `${nome.toLowerCase()}${numeroAluno}@IZ.com`;
+
+  // 🔥 FIREBASE
+  db.collection("alunos").add({
+    nome, apelido, classe, curso: curso || "Geral",
+    numeroAluno, senha,
+    criadoEm: firebase.firestore.FieldValue.serverTimestamp()
+  })
+  .then(() => {
+    mostrarAlerta(
+      "Inscrição concluída",
+      `Número: ${numeroAluno}\nSenha: ${senha}`
+    );
+    document.getElementById("formInscricao").reset();
+    document.getElementById("disciplinas").innerHTML = "";
+    document.getElementById("curso").style.display="none";
+  })
+  .catch(() => {
+    mostrarAlerta("Erro","Falha ao salvar no sistema.");
+  });
+
+});
+
 
 // ===== LOGIN =====
 document.getElementById('formLogin').addEventListener('submit', async e=>{
