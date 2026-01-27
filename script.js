@@ -505,11 +505,169 @@ document.getElementById('notaAluno').addEventListener('change', async e => {
   }
 });
 
-// ===== FUNÇÕES ADMIN =====
-async function confirmar(numero){ await db.collection('alunos').doc(numero).update({confirmado:true}); alert('Matrícula confirmada'); mostrarPainelAdmin(); }
-async function suspender(numero, ativo){ await db.collection('alunos').doc(numero).update({ativo:!ativo}); alert(`Aluno ${!ativo?'ativado':'suspenso'}`); mostrarPainelAdmin(); }
-async function excluir(numero){ if(confirm('Deseja realmente excluir este aluno?')){ await db.collection('alunos').doc(numero).delete(); alert('Aluno excluído'); mostrarPainelAdmin(); } }
-async function editarDivida(numero){ const nova=prompt('Informe o valor da dívida:'); if(nova!==null){ await db.collection('alunos').doc(numero).update({divida:parseFloat(nova)}); alert('Dívida atualizada'); mostrarPainelAdmin(); } }
+// ===== FUNÇÕES COMPLETAS DO ADMINISTRADOR =====
+
+// 1️⃣ Confirmar matrícula
+async function confirmar(numeroAluno) {
+    try {
+        await db.collection('alunos').doc(numeroAluno).update({confirmado: true});
+        alert(`✅ Matrícula do aluno ${numeroAluno} confirmada com sucesso!`);
+        mostrarPainelAdmin();
+    } catch (err) {
+        alert(`❌ Erro ao confirmar matrícula do aluno ${numeroAluno}: ${err.message}`);
+    }
+}
+
+// 2️⃣ Ver formulário completo do aluno
+async function verFormulario(numeroAluno) {
+    try {
+        const doc = await db.collection('alunos').doc(numeroAluno).get();
+        if (!doc.exists) {
+            abrirModal('Erro', '<p>❌ Aluno não encontrado!</p>');
+            return;
+        }
+
+        const a = doc.data();
+
+        abrirModal('📄 Formulário do Aluno', `
+            <h3>DADOS PESSOAIS</h3>
+            <p><strong>Nome:</strong> ${a.nome || '-'}</p>
+            <p><strong>Apelido:</strong> ${a.apelido || '-'}</p>
+            <p><strong>BI:</strong> ${a.bi || '-'}</p>
+            <p><strong>Data de Nascimento:</strong> ${a.dataNascimento || a.nascimento || '-'}</p>
+            <p><strong>Província:</strong> ${a.provincia || '-'}</p>
+            <p><strong>Distrito:</strong> ${a.distrito || '-'}</p>
+            <p><strong>Telefone:</strong> ${a.telefone || '-'}</p>
+            <p><strong>WhatsApp:</strong> ${a.whatsapp || '-'}</p>
+            <p><strong>Email:</strong> ${a.email || '-'}</p>
+
+            <h3>DADOS FAMILIARES</h3>
+            <p><strong>Nome do Pai:</strong> ${a.nomePai || '-'}</p>
+            <p><strong>Nome da Mãe:</strong> ${a.nomeMae || '-'}</p>
+            <p><strong>Nome do Encarregado:</strong> ${a.nomeEncarregado || '-'}</p>
+            <p><strong>Telefone do Encarregado:</strong> ${a.telefoneEncarregado || '-'}</p>
+
+            <h3>INFORMAÇÕES ACADÊMICAS</h3>
+            <p><strong>Classe:</strong> ${a.classe || '-'}</p>
+            <p><strong>Curso:</strong> ${a.curso || 'Geral'}</p>
+            <p><strong>Número do Aluno:</strong> ${a.numero || '-'}</p>
+            <p><strong>Senha:</strong> ${a.senha || '-'}</p>
+        `);
+    } catch (err) {
+        alert(`❌ Erro ao carregar formulário do aluno ${numeroAluno}: ${err.message}`);
+        console.error(err);
+    }
+}
+
+// 3️⃣ Registrar pagamento
+function registrarPagamento(numeroAluno) {
+    abrirModal('💰 Registrar Pagamento', `
+        <input id="valorPagamento" placeholder="Valor pago">
+        <button onclick="salvarPagamento('${numeroAluno}')">Confirmar Pagamento</button>
+    `);
+}
+
+async function salvarPagamento(numeroAluno) {
+    const valor = parseFloat(document.getElementById('valorPagamento').value);
+    if (!valor || isNaN(valor)) { alert('⚠️ Informe um valor válido para o pagamento!'); return; }
+    try {
+        await db.collection('pagamentos').add({
+            numero: numeroAluno,
+            valor: valor,
+            data: new Date().toLocaleDateString(),
+            status: 'Pago'
+        });
+        fecharModal();
+        alert(`✅ Pagamento de ${valor} registrado com sucesso para o aluno ${numeroAluno}!`);
+        mostrarPainelAdmin();
+    } catch (err) {
+        alert(`❌ Erro ao registrar pagamento do aluno ${numeroAluno}: ${err.message}`);
+    }
+}
+
+// 4️⃣ Editar plano de pagamento
+function editarPlanoPagamento(numeroAluno) {
+    abrirModal('✏️ Editar Plano de Pagamento', `
+        <select id="novoPlano">
+            <option value="Basico">Básico</option>
+            <option value="Premium">Premium</option>
+            <option value="VIP">VIP</option>
+        </select>
+        <button onclick="salvarPlano('${numeroAluno}')">Salvar Plano</button>
+    `);
+}
+
+async function salvarPlano(numeroAluno) {
+    const plano = document.getElementById('novoPlano').value;
+    try {
+        await db.collection('alunos').doc(numeroAluno).update({planoPagamento: {plano}});
+        fecharModal();
+        alert(`✅ Plano de pagamento do aluno ${numeroAluno} atualizado para "${plano}"!`);
+        mostrarPainelAdmin();
+    } catch (err) {
+        alert(`❌ Erro ao atualizar plano do aluno ${numeroAluno}: ${err.message}`);
+    }
+}
+
+// 5️⃣ Suspender ou ativar aluno
+async function suspender(numeroAluno, ativo) {
+    try {
+        await db.collection('alunos').doc(numeroAluno).update({ativo: !ativo});
+        alert(`⚠️ Aluno ${numeroAluno} foi ${!ativo ? 'ativado' : 'suspenso'} com sucesso!`);
+        mostrarPainelAdmin();
+    } catch (err) {
+        alert(`❌ Erro ao atualizar status do aluno ${numeroAluno}: ${err.message}`);
+    }
+}
+
+// 6️⃣ Excluir aluno
+async function excluir(numeroAluno) {
+    if (confirm(`⚠️ Deseja realmente excluir o aluno ${numeroAluno}? Essa ação não pode ser desfeita!`)) {
+        try {
+            await db.collection('alunos').doc(numeroAluno).delete();
+            alert(`🗑️ Aluno ${numeroAluno} excluído com sucesso!`);
+            mostrarPainelAdmin();
+        } catch (err) {
+            alert(`❌ Erro ao excluir aluno ${numeroAluno}: ${err.message}`);
+        }
+    }
+}
+
+// 7️⃣ Editar dívida do aluno
+async function editarDivida(numeroAluno) {
+    const nova = prompt(`💰 Informe o novo valor da dívida do aluno ${numeroAluno}:`);
+    if (nova !== null) {
+        const valor = parseFloat(nova);
+        if (isNaN(valor)) { alert('⚠️ Valor inválido!'); return; }
+        try {
+            await db.collection('alunos').doc(numeroAluno).update({divida: valor});
+            alert(`✅ Dívida do aluno ${numeroAluno} atualizada para ${valor}!`);
+            mostrarPainelAdmin();
+        } catch (err) {
+            alert(`❌ Erro ao atualizar dívida do aluno ${numeroAluno}: ${err.message}`);
+        }
+    }
+}
+
+// 8️⃣ Fechar ano letivo
+function fecharAno(numeroAluno) {
+    abrirModal('⚠️ Fechar Ano', `
+        <p>Tem certeza que deseja fechar o ano letivo do aluno ${numeroAluno}? Isso registrará o status final acadêmico.</p>
+        <button onclick="confirmarFecharAno('${numeroAluno}')">SIM, Fechar Ano</button>
+    `);
+}
+
+async function confirmarFecharAno(numeroAluno) {
+    try {
+        await db.collection('alunos').doc(numeroAluno).update({status: 'Encerrado'});
+        fecharModal();
+        alert(`✅ Ano letivo do aluno ${numeroAluno} fechado com sucesso!`);
+        mostrarPainelAdmin();
+    } catch (err) {
+        alert(`❌ Erro ao fechar ano do aluno ${numeroAluno}: ${err.message}`);
+    }
+}
+
 
 // ===== LANÇAR NOTA =====
 document.getElementById('formNota').addEventListener('submit', async e=>{
