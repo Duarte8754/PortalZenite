@@ -38,35 +38,44 @@
 </div>
 
 
-<!-- INSCRIÇÃO -->
-<div id="inscricao" class="page">
-  <div class="form-banner">
-    <h2>Formulário de Inscrição</h2>
-    <p>Preencha todos os campos corretamente para garantir sua matrícula.</p>
-  </div><form id="formInscricao" class="form-inscricao">
-  <input type="text" placeholder="Nome completo" id="nome" required>
-  <input type="email" placeholder="Email" id="email" required>
-  <input type="text" placeholder="Telefone" id="telefone" required>
-  <input type="text" placeholder="WhatsApp" id="whatsapp" required>
-  <input type="text" placeholder="Nome do pai/mãe" id="paiMae" required>
-  <input type="text" placeholder="Classe" id="classe" required>
-  <input type="date" placeholder="Data de nascimento" id="nascimento" required>
+<!-- =============================
+     FORMULÁRIO DE INSCRIÇÃO
+     ============================= -->
+<section id="inscricao">
 
-  <h4>Selecione as disciplinas:</h4>
-  <div id="disciplinasCheckboxes">
-    <label><input type="checkbox" name="disciplinas" value="Matemática"> Matemática</label>
-    <label><input type="checkbox" name="disciplinas" value="Português"> Português</label>
-    <label><input type="checkbox" name="disciplinas" value="Física"> Física</label>
-    <label><input type="checkbox" name="disciplinas" value="Química"> Química</label>
-    <label><input type="checkbox" name="disciplinas" value="Biologia"> Biologia</label>
-    <label><input type="checkbox" name="disciplinas" value="História"> História</label>
-    <label><input type="checkbox" name="disciplinas" value="Geografia"> Geografia</label>
-  </div>
+  <h2>Inscrição do Aluno</h2>
 
-  <button type="submit">Enviar Inscrição</button>
-</form>
-  <button onclick="voltarHome()" class="btn-voltar">Voltar</button>
-</div>
+  <form id="formInscricao">
+
+    <input type="text" id="nome" placeholder="Primeiro nome" required>
+    <input type="text" id="apelido" placeholder="Apelido" required>
+
+    <select id="classe" required>
+      <option value="">Selecione a classe</option>
+      <option value="7" disabled>7ª Classe (Indisponível)</option>
+      <option value="8" disabled>8ª Classe (Indisponível)</option>
+      <option value="9">9ª Classe</option>
+      <option value="10">10ª Classe</option>
+      <option value="11">11ª Classe</option>
+      <option value="12">12ª Classe</option>
+    </select>
+
+    <!-- CURSO (SÓ PARA 11ª e 12ª) -->
+    <select id="curso" style="display:none;">
+      <option value="">Selecione o curso</option>
+      <option value="Letras">Letras</option>
+      <option value="Ciencias">Ciências com Biologia</option>
+      <option value="Desenho">Ciências de Desenho</option>
+    </select>
+
+    <!-- DISCIPLINAS -->
+    <div id="disciplinas"></div>
+
+    <button type="submit">Confirmar Inscrição</button>
+
+  </form>
+
+      </section>
 
 <!-- LOGIN -->
 <div id="login" class="page">
@@ -198,6 +207,39 @@
 </div>
 
 </div>
+
+  <!-- =====================
+     MODAL GLOBAL DE ALERTAS
+     ===================== -->
+<div id="alertModal" style="
+display:none;
+position:fixed;
+top:0;left:0;
+width:100%;
+height:100%;
+background:rgba(0,0,0,.6);
+z-index:9999;
+align-items:center;
+justify-content:center;
+">
+
+  <div style="
+  background:#fff;
+  padding:20px;
+  border-radius:8px;
+  width:90%;
+  max-width:420px;
+  text-align:center;
+  ">
+
+    <h3 id="alertTitle"></h3>
+    <p id="alertMessage"></p>
+
+    <button onclick="fecharAlerta()">OK</button>
+  </div>
+  </div>
+
+  
 <script src="script.js"></script>
 </body>
         </html>
