@@ -41,14 +41,45 @@
 <!-- =============================
      FORMULÁRIO DE INSCRIÇÃO
      ============================= -->
-<section id="inscricao">
 
+  <section id="inscricao">
   <h2>Inscrição do Aluno</h2>
 
   <form id="formInscricao">
 
-    <input type="text" id="nome" placeholder="Primeiro nome" required>
+    <!-- DADOS DO ALUNO -->
+    <h3>Dados do Aluno</h3>
+
+    <input type="text" id="nome" placeholder="Nome" required>
     <input type="text" id="apelido" placeholder="Apelido" required>
+
+    <input type="text" id="bi" placeholder="Nº do B.I / Cédula" required>
+
+    <label>Data de Nascimento</label>
+    <input type="date" id="dataNascimento" required>
+
+    <input type="text" id="provincia" placeholder="Província" required>
+    <input type="text" id="distrito" placeholder="Distrito" required>
+
+    <input type="tel" id="telefone" placeholder="Telefone" required>
+    <input type="tel" id="whatsapp" placeholder="WhatsApp">
+
+    <input type="email" id="email" placeholder="E-mail" required>
+
+    <!-- DADOS DOS PAIS -->
+    <h3>Dados dos Pais</h3>
+
+    <input type="text" id="nomePai" placeholder="Nome do Pai">
+    <input type="text" id="nomeMae" placeholder="Nome da Mãe">
+
+    <!-- ENCARREGADO -->
+    <h3>Encarregado de Educação</h3>
+
+    <input type="text" id="nomeEncarregado" placeholder="Nome do Encarregado" required>
+    <input type="tel" id="telefoneEncarregado" placeholder="Número do Encarregado" required>
+
+    <!-- DADOS ACADÉMICOS -->
+    <h3>Dados Académicos</h3>
 
     <select id="classe" required>
       <option value="">Selecione a classe</option>
@@ -60,7 +91,7 @@
       <option value="12">12ª Classe</option>
     </select>
 
-    <!-- CURSO (SÓ PARA 11ª e 12ª) -->
+    <!-- CURSO (11ª e 12ª) -->
     <select id="curso" style="display:none;">
       <option value="">Selecione o curso</option>
       <option value="Letras">Letras</option>
@@ -74,8 +105,7 @@
     <button type="submit">Confirmar Inscrição</button>
 
   </form>
-
-      </section>
+  </section>
 
 <!-- LOGIN -->
 <div id="login" class="page">
@@ -208,38 +238,60 @@
 
 </div>
 
+
   <!-- =====================
      MODAL GLOBAL DE ALERTAS
      ===================== -->
 <div id="alertModal" style="
-display:none;
-position:fixed;
-top:0;left:0;
-width:100%;
-height:100%;
-background:rgba(0,0,0,.6);
-z-index:9999;
-align-items:center;
-justify-content:center;
+  display:none;
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  background:rgba(0,0,0,0.6);
+  z-index:9999;
+  align-items:center;
+  justify-content:center;
 ">
 
   <div style="
-  background:#fff;
-  padding:20px;
-  border-radius:8px;
-  width:90%;
-  max-width:420px;
-  text-align:center;
+    background:#ffffff;
+    padding:20px;
+    border-radius:10px;
+    width:90%;
+    max-width:420px;
+    text-align:center;
+    font-family:Arial, sans-serif;
+    color:#000;
   ">
 
-    <h3 id="alertTitle"></h3>
-    <p id="alertMessage"></p>
+    <h3 id="alertTitle" style="color:#111;margin-bottom:10px;"></h3>
 
-    <button onclick="fecharAlerta()">OK</button>
+    <pre id="alertMessage" style="
+      color:#333;
+      white-space:pre-wrap;
+      font-size:14px;
+      margin:0;
+    "></pre>
+
+    <button onclick="fecharAlerta()" style="
+      margin-top:15px;
+      padding:10px 20px;
+      background:#007bff;
+      color:#fff;
+      border:none;
+      border-radius:5px;
+      cursor:pointer;
+      font-size:14px;
+    ">
+      OK
+    </button>
+
   </div>
-  </div>
+     </div>
 
   
 <script src="script.js"></script>
 </body>
-        </html>
+  </html>
