@@ -505,6 +505,21 @@ document.getElementById('notaAluno').addEventListener('change', async e => {
   }
 });
 
+// ===== FUNÇÕES DE MODAL =====
+function abrirModal(titulo, conteudoHTML) {
+    const modal = document.getElementById('modalFormulario');
+    if (!modal) return alert('❌ Modal não encontrado no HTML!');
+    document.getElementById('modalTitulo').innerText = titulo;
+    document.getElementById('conteudoFormulario').innerHTML = conteudoHTML;
+    modal.style.display = 'flex';
+}
+
+function fecharModal() {
+    const modal = document.getElementById('modalFormulario');
+    if (!modal) return;
+    modal.style.display = 'none';
+}
+
 // ===== FUNÇÕES COMPLETAS DO ADMINISTRADOR =====
 
 // 1️⃣ Confirmar matrícula
