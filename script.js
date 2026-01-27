@@ -11,14 +11,28 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-// ===== NAVEGAÇÃO =====
-function mostrarInscricao(){ mostrarPagina('inscricao'); }
-function mostrarLogin(){ mostrarPagina('login'); }
-function voltarHome(){ mostrarPagina('home'); }
+// ============================
+// NAVEGAÇÃO ENTRE PÁGINAS
+// ============================
 function mostrarPagina(id){
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  const sec = document.getElementById(id);
+  if(sec) sec.classList.add('active');
 }
+
+// Botões da home
+document.getElementById('btnIrInscricao').addEventListener('click', ()=>mostrarPagina('inscricao'));
+document.getElementById('btnIrLogin').addEventListener('click', ()=>mostrarPagina('login'));
+
+// Botões de voltar para home
+document.getElementById('btnVoltarHomeInscricao').addEventListener('click', ()=>mostrarPagina('home'));
+document.getElementById('btnVoltarHomeLogin').addEventListener('click', ()=>mostrarPagina('home'));
+
+// Botão sair do painel do aluno
+document.getElementById('btnSair').addEventListener('click', ()=>mostrarPagina('home'));
+
+// Botão sair do painel admin
+document.getElementById('btnSairAdmin').addEventListener('click', ()=>mostrarPagina('home'));
 
 // ===== FUNÇÕES AUXILIARES =====
 function gerarNumeroAluno(){ return '2007'+Math.floor(10000+Math.random()*90000); }
