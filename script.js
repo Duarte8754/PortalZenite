@@ -533,6 +533,54 @@ function fecharModal() {
     modal.style.display = 'none';
 }
 
+// ===== BUSCAR ALUNO =====
+document.getElementById('btnBuscarAluno').addEventListener('click', async () => {
+    const busca = document.getElementById('buscaAluno').value.trim().toLowerCase();
+    if (!busca) {
+        mostrarPainelAdmin(); // Se vazio, mostra todos os alunos
+        return;
+    }
+
+    try {
+        const snapshot = await db.collection('alunos').get();
+        const tabela = document.getElementById('tabelaAlunos');
+        tabela.innerHTML = `<tr>
+            <th>Nome</th><th>Número</th><th>Status</th><th>Status Académico</th><th>Dívida</th><th>Ações</th>
+        </tr>`;
+
+        snapshot.forEach(doc => {
+            const a = doc.data();
+            const nomeLower = (a.nome || '').toLowerCase();
+            const numeroAluno = a.numeroAluno || doc.id;
+
+            if (nomeLower.includes(busca) || numeroAluno.includes(busca)) {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${a.nome}</td>
+                    <td>${numeroAluno}</td>
+                    <td>${a.ativo?'Ativo':'Suspenso'}</td>
+                    <td>${a.statusAcademico || '-'}</td>
+                    <td>${a.divida || 0}</td>
+                    <td>
+                        <button onclick="confirmar('${numeroAluno}')">Confirmar</button>
+                        <button onclick="verFormulario('${numeroAluno}')">Ver Formulário</button>
+                        <button onclick="registrarPagamento('${numeroAluno}')">Registrar Pagamento</button>
+                        <button onclick="editarPlanoPagamento('${numeroAluno}')">Editar Plano</button>
+                        <button onclick="suspender('${numeroAluno}',${a.ativo})">${a.ativo?'Suspender':'Ativar'}</button>
+                        <button onclick="excluir('${numeroAluno}')">Excluir</button>
+                        <button onclick="editarDivida('${numeroAluno}')">Editar Dívida</button>
+                        <button onclick="fecharAno('${numeroAluno}')">Fechar Ano</button>
+                    </td>`;
+                tabela.appendChild(tr);
+            }
+        });
+    } catch(err) {
+        console.error(err);
+        alert('Erro ao buscar aluno.');
+    }
+});
+
+
 // ===== FUNÇÕES COMPLETAS DO ADMINISTRADOR =====
 
 // 1️⃣ Confirmar matrícula
