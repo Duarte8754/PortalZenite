@@ -223,27 +223,28 @@ form.addEventListener("submit", function (e) {
 
   // DADOS
   const dados = {
-  nome,
-  apelido,
-  bi,
-  dataNascimento,
-  provincia,
-  distrito,
-  telefone,
-  whatsapp,
-  email,
-  nomePai,
-  nomeMae,
-  nomeEncarregado,
-  telefoneEncarregado,
-  classe: classe.value,
-  curso: curso.value || "Geral",
-  numero: numeroAluno,
-  senha,
-  criadoEm: firebase.firestore.FieldValue.serverTimestamp()
+    nome,
+    apelido,
+    bi,
+    dataNascimento,
+    provincia,
+    distrito,
+    telefone,
+    whatsapp,
+    email,
+    nomePai,
+    nomeMae,
+    nomeEncarregado,
+    telefoneEncarregado,
+    classe: classe.value,
+    curso: curso.value || "Geral",
+    numeroAluno,
+    senha,
+    criadoEm: firebase.firestore.FieldValue.serverTimestamp(),
+    statusAcademico: '-',
+    divida: 0,
+    ativo: true
 };
-
-// FIREBASE
 db.collection("alunos").doc(numeroAluno).set(dados)
     .then(() => {
       mostrarAlerta(
@@ -297,13 +298,13 @@ async function mostrarPainelAluno(aluno){
 
   // PERFIL
   document.getElementById('perfilNome').innerText = aluno.nome;
-  document.getElementById('perfilNumero').innerText = aluno.numero;
-  document.getElementById('perfilClasse').innerText = aluno.classe;
-  document.getElementById('perfilTurma').innerText = aluno.turma;
-  document.getElementById('perfilNascimento').innerText = aluno.nascimento;
-  document.getElementById('perfilContato').innerText = `Tel: ${aluno.telefone} / WhatsApp: ${aluno.whatsapp}`;
-  document.getElementById('valorTotal').innerText = aluno.planoPagamento?.total || 0;
-  document.getElementById('parcelas').innerText = aluno.planoPagamento?.parcelas || 0;
+document.getElementById('perfilNumero').innerText = aluno.numeroAluno; // corrigido
+document.getElementById('perfilClasse').innerText = aluno.classe;
+document.getElementById('perfilTurma').innerText = aluno.curso || '-'; // usar curso como turma
+document.getElementById('perfilNascimento').innerText = aluno.dataNascimento; // corrigido
+document.getElementById('perfilContato').innerText = `Tel: ${aluno.telefone} / WhatsApp: ${aluno.whatsapp}`;
+document.getElementById('mediaFinalAluno').innerText = '-';
+document.getElementById('statusAcademicoAluno').innerText = aluno.statusAcademico || '-';
 
 // NOTAS
 const listaNotas = document.getElementById('listaNotas');
