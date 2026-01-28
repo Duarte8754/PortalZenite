@@ -223,28 +223,28 @@ form.addEventListener("submit", function (e) {
 
   // DADOS
   const dados = {
-  nome: nome.value,
-  apelido: apelido.value,
-  bi: bi.value,
-  dataNascimento: dataNascimento.value,
-  provincia: provincia.value,
-  distrito: distrito.value,
-  telefone: telefone.value,
-  whatsapp: whatsapp.value,
-  email: email.value,
-  nomePai: nomePai.value,
-  nomeMae: nomeMae.value,
-  nomeEncarregado: nomeEncarregado.value,
-  telefoneEncarregado: telefoneEncarregado.value,
+  nome,
+  apelido,
+  bi,
+  dataNascimento,
+  provincia,
+  distrito,
+  telefone,
+  whatsapp,
+  email,
+  nomePai,
+  nomeMae,
+  nomeEncarregado,
+  telefoneEncarregado,
   classe: classe.value,
   curso: curso.value || "Geral",
-  numeroAluno: numeroAluno,
-  senha: senha,
-    criadoEm: firebase.firestore.FieldValue.serverTimestamp()
-  };
+  numero: numeroAluno,
+  senha,
+  criadoEm: firebase.firestore.FieldValue.serverTimestamp()
+};
 
-  // FIREBASE
-  db.collection("alunos").doc(numeroAluno).set(dados)
+// FIREBASE
+db.collection("alunos").doc(numeroAluno).set(dados)
     .then(() => {
       mostrarAlerta(
         "Inscrição concluída",
