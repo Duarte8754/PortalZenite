@@ -460,12 +460,6 @@ if(mediaFinalAnual !== '-') {
 async function mostrarPainelAdmin(){
   mostrarPagina('painelAdmin');
 
-  document.getElementById('btnBuscarAluno').addEventListener('click', async () => {
-  const termo = document.getElementById('buscaAluno').value.trim().toLowerCase();
-  if (!termo) {
-    mostrarPainelAdmin(); // se vazio, lista todos os alunos
-    return;
-  }
     
   // LISTAR ALUNOS
   const snapshot=await db.collection('alunos').get();
