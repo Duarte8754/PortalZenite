@@ -299,6 +299,7 @@ function mostrarAba(nome){
 async function mostrarPainelAluno(aluno){
   mostrarPagina('painelAluno');
 
+  
 // ===== PERFIL DO ALUNO =====
 document.getElementById('perfilNome').innerText = aluno.nome || '-';
 document.getElementById('perfilNumero').innerText = aluno.numeroAluno || '-';
@@ -459,6 +460,13 @@ if(mediaFinalAnual !== '-') {
 async function mostrarPainelAdmin(){
   mostrarPagina('painelAdmin');
 
+  document.getElementById('btnBuscarAluno').addEventListener('click', async () => {
+  const termo = document.getElementById('buscaAluno').value.trim().toLowerCase();
+  if (!termo) {
+    mostrarPainelAdmin(); // se vazio, lista todos os alunos
+    return;
+  }
+    
   // LISTAR ALUNOS
   const snapshot=await db.collection('alunos').get();
   const tabela=document.getElementById('tabelaAlunos');
