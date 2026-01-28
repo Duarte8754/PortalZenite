@@ -227,6 +227,7 @@ form.addEventListener("submit", function (e) {
     apelido,
     bi,
     dataNascimento,
+    turma: ['A','B','C'][Math.floor(Math.random()*3)],
     provincia,
     distrito,
     telefone,
@@ -241,9 +242,11 @@ form.addEventListener("submit", function (e) {
     numeroAluno,
     senha,
     criadoEm: firebase.firestore.FieldValue.serverTimestamp(),
+    confirmado: false,
     statusAcademico: '-',
     divida: 0,
-    ativo: true
+    ativo: true,
+    planoPagamento: { total: 450, parcelas: 2 }
 };
 db.collection("alunos").doc(numeroAluno).set(dados)
     .then(() => {
