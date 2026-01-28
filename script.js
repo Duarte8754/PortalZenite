@@ -187,7 +187,7 @@ function gerarNumeroAluno() {
 form.addEventListener("submit", function (e) {
   e.preventDefault();
 
-  // CAMPOS
+  // CAMPOS OBRIGATÓRIOS
   const nome = document.getElementById("nome").value.trim();
   const apelido = document.getElementById("apelido").value.trim();
   const bi = document.getElementById("bi").value.trim();
@@ -217,17 +217,25 @@ form.addEventListener("submit", function (e) {
     return;
   }
 
+  // PEGA DISCIPLINAS SELECIONADAS
+  const checkboxes = document.querySelectorAll('input[name="disciplinas[]"]:checked');
+  if (!checkboxes.length) {
+    mostrarAlerta("Erro", "Selecione pelo menos uma disciplina.");
+    return;
+  }
+  const disciplinasSelecionadas = Array.from(checkboxes).map(c => c.value);
+
   // GERAR CREDENCIAIS
   const numeroAluno = gerarNumeroAluno();
   const senha = nome.toLowerCase() + numeroAluno + "@IZ.com";
 
-  // DADOS
+  // DADOS DO ALUNO
   const dados = {
     nome,
     apelido,
     bi,
     dataNascimento,
-    turma: ['A','B','C'][Math.floor(Math.random()*3)],
+    turma: ['A','B','C','D'][Math.floor(Math.random()*4)],
     provincia,
     distrito,
     telefone,
@@ -246,9 +254,12 @@ form.addEventListener("submit", function (e) {
     statusAcademico: '-',
     divida: 0,
     ativo: true,
-    planoPagamento: { total: 450, parcelas: 2 }
-};
-db.collection("alunos").doc(numeroAluno).set(dados)
+    planoPagamento: { total: 450, parcelas: 2 },
+    disciplina: disciplinasSelecionadas
+  };
+
+  // SALVAR NO FIRESTORE
+  db.collection("alunos").doc(numeroAluno).set(dados)
     .then(() => {
       mostrarAlerta(
         "Inscrição concluída",
@@ -257,7 +268,7 @@ db.collection("alunos").doc(numeroAluno).set(dados)
       form.reset();
       disciplinasDiv.innerHTML = "";
       curso.style.display = "none";
-    })  
+    })
     .catch(() => {
       mostrarAlerta("Erro", "Falha ao guardar os dados no sistema.");
     });
