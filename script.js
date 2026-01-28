@@ -296,15 +296,22 @@ function mostrarAba(nome){
 async function mostrarPainelAluno(aluno){
   mostrarPagina('painelAluno');
 
+  // Gera turma aleatória se ainda não tiver
+  if(!aluno.turma){
+    const turmas = ['A','B','C','D'];
+    aluno.turma = turmas[Math.floor(Math.random() * turmas.length)];
+  }
+
   // PERFIL
   document.getElementById('perfilNome').innerText = aluno.nome;
-document.getElementById('perfilNumero').innerText = aluno.numeroAluno; // corrigido
-document.getElementById('perfilClasse').innerText = aluno.classe;
-document.getElementById('perfilTurma').innerText = aluno.curso || '-'; // usar curso como turma
-document.getElementById('perfilNascimento').innerText = aluno.dataNascimento; // corrigido
-document.getElementById('perfilContato').innerText = `Tel: ${aluno.telefone} / WhatsApp: ${aluno.whatsapp}`;
-document.getElementById('mediaFinalAluno').innerText = '-';
-document.getElementById('statusAcademicoAluno').innerText = aluno.statusAcademico || '-';
+  document.getElementById('perfilNumero').innerText = aluno.numeroAluno; // corrigido
+  document.getElementById('perfilClasse').innerText = aluno.classe;
+  document.getElementById('perfilTurma').innerText = aluno.turma; // agora aleatório
+  document.getElementById('perfilNascimento').innerText = aluno.dataNascimento; // corrigido
+  document.getElementById('perfilContato').innerText = `Tel: ${aluno.telefone} / WhatsApp: ${aluno.whatsapp}`;
+  document.getElementById('mediaFinalAluno').innerText = '-';
+  document.getElementById('statusAcademicoAluno').innerText = aluno.statusAcademico || '-';
+}
 
 // NOTAS
 const listaNotas = document.getElementById('listaNotas');
