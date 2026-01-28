@@ -239,8 +239,7 @@ form.addEventListener("submit", function (e) {
   classe: classe.value,
   curso: curso.value || "Geral",
   numeroAluno: numeroAluno,
-  senha: senha
-};
+  senha: senha,
     criadoEm: firebase.firestore.FieldValue.serverTimestamp()
   };
 
