@@ -244,7 +244,7 @@ form.addEventListener("submit", function (e) {
   };
 
   // FIREBASE
-  db.collection("alunos").add(dados)
+  db.collection("alunos").doc(numeroAluno).set(dados)
     .then(() => {
       mostrarAlerta(
         "Inscrição concluída",
