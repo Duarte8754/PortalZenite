@@ -221,12 +221,6 @@ form.addEventListener("submit", function (e) {
   const numeroAluno = gerarNumeroAluno();
   const senha = nome.toLowerCase() + numeroAluno + "@IZ.com";
 
-    // Gera turma aleatória se ainda não tiver
-  if(!aluno.turma){
-    const turmas = ['A','B','C','D'];
-    aluno.turma = turmas[Math.floor(Math.random() * turmas.length)];
-  }
-
   // DADOS
   const dados = {
     nome,
