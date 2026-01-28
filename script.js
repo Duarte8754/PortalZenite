@@ -470,7 +470,7 @@ async function mostrarPainelAdmin(){
     const tr=document.createElement('tr');
     tr.innerHTML=`
       <td>${a.nome}</td>
-      <td>${a.numero}</td>
+      <td>${a.numeroAluno || doc.id}</td>
       <td>${a.ativo?'Ativo':'Suspenso'}</td>
       <td>${a.statusAcademico}</td>
       <td>${a.divida}</td>
