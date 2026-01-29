@@ -88,25 +88,10 @@ async function avaliarAluno(numero, mediaFinal, divida){
 // ============================
 // MODAL GLOBAL DE ALERTAS
 // ============================
-function mostrarAlerta(titulo, mensagem) {
-  const modal = document.getElementById("alertModal");
-  const title = document.getElementById("alertTitle");
-  const message = document.getElementById("alertMessage");
-
-  if (!modal) {
-    alert(titulo + "\n" + mensagem);
-    return;
+function mostrarAmostrarDisciplinas(disciplinasBase);
   }
 
-  title.textContent = titulo;
-  message.textContent = mensagem;
-  modal.style.display = "flex";
-}
 
-function fecharAlerta() {
-  const modal = document.getElementById("alertModal");
-  if (modal) modal.style.display = "none";
-}
 
 // ============================
 // DISCIPLINAS
@@ -137,45 +122,42 @@ function mostrarDisciplinas(lista) {
   lista.forEach(d => {
     const label = document.createElement("label");
     label.style.display = "block";
-
     label.innerHTML = `
       <input type="checkbox" name="disciplinas" value="${d}">
       ${d}
     `;
-
     disciplinasDiv.appendChild(label);
   });
 }
 
 // ============================
-// CLASSE
+// CLASSE → DISCIPLINAS
 // ============================
-classe.addEventListener("change", () => {
+classe.addEventListener("change", function () {
   disciplinasDiv.innerHTML = "";
   curso.value = "";
 
   // 9ª e 10ª
-  if (classe.value == "9" || classe.value == "10") {
+  if (classe.value === "9" || classe.value === "10") {
     curso.style.display = "none";
     mostrarDisciplinas(disciplinasBase);
   }
 
   // 11ª e 12ª
-  if (classe.value == "11" || classe.value == "12") {
+  if (classe.value === "11" || classe.value === "12") {
     curso.style.display = "block";
   }
 });
 
 // ============================
-// CURSO → 11ª e 12ª
+// CURSO → DISCIPLINAS (11ª/12ª)
 // ============================
-curso.addEventListener("change", () => {
+curso.addEventListener("change", function () {
   if (!curso.value) return;
 
   const listaFinal = disciplinasBase.concat(disciplinasCurso[curso.value]);
   mostrarDisciplinas(listaFinal);
 });
-
 
 // ============================
 // GERAR NÚMERO E SENHA
