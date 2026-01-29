@@ -201,7 +201,7 @@ form.addEventListener("submit", function (e) {
   }
 
   // PEGA DISCIPLINAS SELECIONADAS
-  const checkboxes = document.querySelectorAll('input[name="disciplinas[]"]:checked');
+  const checkboxes = document.querySelectorAll('input[name="disciplinas"]:checked');
   if (!checkboxes.length) {
     mostrarAlerta("Erro", "Selecione pelo menos uma disciplina.");
     return;
