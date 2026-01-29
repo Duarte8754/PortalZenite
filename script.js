@@ -111,7 +111,7 @@ function fecharAlerta() {
 // ============================
 // DISCIPLINAS
 // ============================
-const disciplinasComuns = [
+const disciplinasBase = [
   "Português",
   "Matemática",
   "História",
@@ -122,8 +122,8 @@ const disciplinasComuns = [
   "Filosofia"
 ];
 
-const disciplinasPorCurso = {
-  Letras: ["Literatura", "História", "Geografia"],
+const disciplinasCurso = {
+  Letras: ["Literatura"],
   Ciencias: ["Biologia", "Química", "Física"],
   Desenho: ["Desenho", "Artes", "Geometria Descritiva"]
 };
@@ -131,25 +131,33 @@ const disciplinasPorCurso = {
 // ============================
 // ELEMENTOS
 // ============================
-const form = document.getElementById("formInscricao");
 const classe = document.getElementById("classe");
 const curso = document.getElementById("curso");
+const labelCurso = document.getElementById("labelCurso");
 const disciplinasDiv = document.getElementById("disciplinas");
 
 // ============================
-// MOSTRAR DISCIPLINAS
+// FUNÇÃO CHECKBOX
 // ============================
 function mostrarDisciplinas(lista) {
-  disciplinasDiv.innerHTML = "<h4>Disciplinas</h4>";
+  disciplinasDiv.innerHTML = "<h4>Selecione as disciplinas</h4>";
+
   lista.forEach(d => {
     const div = document.createElement("div");
-    div.textContent = "• " + d;
+
+    div.innerHTML = `
+      <label>
+        <input type="checkbox" value="${d}" name="disciplinas">
+        ${d}
+      </label>
+    `;
+
     disciplinasDiv.appendChild(div);
   });
 }
 
 // ============================
-// CLASSE → CONTROLE
+// CLASSE
 // ============================
 classe.addEventListener("change", () => {
   disciplinasDiv.innerHTML = "";
@@ -157,21 +165,33 @@ classe.addEventListener("change", () => {
 
   if (classe.value === "9" || classe.value === "10") {
     curso.style.display = "none";
-    mostrarDisciplinas(disciplinasComuns);
+    labelCurso.style.display = "none";
+
+    // 9ª e 10ª → mesmas disciplinas
+    mostrarDisciplinas(disciplinasBase);
   }
 
   if (classe.value === "11" || classe.value === "12") {
     curso.style.display = "block";
+    labelCurso.style.display = "block";
   }
 });
 
 // ============================
-// CURSO → DISCIPLINAS
+// CURSO (11ª e 12ª)
 // ============================
 curso.addEventListener("change", () => {
-  if (!curso.value) return;
-  const lista = disciplinasComuns.concat(disciplinasPorCurso[curso.value]);
-  mostrarDisciplinas(lista);
+  if (!curso.value) {
+    disciplinasDiv.innerHTML = "";
+    return;
+  }
+
+  const listaFinal = [
+    ...disciplinasBase,
+    ...disciplinasCurso[curso.value]
+  ];
+
+  mostrarDisciplinas(listaFinal);
 });
 
 // ============================
