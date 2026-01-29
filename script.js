@@ -86,12 +86,12 @@ async function avaliarAluno(numero, mediaFinal, divida){
 }
 
 // ============================
-// MODAL GLOBAL DE ALERTAS
+// ELEMENTOS DO FORMULÁRIO
 // ============================
-function mostrarAmostrarDisciplinas(disciplinasBase);
-  }
-
-
+const classe = document.getElementById("classe");
+const curso = document.getElementById("curso");
+const disciplinasDiv = document.getElementById("disciplinasDiv");
+const form = document.getElementById("formInscricao");
 
 // ============================
 // DISCIPLINAS
@@ -114,7 +114,7 @@ const disciplinasCurso = {
 };
 
 // ============================
-// MOSTRAR DISCIPLINAS COM CHECKBOX
+// MOSTRAR DISCIPLINAS
 // ============================
 function mostrarDisciplinas(lista) {
   disciplinasDiv.innerHTML = "<h4>Selecione as disciplinas</h4>";
@@ -133,26 +133,24 @@ function mostrarDisciplinas(lista) {
 // ============================
 // CLASSE → DISCIPLINAS
 // ============================
-classe.addEventListener("change", function () {
+classe.addEventListener("change", () => {
   disciplinasDiv.innerHTML = "";
   curso.value = "";
 
-  // 9ª e 10ª
   if (classe.value === "9" || classe.value === "10") {
     curso.style.display = "none";
     mostrarDisciplinas(disciplinasBase);
   }
 
-  // 11ª e 12ª
   if (classe.value === "11" || classe.value === "12") {
     curso.style.display = "block";
   }
 });
 
 // ============================
-// CURSO → DISCIPLINAS (11ª/12ª)
+// CURSO → DISCIPLINAS (11ª / 12ª)
 // ============================
-curso.addEventListener("change", function () {
+curso.addEventListener("change", () => {
   if (!curso.value) return;
 
   const listaFinal = disciplinasBase.concat(disciplinasCurso[curso.value]);
