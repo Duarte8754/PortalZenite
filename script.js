@@ -111,69 +111,69 @@ function fecharAlerta() {
 // ============================
 // DISCIPLINAS
 // ============================
-document.addEventListener("DOMContentLoaded", function () {
+const disciplinasBase = [
+  "Português",
+  "Matemática",
+  "História",
+  "Geografia",
+  "Educação Física",
+  "Inglês",
+  "TICs",
+  "Filosofia"
+];
 
-  const disciplinasBase = [
-    "Português",
-    "Matemática",
-    "História",
-    "Geografia",
-    "Educação Física",
-    "Inglês",
-    "TICs",
-    "Filosofia"
-  ];
+const disciplinasCurso = {
+  Letras: ["Literatura"],
+  Ciencias: ["Biologia", "Química", "Física"],
+  Desenho: ["Desenho", "Artes", "Geometria Descritiva"]
+};
 
-  const disciplinasCurso = {
-    Letras: ["Literatura"],
-    Ciencias: ["Biologia", "Química", "Física"],
-    Desenho: ["Desenho", "Artes", "Geometria Descritiva"]
-  };
+// ============================
+// MOSTRAR DISCIPLINAS COM CHECKBOX
+// ============================
+function mostrarDisciplinas(lista) {
+  disciplinasDiv.innerHTML = "<h4>Selecione as disciplinas</h4>";
 
-  const classe = document.getElementById("classe");
-  const curso = document.getElementById("curso");
-  const labelCurso = document.getElementById("labelCurso");
-  const disciplinasDiv = document.getElementById("disciplinas");
+  lista.forEach(d => {
+    const label = document.createElement("label");
+    label.style.display = "block";
 
-  function mostrarDisciplinas(lista) {
-    disciplinasDiv.innerHTML = "<h4>Selecione as disciplinas</h4>";
-    lista.forEach(d => {
-      disciplinasDiv.innerHTML += `
-        <label style="display:block">
-          <input type="checkbox" name="disciplinas" value="${d}">
-          ${d}
-        </label>
-      `;
-    });
+    label.innerHTML = `
+      <input type="checkbox" name="disciplinas" value="${d}">
+      ${d}
+    `;
+
+    disciplinasDiv.appendChild(label);
+  });
+}
+
+// ============================
+// CLASSE
+// ============================
+classe.addEventListener("change", () => {
+  disciplinasDiv.innerHTML = "";
+  curso.value = "";
+
+  // 9ª e 10ª
+  if (classe.value == "9" || classe.value == "10") {
+    curso.style.display = "none";
+    mostrarDisciplinas(disciplinasBase);
   }
 
-  classe.addEventListener("change", function () {
+  // 11ª e 12ª
+  if (classe.value == "11" || classe.value == "12") {
+    curso.style.display = "block";
+  }
+});
 
-    console.log("Classe selecionada:", classe.value); // DEBUG
+// ============================
+// CURSO → 11ª e 12ª
+// ============================
+curso.addEventListener("change", () => {
+  if (!curso.value) return;
 
-    disciplinasDiv.innerHTML = "";
-    curso.value = "";
-
-    if (classe.value === "9" || classe.value === "10") {
-      curso.style.display = "none";
-      labelCurso.style.display = "none";
-      mostrarDisciplinas(disciplinasBase);
-    }
-
-    if (classe.value === "11" || classe.value === "12") {
-      curso.style.display = "block";
-      labelCurso.style.display = "block";
-    }
-
-  });
-
-  curso.addEventListener("change", function () {
-    if (!curso.value) return;
-
-    const lista = disciplinasBase.concat(disciplinasCurso[curso.value]);
-    mostrarDisciplinas(lista);
-  });
-
+  const listaFinal = disciplinasBase.concat(disciplinasCurso[curso.value]);
+  mostrarDisciplinas(listaFinal);
 });
 
 
