@@ -93,67 +93,54 @@ document.addEventListener("DOMContentLoaded", () => {
   const classe = document.getElementById("classe");
   const curso = document.getElementById("curso");
   const disciplinasDiv = document.getElementById("disciplinas");
+  const labelCurso = document.getElementById("labelCurso");
+  const mensagem = document.getElementById("mensagem");
 
-  const disciplinasBase = [
-    "Português", "Matemática", "História", "Geografia",
-    "Educação Física", "Inglês", "TICs", "Filosofia"
-  ];
-
+  const disciplinasBase = ["Português","Matemática","História","Geografia",
+                           "Educação Física","Inglês","TICs","Filosofia"];
   const disciplinasCurso = {
     Letras: ["Literatura"],
-    Ciencias: ["Biologia", "Química", "Física"],
-    Desenho: ["Desenho", "Artes", "Geometria Descritiva"]
+    Ciencias: ["Biologia","Química","Física"],
+    Desenho: ["Desenho","Artes","Geometria Descritiva"]
   };
 
-  function mostrarDisciplinas(lista) {
+  function mostrarDisciplinas(lista){
     disciplinasDiv.innerHTML = "<h4>Selecione as disciplinas</h4>";
     lista.forEach(d => {
       const label = document.createElement("label");
-      label.style.display = "block";
-      label.innerHTML = `
-        <input type="checkbox" name="disciplinas" value="${d}">
-        ${d}
-      `;
+      label.innerHTML = `<input type="checkbox" name="disciplinas" value="${d}"> ${d}`;
       disciplinasDiv.appendChild(label);
     });
   }
 
-  // ============================
-  // CLASSE → DISCIPLINAS
-  // ============================
   classe.addEventListener("change", () => {
     disciplinasDiv.innerHTML = "";
     curso.value = "";
-
-    if (classe.value === "9" || classe.value === "10") {
+    if(classe.value === "9" || classe.value === "10"){
       curso.style.display = "none";
+      labelCurso.style.display = "none";
       mostrarDisciplinas(disciplinasBase);
-    } else if (classe.value === "11" || classe.value === "12") {
+    } else if(classe.value === "11" || classe.value === "12"){
       curso.style.display = "block";
-      disciplinasDiv.innerHTML = "";
+      labelCurso.style.display = "block";
     }
   });
 
-  // ============================
-  // CURSO → DISCIPLINAS
-  // ============================
   curso.addEventListener("change", () => {
-    if (!curso.value) return;
-    const listaFinal = disciplinasBase.concat(disciplinasCurso[curso.value] || []);
-    mostrarDisciplinas(listaFinal);
+    if(!curso.value) return;
+    mostrarDisciplinas(disciplinasBase.concat(disciplinasCurso[curso.value] || []));
   });
 
-  // ============================
-  // GERAR NÚMERO
-  // ============================
-  function gerarNumeroAluno() {
-    return "2007" + Math.floor(10000 + Math.random() * 90000);
+  function gerarNumeroAluno(){ return "2007"+Math.floor(10000+Math.random()*90000); }
+
+  function mostrarAlerta(tipo,texto){
+    mensagem.innerText = texto;
+    mensagem.className = tipo==="Erro"?"erro":"sucesso";
+    mensagem.style.display = "block";
+    setTimeout(()=>mensagem.style.display="none",4000);
   }
 
-  // ============================
-  // SUBMIT INSCRIÇÃO
-  // ============================
-  form.addEventListener("submit", async function (e) {
+  form.addEventListener("submit", async e => {
     e.preventDefault();
 
     const nome = document.getElementById("nome").value.trim();
@@ -170,68 +157,47 @@ document.addEventListener("DOMContentLoaded", () => {
     const nomeEncarregado = document.getElementById("nomeEncarregado").value.trim();
     const telefoneEncarregado = document.getElementById("telefoneEncarregado").value.trim();
 
-    if (!nome || !apelido || !bi || !dataNascimento || !provincia ||
-        !distrito || !telefone || !email || !nomeEncarregado || !telefoneEncarregado || !classe.value) {
-      mostrarAlerta("Erro", "Preencha todos os campos obrigatórios.");
+    if(!nome||!apelido||!bi||!dataNascimento||!provincia||!distrito||
+       !telefone||!email||!nomeEncarregado||!telefoneEncarregado||!classe.value){
+      mostrarAlerta("Erro","Preencha todos os campos obrigatórios");
       return;
     }
-
-    if ((classe.value === "11" || classe.value === "12") && !curso.value) {
-      mostrarAlerta("Erro", "Selecione o curso.");
+    if((classe.value==="11"||classe.value==="12")&&!curso.value){
+      mostrarAlerta("Erro","Selecione o curso");
       return;
     }
 
     const checkboxes = document.querySelectorAll('input[name="disciplinas"]:checked');
-    if (!checkboxes.length) {
-      mostrarAlerta("Erro", "Selecione pelo menos uma disciplina.");
+    if(!checkboxes.length){
+      mostrarAlerta("Erro","Selecione pelo menos uma disciplina");
       return;
     }
-    const disciplinasSelecionadas = Array.from(checkboxes).map(c => c.value);
+    const disciplinasSelecionadas = Array.from(checkboxes).map(c=>c.value);
 
     const numeroAluno = gerarNumeroAluno();
-    const senha = nome.toLowerCase() + numeroAluno + "@IZ.com";
+    const senha = nome.toLowerCase()+numeroAluno+"@IZ.com";
 
-    const dados = {
-      nome,
-      apelido,
-      bi,
-      dataNascimento,
-      provincia,
-      distrito,
-      telefone,
-      whatsapp,
-      email,
-      nomePai,
-      nomeMae,
-      nomeEncarregado,
-      telefoneEncarregado,
-      classe: classe.value,
-      curso: curso.value || "Geral",
-      turma: ["A","B","C","D"][Math.floor(Math.random()*4)],
-      numeroAluno,
-      senha,
-      disciplinas: disciplinasSelecionadas,
-      statusAcademico: "-",
-      divida: 0,
-      ativo: true,
-      criadoEm: firebase.firestore.FieldValue.serverTimestamp()
-    };
+    const dados = { nome,apelido,bi,dataNascimento,provincia,distrito,telefone,whatsapp,email,
+                    nomePai,nomeMae,nomeEncarregado,telefoneEncarregado,
+                    classe:classe.value,curso:curso.value||"Geral",
+                    turma:["A","B","C","D"][Math.floor(Math.random()*4)],
+                    numeroAluno,senha,disciplinas:disciplinasSelecionadas,
+                    statusAcademico:"-",divida:0,ativo:true,
+                    criadoEm:firebase.firestore.FieldValue.serverTimestamp() };
 
-    try {
+    try{
       await db.collection("alunos").doc(numeroAluno).set(dados);
-      mostrarAlerta("Inscrição concluída", `Número do Aluno: ${numeroAluno}\nSenha: ${senha}`);
+      mostrarAlerta("Sucesso",`Inscrição concluída\nNúmero: ${numeroAluno}\nSenha: ${senha}`);
       form.reset();
-      disciplinasDiv.innerHTML = "";
-      curso.style.display = "none";
-    } catch(err) {
+      disciplinasDiv.innerHTML="";
+      curso.style.display="none";
+      labelCurso.style.display="none";
+    }catch(err){
       console.error(err);
-      mostrarAlerta("Erro", "Falha ao guardar os dados.");
+      mostrarAlerta("Erro","Falha ao guardar os dados");
     }
   });
-
 });
-
- 
 
 // ===== LOGIN =====
 document.getElementById('formLogin').addEventListener('submit', async e=>{
