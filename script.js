@@ -86,7 +86,7 @@ async function avaliarAluno(numero, mediaFinal, divida){
 }
 
 // ============================
-// ELEMENTOS DO FORMULÁRIO
+// ELEMENTOS DO FORMULÁRIO E INSCRIÇÃO
 // ============================
 document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("formInscricao");
@@ -94,7 +94,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const curso = document.getElementById("curso");
   const disciplinasDiv = document.getElementById("disciplinas");
   const labelCurso = document.getElementById("labelCurso");
-  const mensagem = document.getElementById("mensagem");
 
   const disciplinasBase = ["Português","Matemática","História","Geografia",
                            "Educação Física","Inglês","TICs","Filosofia"];
@@ -133,32 +132,32 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function gerarNumeroAluno(){ return "2007"+Math.floor(10000+Math.random()*90000); }
 
-  
-  // ============================
-// ALERTA PERSONALIZADO
-// ============================
-function mostrarAlerta(titulo, mensagem, tipo = "sucesso") {
-  const alerta = document.getElementById("alertaInscricao");
-  const tituloEl = document.getElementById("alertaTitulo");
-  const mensagemEl = document.getElementById("alertaMensagem");
+  // ==========================
+  // ALERTA PERSONALIZADO
+  // ==========================
+  function mostrarAlerta(titulo, mensagem, tipo = "sucesso") {
+    const alerta = document.getElementById("alertaInscricao");
+    const tituloEl = document.getElementById("alertaTitulo");
+    const mensagemEl = document.getElementById("alertaMensagem");
 
-  if (!alerta) {
-    console.error("Alerta não encontrado no HTML");
-    return;
+    if (!alerta) return console.error("Alerta não encontrado no HTML");
+
+    tituloEl.textContent = titulo;
+    mensagemEl.textContent = mensagem;
+
+    alerta.classList.remove("erro");
+    if (tipo === "erro") alerta.classList.add("erro");
+
+    alerta.style.display = "block";
+
+    setTimeout(() => {
+      alerta.style.display = "none";
+    }, 4000);
   }
 
-  tituloEl.textContent = titulo;
-  mensagemEl.textContent = mensagem;
-
-  alerta.classList.remove("erro");
-  if (tipo === "erro") alerta.classList.add("erro");
-
-  alerta.style.display = "block";
-
-  setTimeout(() => {
-    alerta.style.display = "none";
-  }, 4000);
-}
+  // ==========================
+  // ENVIO DO FORMULÁRIO
+  // ==========================
   form.addEventListener("submit", async e => {
     e.preventDefault();
 
@@ -176,19 +175,20 @@ function mostrarAlerta(titulo, mensagem, tipo = "sucesso") {
     const nomeEncarregado = document.getElementById("nomeEncarregado").value.trim();
     const telefoneEncarregado = document.getElementById("telefoneEncarregado").value.trim();
 
+    // Valida campos obrigatórios
     if(!nome||!apelido||!bi||!dataNascimento||!provincia||!distrito||
        !telefone||!email||!nomeEncarregado||!telefoneEncarregado||!classe.value){
-      mostrarAlerta("Erro","Preencha todos os campos obrigatórios");
+      mostrarAlerta("Erro","Preencha todos os campos obrigatórios","erro");
       return;
     }
     if((classe.value==="11"||classe.value==="12")&&!curso.value){
-      mostrarAlerta("Erro","Selecione o curso");
+      mostrarAlerta("Erro","Selecione o curso","erro");
       return;
     }
 
     const checkboxes = document.querySelectorAll('input[name="disciplinas"]:checked');
     if(!checkboxes.length){
-      mostrarAlerta("Erro","Selecione pelo menos uma disciplina");
+      mostrarAlerta("Erro","Selecione pelo menos uma disciplina","erro");
       return;
     }
     const disciplinasSelecionadas = Array.from(checkboxes).map(c=>c.value);
@@ -206,17 +206,18 @@ function mostrarAlerta(titulo, mensagem, tipo = "sucesso") {
 
     try{
       await db.collection("alunos").doc(numeroAluno).set(dados);
-      mostrarAlerta("Sucesso",`Inscrição concluída\nNúmero: ${numeroAluno}\nSenha: ${senha}`);
+      mostrarAlerta("Sucesso",`Inscrição concluída\nNúmero: ${numeroAluno}\nSenha: ${senha}`,"sucesso");
       form.reset();
       disciplinasDiv.innerHTML="";
       curso.style.display="none";
       labelCurso.style.display="none";
     }catch(err){
       console.error(err);
-      mostrarAlerta("Erro","Falha ao guardar os dados");
+      mostrarAlerta("Erro","Falha ao guardar os dados","erro");
     }
   });
 });
+
 
 // ===== LOGIN =====
 document.getElementById('formLogin').addEventListener('submit', async e=>{
