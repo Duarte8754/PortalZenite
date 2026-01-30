@@ -315,19 +315,15 @@
   </div>
 </div>
 
-  <!-- Card de alerta -->
-<div id="alertaCard" style="
-    display:none; 
-    position:fixed; 
-    top:20px; 
-    right:20px; 
-    background:#4caf50; 
-    color: gold ; 
-    padding:15px; 
-    border-radius:8px; 
-    box-shadow:0 2px 8px rgba(0,0,0,0.3); 
-    z-index:9999;
-"></div>
+  <!-- Overlay -->
+<div id="alertaOverlay" class="alerta-overlay"></div>
+
+<!-- Card de alerta -->
+<div id="alertaCard" class="alerta-card">
+    <div id="alertaIcone" class="alerta-icone"></div>
+    <div id="alertaMensagem" class="alerta-mensagem"></div>
+    <button onclick="fecharAlerta()" class="alerta-btn">OK</button>
+</div>
 <script src="script.js"></script>
 </body>
   </html>
