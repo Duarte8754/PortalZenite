@@ -88,73 +88,73 @@ async function avaliarAluno(numero, mediaFinal, divida){
 // ============================
 // ELEMENTOS DO FORMULÁRIO
 // ============================
+const form = document.getElementById("formInscricao");
 const classe = document.getElementById("classe");
 const curso = document.getElementById("curso");
-const disciplinasDiv = document.getElementById("disciplinasDiv");
-const form = document.getElementById("formInscricao");
+const disciplinasDiv = document.getElementById("disciplinas");
 
 // ============================
 // DISCIPLINAS
 // ============================
-const disciplinasBase = [
-  "Português",
-  "Matemática",
-  "História",
-  "Geografia",
-  "Educação Física",
-  "Inglês",
-  "TICs",
-  "Filosofia"
-];
+document.addEventListener("DOMContentLoaded", () => {
 
-const disciplinasCurso = {
-  Letras: ["Literatura"],
-  Ciencias: ["Biologia", "Química", "Física"],
-  Desenho: ["Desenho", "Artes", "Geometria Descritiva"]
-};
+  const form = document.getElementById("formInscricao");
+  const classe = document.getElementById("classe");
+  const curso = document.getElementById("curso");
+  const disciplinasDiv = document.getElementById("disciplinas");
 
-// ============================
-// MOSTRAR DISCIPLINAS
-// ============================
-function mostrarDisciplinas(lista) {
-  disciplinasDiv.innerHTML = "<h4>Selecione as disciplinas</h4>";
+  const disciplinasBase = [
+    "Português",
+    "Matemática",
+    "História",
+    "Geografia",
+    "Educação Física",
+    "Inglês",
+    "TICs",
+    "Filosofia"
+  ];
 
-  lista.forEach(d => {
-    const label = document.createElement("label");
-    label.style.display = "block";
-    label.innerHTML = `
-      <input type="checkbox" name="disciplinas" value="${d}">
-      ${d}
-    `;
-    disciplinasDiv.appendChild(label);
+  const disciplinasCurso = {
+    Letras: ["Literatura"],
+    Ciencias: ["Biologia", "Química", "Física"],
+    Desenho: ["Desenho", "Artes", "Geometria Descritiva"]
+  };
+
+  function mostrarDisciplinas(lista) {
+    disciplinasDiv.innerHTML = "<h4>Selecione as disciplinas</h4>";
+    lista.forEach(d => {
+      const label = document.createElement("label");
+      label.style.display = "block";
+      label.innerHTML = `
+        <input type="checkbox" name="disciplinas" value="${d}">
+        ${d}
+      `;
+      disciplinasDiv.appendChild(label);
+    });
+  }
+
+  // 9ª e 10ª → disciplinas diretas
+  classe.addEventListener("change", () => {
+    disciplinasDiv.innerHTML = "";
+    curso.value = "";
+
+    if (classe.value === "9" || classe.value === "10") {
+      curso.style.display = "none";
+      mostrarDisciplinas(disciplinasBase);
+    }
+
+    if (classe.value === "11" || classe.value === "12") {
+      curso.style.display = "block";
+    }
   });
-}
 
-// ============================
-// CLASSE → DISCIPLINAS
-// ============================
-classe.addEventListener("change", () => {
-  disciplinasDiv.innerHTML = "";
-  curso.value = "";
+  // 11ª e 12ª → curso depois disciplinas
+  curso.addEventListener("change", () => {
+    if (!curso.value) return;
+    const listaFinal = disciplinasBase.concat(disciplinasCurso[curso.value]);
+    mostrarDisciplinas(listaFinal);
+  });
 
-  if (classe.value === "9" || classe.value === "10") {
-    curso.style.display = "none";
-    mostrarDisciplinas(disciplinasBase);
-  }
-
-  if (classe.value === "11" || classe.value === "12") {
-    curso.style.display = "block";
-  }
-});
-
-// ============================
-// CURSO → DISCIPLINAS (11ª / 12ª)
-// ============================
-curso.addEventListener("change", () => {
-  if (!curso.value) return;
-
-  const listaFinal = disciplinasBase.concat(disciplinasCurso[curso.value]);
-  mostrarDisciplinas(listaFinal);
 });
 
 // ============================
