@@ -238,7 +238,7 @@ form.addEventListener("submit", function (e) {
     divida: 0,
     ativo: true,
     planoPagamento: { total: 450, parcelas: 2 },
-    disciplina: disciplinasSelecionadas
+    disciplinas: disciplinasSelecionadas
   };
 
   // SALVAR NO FIRESTORE
