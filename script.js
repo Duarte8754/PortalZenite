@@ -133,40 +133,29 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function gerarNumeroAluno(){ return "2007"+Math.floor(10000+Math.random()*90000); }
 
-  function mostrarErro(mensagem){
-    mostrarAlerta("erro", "✖", mensagem);
+  
+  function abrirModal(tipo, mensagem){
+    const overlay = document.getElementById("alertModalOverlay");
+    const modal = document.getElementById("alertModal");
+    const icon = document.getElementById("modalIcon");
+    const text = document.getElementById("modalMessage");
+
+    modal.className = "modal modal-" + tipo;
+    text.innerHTML = mensagem;
+
+    if(tipo === "erro") icon.innerHTML = "✖";
+    if(tipo === "warning") icon.innerHTML = "⚠";
+    if(tipo === "sucesso") icon.innerHTML = "✔";
+
+    overlay.style.display = "flex";
+    setTimeout(() => overlay.classList.add("mostrar"), 10);
 }
 
-function mostrarWarning(mensagem){
-    mostrarAlerta("warning", "⚠", mensagem);
+function fecharModal(){
+    const overlay = document.getElementById("alertModalOverlay");
+    overlay.classList.remove("mostrar");
+    setTimeout(() => overlay.style.display = "none", 300);
 }
-
-function mostrarAlerta(tipo, icone, mensagem){
-    const card = document.getElementById("alertaCard");
-    const overlay = document.getElementById("alertaOverlay");
-
-    card.className = "alerta-card alerta-" + tipo;
-    document.getElementById("alertaIcone").innerHTML = icone;
-    document.getElementById("alertaMensagem").innerHTML = mensagem;
-
-    overlay.style.display = "block";
-    card.style.display = "block";
-
-    setTimeout(() => {
-        card.classList.add("mostrar");
-    }, 10);
-}
-
-function fecharAlerta(){
-    const card = document.getElementById("alertaCard");
-    const overlay = document.getElementById("alertaOverlay");
-
-    card.classList.remove("mostrar");
-    setTimeout(() => {
-        card.style.display = "none";
-        overlay.style.display = "none";
-    }, 300);
-                          }
   form.addEventListener("submit", async e => {
     e.preventDefault();
 
