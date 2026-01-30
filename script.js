@@ -133,13 +133,40 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function gerarNumeroAluno(){ return "2007"+Math.floor(10000+Math.random()*90000); }
 
-  function mostrarAlerta(titulo, mensagem, tipo="sucesso"){
-    const alerta = document.getElementById("alertaCard");
-    alerta.style.display = "block";
-    alerta.style.background = tipo === "erro" ? "#f44336" : "#4caf50";
-    alerta.innerHTML = `<strong>${titulo}</strong><br>${mensagem}`;
-    setTimeout(()=>{ alerta.style.display="none"; }, 4000);
+  function mostrarErro(mensagem){
+    mostrarAlerta("erro", "✖", mensagem);
 }
+
+function mostrarWarning(mensagem){
+    mostrarAlerta("warning", "⚠", mensagem);
+}
+
+function mostrarAlerta(tipo, icone, mensagem){
+    const card = document.getElementById("alertaCard");
+    const overlay = document.getElementById("alertaOverlay");
+
+    card.className = "alerta-card alerta-" + tipo;
+    document.getElementById("alertaIcone").innerHTML = icone;
+    document.getElementById("alertaMensagem").innerHTML = mensagem;
+
+    overlay.style.display = "block";
+    card.style.display = "block";
+
+    setTimeout(() => {
+        card.classList.add("mostrar");
+    }, 10);
+}
+
+function fecharAlerta(){
+    const card = document.getElementById("alertaCard");
+    const overlay = document.getElementById("alertaOverlay");
+
+    card.classList.remove("mostrar");
+    setTimeout(() => {
+        card.style.display = "none";
+        overlay.style.display = "none";
+    }, 300);
+                          }
   form.addEventListener("submit", async e => {
     e.preventDefault();
 
