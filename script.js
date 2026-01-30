@@ -134,27 +134,30 @@ document.addEventListener("DOMContentLoaded", () => {
   function gerarNumeroAluno(){ return "2007"+Math.floor(10000+Math.random()*90000); }
 
   
-  function abrirModal(tipo, mensagem){
-    const overlay = document.getElementById("alertModalOverlay");
-    const modal = document.getElementById("alertModal");
-    const icon = document.getElementById("modalIcon");
-    const text = document.getElementById("modalMessage");
+  // ============================
+// ALERTA PERSONALIZADO
+// ============================
+function mostrarAlerta(titulo, mensagem, tipo = "sucesso") {
+  const alerta = document.getElementById("alertaInscricao");
+  const tituloEl = document.getElementById("alertaTitulo");
+  const mensagemEl = document.getElementById("alertaMensagem");
 
-    modal.className = "modal modal-" + tipo;
-    text.innerHTML = mensagem;
+  if (!alerta) {
+    console.error("Alerta não encontrado no HTML");
+    return;
+  }
 
-    if(tipo === "erro") icon.innerHTML = "✖";
-    if(tipo === "warning") icon.innerHTML = "⚠";
-    if(tipo === "sucesso") icon.innerHTML = "✔";
+  tituloEl.textContent = titulo;
+  mensagemEl.textContent = mensagem;
 
-    overlay.style.display = "flex";
-    setTimeout(() => overlay.classList.add("mostrar"), 10);
-}
+  alerta.classList.remove("erro");
+  if (tipo === "erro") alerta.classList.add("erro");
 
-function fecharModal(){
-    const overlay = document.getElementById("alertModalOverlay");
-    overlay.classList.remove("mostrar");
-    setTimeout(() => overlay.style.display = "none", 300);
+  alerta.style.display = "block";
+
+  setTimeout(() => {
+    alerta.style.display = "none";
+  }, 4000);
 }
   form.addEventListener("submit", async e => {
     e.preventDefault();
