@@ -152,7 +152,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     setTimeout(() => {
       alerta.style.display = "none";
-    }, 4000);
+    }, 4000000);
   }
 
   // ==========================
