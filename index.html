@@ -315,13 +315,50 @@
   </div>
 </div>
 
-  <!-- ALERT MODAL -->
-<div id="alertModalOverlay" class="modal-overlay">
-  <div id="alertModal" class="modal">
-    <div id="modalIcon" class="modal-icon"></div>
-    <div id="modalMessage" class="modal-message"></div>
-    <button class="modal-btn" onclick="fecharModal()">OK</button>
-  </div>
+<!-- =========================
+ ALERTA PERSONALIZADO INSCRIÇÃO
+========================= -->
+<style>
+  .alerta-inscricao{
+    display:none;
+    position:fixed;
+    top:20px;
+    right:20px;
+    min-width:260px;
+    max-width:320px;
+    background:#4caf50;
+    color:#fff;
+    padding:16px;
+    border-radius:12px;
+    box-shadow:0 6px 16px rgba(0,0,0,.3);
+    z-index:9999;
+    animation: slideIn .3s ease;
+    font-family: Arial, sans-serif;
+  }
+
+  .alerta-inscricao.erro{
+    background:#e53935;
+  }
+
+  .alerta-inscricao strong{
+    font-size:16px;
+  }
+
+  .alerta-inscricao p{
+    margin-top:8px;
+    font-size:14px;
+    white-space: pre-line;
+  }
+
+  @keyframes slideIn{
+    from{transform:translateX(120%);opacity:0}
+    to{transform:translateX(0);opacity:1}
+  }
+</style>
+
+<div id="alertaInscricao" class="alerta-inscricao">
+  <strong id="alertaTitulo"></strong>
+  <p id="alertaMensagem"></p>
 </div>
 <script src="script.js"></script>
 </body>
