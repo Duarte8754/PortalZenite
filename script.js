@@ -88,10 +88,7 @@ async function avaliarAluno(numero, mediaFinal, divida){
 // ============================
 // ELEMENTOS DO FORMULÁRIO
 // ============================
-const form = document.getElementById("formInscricao");
-const classe = document.getElementById("classe");
-const curso = document.getElementById("curso");
-const disciplinasDiv = document.getElementById("disciplinas");
+
 
 // ============================
 // DISCIPLINAS
