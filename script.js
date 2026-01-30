@@ -133,13 +133,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function gerarNumeroAluno(){ return "2007"+Math.floor(10000+Math.random()*90000); }
 
-  function mostrarAlerta(tipo,texto){
-    mensagem.innerText = texto;
-    mensagem.className = tipo==="Erro"?"erro":"sucesso";
-    mensagem.style.display = "block";
-    setTimeout(()=>mensagem.style.display="none",4000);
-  }
-
+  function mostrarAlerta(titulo, mensagem, tipo="sucesso"){
+    const alerta = document.getElementById("alertaCard");
+    alerta.style.display = "block";
+    alerta.style.background = tipo === "erro" ? "#f44336" : "#4caf50";
+    alerta.innerHTML = `<strong>${titulo}</strong><br>${mensagem}`;
+    setTimeout(()=>{ alerta.style.display="none"; }, 4000);
+}
   form.addEventListener("submit", async e => {
     e.preventDefault();
 
