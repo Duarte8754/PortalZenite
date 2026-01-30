@@ -88,18 +88,19 @@ async function avaliarAluno(numero, mediaFinal, divida){
 // ============================
 // ELEMENTOS DO FORMULÁRIO
 // ============================
-
-
-// ============================
-// DISCIPLINAS
-// ============================
 document.addEventListener("DOMContentLoaded", () => {
 
+  // ============================
+  // ELEMENTOS
+  // ============================
   const form = document.getElementById("formInscricao");
   const classe = document.getElementById("classe");
   const curso = document.getElementById("curso");
   const disciplinasDiv = document.getElementById("disciplinas");
 
+  // ============================
+  // DISCIPLINAS
+  // ============================
   const disciplinasBase = [
     "Português",
     "Matemática",
@@ -130,7 +131,9 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // 9ª e 10ª → disciplinas diretas
+  // ============================
+  // CLASSE → DISCIPLINAS
+  // ============================
   classe.addEventListener("change", () => {
     disciplinasDiv.innerHTML = "";
     curso.value = "";
@@ -145,115 +148,113 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // 11ª e 12ª → curso depois disciplinas
+  // ============================
+  // CURSO → DISCIPLINAS
+  // ============================
   curso.addEventListener("change", () => {
     if (!curso.value) return;
     const listaFinal = disciplinasBase.concat(disciplinasCurso[curso.value]);
     mostrarDisciplinas(listaFinal);
   });
 
+  // ============================
+  // GERAR NÚMERO
+  // ============================
+  function gerarNumeroAluno() {
+    return "2007" + Math.floor(10000 + Math.random() * 90000);
+  }
+
+  // ============================
+  // SUBMIT INSCRIÇÃO (FUNCIONAL)
+  // ============================
+  form.addEventListener("submit", function (e) {
+    e.preventDefault();
+
+    const nome = document.getElementById("nome").value.trim();
+    const apelido = document.getElementById("apelido").value.trim();
+    const bi = document.getElementById("bi").value.trim();
+    const dataNascimento = document.getElementById("dataNascimento").value;
+    const provincia = document.getElementById("provincia").value.trim();
+    const distrito = document.getElementById("distrito").value.trim();
+    const telefone = document.getElementById("telefone").value.trim();
+    const whatsapp = document.getElementById("whatsapp").value.trim();
+    const email = document.getElementById("email").value.trim();
+    const nomePai = document.getElementById("nomePai").value.trim();
+    const nomeMae = document.getElementById("nomeMae").value.trim();
+    const nomeEncarregado = document.getElementById("nomeEncarregado").value.trim();
+    const telefoneEncarregado = document.getElementById("telefoneEncarregado").value.trim();
+
+    if (
+      !nome || !apelido || !bi || !dataNascimento ||
+      !provincia || !distrito || !telefone ||
+      !email || !nomeEncarregado || !telefoneEncarregado ||
+      !classe.value
+    ) {
+      mostrarAlerta("Erro", "Preencha todos os campos obrigatórios.");
+      return;
+    }
+
+    if ((classe.value === "11" || classe.value === "12") && !curso.value) {
+      mostrarAlerta("Erro", "Selecione o curso.");
+      return;
+    }
+
+    const checkboxes = document.querySelectorAll('input[name="disciplinas"]:checked');
+    if (!checkboxes.length) {
+      mostrarAlerta("Erro", "Selecione pelo menos uma disciplina.");
+      return;
+    }
+
+    const disciplinasSelecionadas = Array.from(checkboxes).map(c => c.value);
+
+    const numeroAluno = gerarNumeroAluno();
+    const senha = nome.toLowerCase() + numeroAluno + "@IZ.com";
+
+    const dados = {
+      nome,
+      apelido,
+      bi,
+      dataNascimento,
+      provincia,
+      distrito,
+      telefone,
+      whatsapp,
+      email,
+      nomePai,
+      nomeMae,
+      nomeEncarregado,
+      telefoneEncarregado,
+      classe: classe.value,
+      curso: curso.value || "Geral",
+      turma: ["A","B","C","D"][Math.floor(Math.random() * 4)],
+      numeroAluno,
+      senha,
+      disciplinas: disciplinasSelecionadas,
+      statusAcademico: "-",
+      divida: 0,
+      ativo: true,
+      criadoEm: firebase.firestore.FieldValue.serverTimestamp()
+    };
+
+    db.collection("alunos").doc(numeroAluno).set(dados)
+      .then(() => {
+        mostrarAlerta(
+          "Inscrição concluída",
+          `Número do Aluno: ${numeroAluno}\nSenha: ${senha}`
+        );
+        form.reset();
+        disciplinasDiv.innerHTML = "";
+        curso.style.display = "none";
+      })
+      .catch((err) => {
+        console.error(err);
+        mostrarAlerta("Erro", "Falha ao guardar os dados.");
+      });
+  });
+
 });
 
-// ============================
-// GERAR NÚMERO E SENHA
-// ============================
-function gerarNumeroAluno() {
-  return "2007" + Math.floor(10000 + Math.random() * 90000);
-}
-
-// ============================
-// SUBMIT INSCRIÇÃO
-// ============================
-form.addEventListener("submit", function (e) {
-  e.preventDefault();
-
-  // CAMPOS OBRIGATÓRIOS
-  const nome = document.getElementById("nome").value.trim();
-  const apelido = document.getElementById("apelido").value.trim();
-  const bi = document.getElementById("bi").value.trim();
-  const dataNascimento = document.getElementById("dataNascimento").value;
-  const provincia = document.getElementById("provincia").value.trim();
-  const distrito = document.getElementById("distrito").value.trim();
-  const telefone = document.getElementById("telefone").value.trim();
-  const whatsapp = document.getElementById("whatsapp").value.trim();
-  const email = document.getElementById("email").value.trim();
-  const nomePai = document.getElementById("nomePai").value.trim();
-  const nomeMae = document.getElementById("nomeMae").value.trim();
-  const nomeEncarregado = document.getElementById("nomeEncarregado").value.trim();
-  const telefoneEncarregado = document.getElementById("telefoneEncarregado").value.trim();
-
-  if (
-    !nome || !apelido || !bi || !dataNascimento ||
-    !provincia || !distrito || !telefone ||
-    !email || !nomeEncarregado || !telefoneEncarregado ||
-    !classe.value
-  ) {
-    mostrarAlerta("Erro", "Preencha todos os campos obrigatórios.");
-    return;
-  }
-
-  if ((classe.value === "11" || classe.value === "12") && !curso.value) {
-    mostrarAlerta("Erro", "Selecione o curso.");
-    return;
-  }
-
-  // PEGA DISCIPLINAS SELECIONADAS
-  const checkboxes = document.querySelectorAll('input[name="disciplinas"]:checked');
-  if (!checkboxes.length) {
-    mostrarAlerta("Erro", "Selecione pelo menos uma disciplina.");
-    return;
-  }
-  const disciplinasSelecionadas = Array.from(checkboxes).map(c => c.value);
-
-  // GERAR CREDENCIAIS
-  const numeroAluno = gerarNumeroAluno();
-  const senha = nome.toLowerCase() + numeroAluno + "@IZ.com";
-
-  // DADOS DO ALUNO
-  const dados = {
-    nome,
-    apelido,
-    bi,
-    dataNascimento,
-    turma: ['A','B','C','D'][Math.floor(Math.random()*4)],
-    provincia,
-    distrito,
-    telefone,
-    whatsapp,
-    email,
-    nomePai,
-    nomeMae,
-    nomeEncarregado,
-    telefoneEncarregado,
-    classe: classe.value,
-    curso: curso.value || "Geral",
-    numeroAluno,
-    senha,
-    criadoEm: firebase.firestore.FieldValue.serverTimestamp(),
-    confirmado: false,
-    statusAcademico: '-',
-    divida: 0,
-    ativo: true,
-    planoPagamento: { total: 450, parcelas: 2 },
-    disciplinas: disciplinasSelecionadas
-  };
-
-  // SALVAR NO FIRESTORE
-  db.collection("alunos").doc(numeroAluno).set(dados)
-    .then(() => {
-      mostrarAlerta(
-        "Inscrição concluída",
-        `Número do Aluno: ${numeroAluno}\nSenha: ${senha}`
-      );
-      form.reset();
-      disciplinasDiv.innerHTML = "";
-      curso.style.display = "none";
-    })
-    .catch(() => {
-      mostrarAlerta("Erro", "Falha ao guardar os dados no sistema.");
-    });
-});
-
+ 
 
 // ===== LOGIN =====
 document.getElementById('formLogin').addEventListener('submit', async e=>{
