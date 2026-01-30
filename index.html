@@ -43,68 +43,72 @@
      ============================= -->
 
   <section id="inscricao" class="page">
-  <h2>Inscrição do Aluno</h2>
+  <h2>Formulário de Inscrição</h2>
 
-  <form id="formInscricao">
+<div id="mensagem"></div>
 
-    <!-- DADOS DO ALUNO -->
-    <h3>Dados do Aluno</h3>
+<form id="formInscricao">
+  <label for="nome">Nome:</label>
+  <input type="text" id="nome" required>
 
-    <input type="text" id="nome" placeholder="Nome" required>
-    <input type="text" id="apelido" placeholder="Apelido" required>
+  <label for="apelido">Apelido:</label>
+  <input type="text" id="apelido" required>
 
-    <input type="text" id="bi" placeholder="Nº do B.I / Cédula" required>
+  <label for="bi">Número do BI:</label>
+  <input type="text" id="bi" required>
 
-    <label>Data de Nascimento</label>
-    <input type="date" id="dataNascimento" required>
+  <label for="dataNascimento">Data de Nascimento:</label>
+  <input type="date" id="dataNascimento" required>
 
-    <input type="text" id="provincia" placeholder="Província" required>
-    <input type="text" id="distrito" placeholder="Distrito" required>
+  <label for="provincia">Província:</label>
+  <input type="text" id="provincia" required>
 
-    <input type="tel" id="telefone" placeholder="Telefone" required>
-    <input type="tel" id="whatsapp" placeholder="WhatsApp">
+  <label for="distrito">Distrito:</label>
+  <input type="text" id="distrito" required>
 
-    <input type="email" id="email" placeholder="E-mail" required>
+  <label for="telefone">Telefone:</label>
+  <input type="tel" id="telefone" required>
 
-    <!-- DADOS DOS PAIS -->
-    <h3>Dados dos Pais</h3>
+  <label for="whatsapp">WhatsApp:</label>
+  <input type="tel" id="whatsapp">
 
-    <input type="text" id="nomePai" placeholder="Nome do Pai">
-    <input type="text" id="nomeMae" placeholder="Nome da Mãe">
+  <label for="email">E-mail:</label>
+  <input type="email" id="email" required>
 
-    <!-- ENCARREGADO -->
-    <h3>Encarregado de Educação</h3>
+  <label for="nomePai">Nome do Pai:</label>
+  <input type="text" id="nomePai">
 
-    <input type="text" id="nomeEncarregado" placeholder="Nome do Encarregado" required>
-    <input type="tel" id="telefoneEncarregado" placeholder="Número do Encarregado" required>
+  <label for="nomeMae">Nome da Mãe:</label>
+  <input type="text" id="nomeMae">
 
-    <!-- DADOS ACADÉMICOS -->
-    <h3>Dados Académicos</h3>
+  <label for="nomeEncarregado">Nome do Encarregado:</label>
+  <input type="text" id="nomeEncarregado" required>
 
-    <select id="classe" required>
-      <option value="">Selecione a classe</option>
-      <option value="7" disabled>7ª Classe (Indisponível)</option>
-      <option value="8" disabled>8ª Classe (Indisponível)</option>
-      <option value="9">9ª Classe</option>
-      <option value="10">10ª Classe</option>
-      <option value="11">11ª Classe</option>
-      <option value="12">12ª Classe</option>
-    </select>
+  <label for="telefoneEncarregado">Telefone do Encarregado:</label>
+  <input type="tel" id="telefoneEncarregado" required>
 
-    <!-- CURSO (11ª e 12ª) -->
-    <select id="curso" style="display:none;">
-      <option value="">Selecione o curso</option>
-      <option value="Letras">Letras</option>
-      <option value="Ciencias">Ciências com Biologia</option>
-      <option value="Desenho">Ciências de Desenho</option>
-    </select>
+  <label for="classe">Classe:</label>
+  <select id="classe" required>
+    <option value="">Selecione a classe</option>
+    <option value="9">9ª</option>
+    <option value="10">10ª</option>
+    <option value="11">11ª</option>
+    <option value="12">12ª</option>
+  </select>
 
-    <!-- DISCIPLINAS -->
-    <div id="disciplinas"></div>
+  <label for="curso" id="labelCurso" style="display:none">Curso:</label>
+  <select id="curso" style="display:none">
+    <option value="">Selecione o curso</option>
+    <option value="Letras">Letras</option>
+    <option value="Ciencias">Ciências</option>
+    <option value="Desenho">Desenho</option>
+  </select>
 
-    <button type="submit" id="btnConfirmarInscricao">Confirmar Inscrição</button>
+  <div id="disciplinas"></div>
 
-  </form>
+  <button type="submit">Confirmar Inscrição</button>
+    </form>
+
       <button onclick="voltarHome()" class="btn-voltar">Voltar</button>
   </section>
 
