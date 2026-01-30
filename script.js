@@ -89,27 +89,14 @@ async function avaliarAluno(numero, mediaFinal, divida){
 // ELEMENTOS DO FORMULÁRIO
 // ============================
 document.addEventListener("DOMContentLoaded", () => {
-
-  // ============================
-  // ELEMENTOS
-  // ============================
   const form = document.getElementById("formInscricao");
   const classe = document.getElementById("classe");
   const curso = document.getElementById("curso");
   const disciplinasDiv = document.getElementById("disciplinas");
 
-  // ============================
-  // DISCIPLINAS
-  // ============================
   const disciplinasBase = [
-    "Português",
-    "Matemática",
-    "História",
-    "Geografia",
-    "Educação Física",
-    "Inglês",
-    "TICs",
-    "Filosofia"
+    "Português", "Matemática", "História", "Geografia",
+    "Educação Física", "Inglês", "TICs", "Filosofia"
   ];
 
   const disciplinasCurso = {
@@ -141,10 +128,9 @@ document.addEventListener("DOMContentLoaded", () => {
     if (classe.value === "9" || classe.value === "10") {
       curso.style.display = "none";
       mostrarDisciplinas(disciplinasBase);
-    }
-
-    if (classe.value === "11" || classe.value === "12") {
+    } else if (classe.value === "11" || classe.value === "12") {
       curso.style.display = "block";
+      disciplinasDiv.innerHTML = "";
     }
   });
 
@@ -153,7 +139,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // ============================
   curso.addEventListener("change", () => {
     if (!curso.value) return;
-    const listaFinal = disciplinasBase.concat(disciplinasCurso[curso.value]);
+    const listaFinal = disciplinasBase.concat(disciplinasCurso[curso.value] || []);
     mostrarDisciplinas(listaFinal);
   });
 
@@ -165,9 +151,9 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // ============================
-  // SUBMIT INSCRIÇÃO (FUNCIONAL)
+  // SUBMIT INSCRIÇÃO
   // ============================
-  form.addEventListener("submit", function (e) {
+  form.addEventListener("submit", async function (e) {
     e.preventDefault();
 
     const nome = document.getElementById("nome").value.trim();
@@ -184,12 +170,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const nomeEncarregado = document.getElementById("nomeEncarregado").value.trim();
     const telefoneEncarregado = document.getElementById("telefoneEncarregado").value.trim();
 
-    if (
-      !nome || !apelido || !bi || !dataNascimento ||
-      !provincia || !distrito || !telefone ||
-      !email || !nomeEncarregado || !telefoneEncarregado ||
-      !classe.value
-    ) {
+    if (!nome || !apelido || !bi || !dataNascimento || !provincia ||
+        !distrito || !telefone || !email || !nomeEncarregado || !telefoneEncarregado || !classe.value) {
       mostrarAlerta("Erro", "Preencha todos os campos obrigatórios.");
       return;
     }
@@ -204,7 +186,6 @@ document.addEventListener("DOMContentLoaded", () => {
       mostrarAlerta("Erro", "Selecione pelo menos uma disciplina.");
       return;
     }
-
     const disciplinasSelecionadas = Array.from(checkboxes).map(c => c.value);
 
     const numeroAluno = gerarNumeroAluno();
@@ -226,7 +207,7 @@ document.addEventListener("DOMContentLoaded", () => {
       telefoneEncarregado,
       classe: classe.value,
       curso: curso.value || "Geral",
-      turma: ["A","B","C","D"][Math.floor(Math.random() * 4)],
+      turma: ["A","B","C","D"][Math.floor(Math.random()*4)],
       numeroAluno,
       senha,
       disciplinas: disciplinasSelecionadas,
@@ -236,20 +217,16 @@ document.addEventListener("DOMContentLoaded", () => {
       criadoEm: firebase.firestore.FieldValue.serverTimestamp()
     };
 
-    db.collection("alunos").doc(numeroAluno).set(dados)
-      .then(() => {
-        mostrarAlerta(
-          "Inscrição concluída",
-          `Número do Aluno: ${numeroAluno}\nSenha: ${senha}`
-        );
-        form.reset();
-        disciplinasDiv.innerHTML = "";
-        curso.style.display = "none";
-      })
-      .catch((err) => {
-        console.error(err);
-        mostrarAlerta("Erro", "Falha ao guardar os dados.");
-      });
+    try {
+      await db.collection("alunos").doc(numeroAluno).set(dados);
+      mostrarAlerta("Inscrição concluída", `Número do Aluno: ${numeroAluno}\nSenha: ${senha}`);
+      form.reset();
+      disciplinasDiv.innerHTML = "";
+      curso.style.display = "none";
+    } catch(err) {
+      console.error(err);
+      mostrarAlerta("Erro", "Falha ao guardar os dados.");
+    }
   });
 
 });
