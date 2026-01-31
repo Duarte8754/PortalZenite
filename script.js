@@ -625,149 +625,85 @@ async function confirmarFecharAno(numeroAluno) {
     }
 }
 
-
 // ===== LANÇAR NOTA PROFISSIONAL =====
-document.addEventListener('DOMContentLoaded', async () => {
-    const selectAluno = document.getElementById('notaAluno');
-    const selectDisciplina = document.getElementById('notaDisciplina');
-    const formNota = document.getElementById('formNota');
+const formNota = document.getElementById('formNota');
+const selectAluno = document.getElementById('notaAluno');
+const selectDisciplina = document.getElementById('notaDisciplina');
+const inputValor = document.getElementById('notaValor');
+const selectTrimestre = document.getElementById('notaTrimestre');
+const selectTipo = document.getElementById('notaTipo');
 
-    let alunosCache = [];
-
-    // Carregar todos os alunos no select
-    async function carregarAlunos() {
-        const snapshot = await db.collection('alunos').get();
-        selectAluno.innerHTML = '<option value="">Selecione o aluno</option>';
-        alunosCache = [];
-        snapshot.forEach(doc => {
-            const aluno = doc.data();
-            aluno.id = doc.id;
-            alunosCache.push(aluno);
-            const option = document.createElement('option');
-            option.value = aluno.numeroAluno;
-            option.textContent = `${aluno.nome} (${aluno.numeroAluno})`;
-            selectAluno.appendChild(option);
-        });
-    }
-
-    await carregarAlunos();
-
-    // Atualizar disciplinas ao selecionar aluno
-    selectAluno.addEventListener('change', () => {
-        const numero = selectAluno.value;
-        selectDisciplina.innerHTML = '<option value="">Selecione a disciplina</option>';
-        if (!numero) return;
-        const aluno = alunosCache.find(a => a.numeroAluno === numero);
-        if (!aluno || !aluno.disciplinas) return;
-        aluno.disciplinas.forEach(d => {
-            const option = document.createElement('option');
-            option.value = d;
-            option.textContent = d;
-            selectDisciplina.appendChild(option);
-        });
+// Preenche o select de alunos
+async function preencherAlunos() {
+    selectAluno.innerHTML = '<option value="">Selecione o aluno</option>';
+    const snapshot = await db.collection('alunos').orderBy('nome').get();
+    snapshot.forEach(doc => {
+        const aluno = doc.data();
+        const opt = document.createElement('option');
+        opt.value = aluno.numeroAluno; // o ID do documento ou numeroAluno
+        opt.textContent = `${aluno.nome} (${aluno.numeroAluno})`;
+        selectAluno.appendChild(opt);
     });
+}
 
-    // Submeter nota
-    formNota.addEventListener('submit', async e => {
-        e.preventDefault();
+// Preenche disciplinas do aluno selecionado
+selectAluno.addEventListener('change', async () => {
+    const numero = selectAluno.value;
+    selectDisciplina.innerHTML = '<option value="">Selecione a disciplina</option>';
+    if (!numero) return;
 
-        const numero = selectAluno.value;
-        const disciplina = selectDisciplina.value;
-        const trimestre = parseInt(document.getElementById('notaTrimestre').value);
-        const tipo = document.getElementById('notaTipo').value;
-        const valor = parseFloat(document.getElementById('notaValor').value);
-
-        if (!numero || !disciplina || !trimestre || !tipo || isNaN(valor)) {
-            alert('Preencha todos os campos corretamente!');
-            return;
-        }
-
-        try {
-            await db.collection('notas').add({
-                numero,
-                disciplina,
-                trimestre,
-                tipo,
-                nota: valor,
-                criadoEm: firebase.firestore.FieldValue.serverTimestamp()
-            });
-
-            alert(`✅ Nota lançada com sucesso!`);
-
-            // Atualiza tabela do aluno automaticamente se estiver aberto
-            if (window.alunoAberto && window.alunoAberto.numeroAluno === numero) {
-                atualizarNotasAluno(window.alunoAberto.numeroAluno);
-            }
-
-            formNota.reset();
-            selectDisciplina.innerHTML = '<option value="">Selecione a disciplina</option>';
-
-        } catch (err) {
-            console.error(err);
-            alert('❌ Erro ao lançar nota: ' + err.message);
-        }
-    });
-
-    // Função para atualizar a tabela de notas do aluno
-    async function atualizarNotasAluno(numero) {
-        const alunoDoc = await db.collection('alunos').doc(numero).get();
-        if (!alunoDoc.exists) return;
-        const aluno = alunoDoc.data();
-        window.alunoAberto = aluno;
-
-        const listaNotas = document.getElementById('listaNotas');
-        listaNotas.innerHTML = '';
-
-        const disciplinas = aluno.disciplinas || [];
-        if (!disciplinas.length) {
-            listaNotas.innerHTML = '<p>Aluno não possui disciplinas cadastradas.</p>';
-            return;
-        }
-
-        const tabela = document.createElement('table');
-        tabela.innerHTML = `<tr>
-            <th>Disciplina</th>
-            <th>Trimestre</th>
-            <th>Teste 1</th>
-            <th>Teste 2</th>
-            <th>Trabalho</th>
-            <th>Final</th>
-            <th>Média Trimestre</th>
-        </tr>`;
-
-        const dados = {};
-        disciplinas.forEach(d => { dados[d] = {1:{},2:{},3:{}}; });
-
-        const notasSnap = await db.collection('notas').where('numero','==',numero).get();
-        notasSnap.forEach(doc => {
-            const n = doc.data();
-            if (dados[n.disciplina]) dados[n.disciplina][n.trimestre][n.tipo] = n.nota;
+    try {
+        const doc = await db.collection('alunos').doc(numero).get();
+        if (!doc.exists) return;
+        const aluno = doc.data();
+        (aluno.disciplinas || []).forEach(d => {
+            const opt = document.createElement('option');
+            opt.value = d;
+            opt.textContent = d;
+            selectDisciplina.appendChild(opt);
         });
-
-        disciplinas.forEach(disc => {
-            [1,2,3].forEach(t => {
-                const linha = document.createElement('tr');
-                const notasTri = dados[disc][t];
-                const mediaTri = ['teste1','teste2','trabalho','final']
-                    .map(k => notasTri[k] || 0).filter(v => v>0);
-                const media = mediaTri.length ? (mediaTri.reduce((a,b)=>a+b,0)/mediaTri.length).toFixed(1) : '-';
-
-                linha.innerHTML = `
-                    <td>${disc}</td>
-                    <td>${t}</td>
-                    <td>${notasTri.teste1 || '-'}</td>
-                    <td>${notasTri.teste2 || '-'}</td>
-                    <td>${notasTri.trabalho || '-'}</td>
-                    <td>${notasTri.final || '-'}</td>
-                    <td>${media}</td>
-                `;
-                tabela.appendChild(linha);
-            });
-        });
-
-        listaNotas.appendChild(tabela);
+    } catch (err) {
+        console.error('Erro ao buscar disciplinas:', err);
     }
 });
+
+// Lançar nota
+formNota.addEventListener('submit', async e => {
+    e.preventDefault();
+
+    const numero = selectAluno.value;
+    const disciplina = selectDisciplina.value;
+    const valor = parseFloat(inputValor.value);
+    const trimestre = parseInt(selectTrimestre.value);
+    const tipo = selectTipo.value;
+
+    if (!numero || !disciplina) {
+        alert('Preencha o aluno e a disciplina');
+        return;
+    }
+
+    try {
+        // Adiciona a nota
+        await db.collection('notas').add({numero, disciplina, nota: valor, trimestre, tipo});
+
+        // Atualiza painel do aluno automaticamente se estiver aberto
+        const alunoPainel = window.painelAlunoAtual; // variável global do aluno logado
+        if (alunoPainel && alunoPainel.numeroAluno === numero) {
+            // Atualiza a tabela de notas
+            await mostrarPainelAluno(alunoPainel);
+        }
+
+        alert(`✅ Nota lançada com sucesso para ${disciplina}!`);
+        formNota.reset();
+        selectDisciplina.innerHTML = '<option value="">Selecione a disciplina</option>';
+    } catch (err) {
+        console.error(err);
+        alert('Erro ao lançar nota: ' + err.message);
+    }
+});
+
+// Inicializa
+preencherAlunos();
 
 // ===== ADICIONAR EVENTO =====
 document.getElementById('formEvento').addEventListener('submit',async e=>{
