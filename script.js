@@ -626,17 +626,49 @@ async function confirmarFecharAno(numeroAluno) {
 }
 
 
-// ===== LANÇAR NOTA =====
-document.getElementById('formNota').addEventListener('submit', async e=>{
+// ===== LANÇAR NOTA PROFISSIONAL =====
+document.getElementById('formNota').addEventListener('submit', async e => {
   e.preventDefault();
+
   const numero = document.getElementById('notaAluno').value;
   const disciplina = document.getElementById('notaDisciplina').value;
   const valor = parseFloat(document.getElementById('notaValor').value);
   const trimestre = parseInt(document.getElementById('notaTrimestre').value);
   const tipo = document.getElementById('notaTipo').value;
-  if(!numero || !disciplina){ alert('Preencha o número do aluno e selecione a disciplina'); return; }
-  try{ await db.collection('notas').add({numero, disciplina, nota:valor, trimestre, tipo}); alert('Nota lançada com sucesso!'); }
-  catch(err){ alert('Erro ao lançar nota: '+err.message); console.error(err); }
+
+  if(!numero || !disciplina || isNaN(valor)){
+    alert('Preencha todos os campos corretamente!');
+    return;
+  }
+
+  try {
+    // Salva nota no Firestore
+    await db.collection('notas').add({
+      numeroAluno: numero,
+      disciplina,
+      trimestre,
+      tipo,
+      nota: valor,
+      criadoEm: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    alert(`✅ Nota lançada: ${disciplina} - ${tipo} - Trimestre ${trimestre} - Valor ${valor}`);
+
+    // Atualiza área do aluno automaticamente se ele estiver logado
+    if(window.alunoAberto && window.alunoAberto.numeroAluno === numero){
+      mostrarPainelAluno(window.alunoAberto);
+    }
+
+    // Limpa campos do formulário
+    document.getElementById('notaDisciplina').value = '';
+    document.getElementById('notaTipo').value = 'teste1';
+    document.getElementById('notaTrimestre').value = 1;
+    document.getElementById('notaValor').value = '';
+    
+  } catch(err){
+    console.error(err);
+    alert('❌ Erro ao lançar nota: '+err.message);
+  }
 });
 
 // ===== ADICIONAR EVENTO =====
