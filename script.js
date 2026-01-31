@@ -233,65 +233,65 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 // ===== LOGIN =====
-document.getElementById('formLogin').addEventListener('submit', async e=>{
-  e.preventDefault();
-  const usuario = document.getElementById('loginUsuario').value;
-  const senha = document.getElementById('loginSenha').value;
-  if(usuario==='zenite'&&senha==='adminzenite'){ mostrarPainelAdmin(); return; }
+const formLogin = document.getElementById('formLogin');
+if (formLogin) {
+  formLogin.addEventListener('submit', async e => {
+    e.preventDefault();
+    const usuario = document.getElementById('loginUsuario').value.trim();
+    const senha = document.getElementById('loginSenha').value.trim();
 
-  try{
-    let snapshot=await db.collection('alunos').where('email','==',usuario).get();
-    let alunoData;
-    if(snapshot.empty){
-      const snapNum=await db.collection('alunos').doc(usuario).get();
-      if(!snapNum.exists) throw new Error('Aluno não encontrado');
-      if(snapNum.data().senha!==senha) throw new Error('Senha incorreta');
-      alunoData=snapNum.data();
-    }else{
-      const data=snapshot.docs[0].data();
-      if(data.senha!==senha) throw new Error('Senha incorreta');
-      alunoData=data;
+    if (!usuario || !senha) {
+      mostrarAlerta("Erro", "Preencha todos os campos", "erro");
+      return;
     }
-    mostrarPainelAluno(alunoData);
-  }catch(err){ alert(err.message); }
+
+    // Login admin
+    if (usuario === 'zenite' && senha === 'adminzenite') {
+      mostrarPainelAdmin();
+      return;
+    }
+
+    try {
+      let alunoData;
+      // Tenta buscar pelo email
+      const snapshot = await db.collection('alunos').where('email', '==', usuario).get();
+      if (!snapshot.empty) {
+        const data = snapshot.docs[0].data();
+        if (data.senha !== senha) throw new Error('Senha incorreta');
+        alunoData = data;
+      } else {
+        // Tenta buscar pelo número do aluno
+        const snapNum = await db.collection('alunos').doc(usuario).get();
+        if (!snapNum.exists) throw new Error('Aluno não encontrado');
+        if (snapNum.data().senha !== senha) throw new Error('Senha incorreta');
+        alunoData = snapNum.data();
+      }
+
+      mostrarPainelAluno(alunoData);
+    } catch (err) {
+      mostrarAlerta("Erro", err.message, "erro");
+    }
+  });
+}
+
+// ===== FUNÇÃO DE ABAS =====
+function mostrarAba(nome) {
+  document.querySelectorAll('.aba').forEach(a => a.style.display = 'none');
+  const aba = document.getElementById('aba' + nome.charAt(0).toUpperCase() + nome.slice(1));
+  if (aba) aba.style.display = 'block';
+}
+
+// Inicializa botões de abas
+document.querySelectorAll('.aba-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const aba = btn.dataset.aba;
+    if (aba) mostrarAba(aba);
+  });
 });
-
-// ===== ABAS DO ALUNO ====
-
 
 // ===== PAINEL DO ALUNO =====
-// Função para mostrar abas
-function mostrarAba(nome) {
-  document.querySelectorAll('.aba').forEach(a => a.style.display = 'none');
-  document.getElementById('aba' + nome.charAt(0).toUpperCase() + nome.slice(1)).style.display = 'block';
-}
-
-// Inicializa abas
-document.querySelectorAll('.aba-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const aba = btn.dataset.aba;
-    if (aba) mostrarAba(aba);
-  });
-});
-
-
-// Função para mostrar abas
-function mostrarAba(nome) {
-  document.querySelectorAll('.aba').forEach(a => a.style.display = 'none');
-  document.getElementById('aba' + nome.charAt(0).toUpperCase() + nome.slice(1)).style.display = 'block';
-}
-
-// Inicializa abas
-document.querySelectorAll('.aba-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const aba = btn.dataset.aba;
-    if (aba) mostrarAba(aba);
-  });
-});
-
-// Função para carregar painel do aluno
 async function mostrarPainelAluno(aluno) {
-  mostrarPagina('painelAluno');
+  mostrarPagina('painelAluno'); // Certifique-se que essa função existe
 
   // PERFIL
   document.getElementById('perfilNome').innerText = aluno.nome || '-';
@@ -301,7 +301,9 @@ async function mostrarPainelAluno(aluno) {
   document.getElementById('perfilNascimento').innerText = aluno.dataNascimento || '-';
   document.getElementById('perfilContato').innerText = `Tel: ${aluno.telefone || '-'} / WhatsApp: ${aluno.whatsapp || '-'}`;
   document.getElementById('mediaFinalAluno').innerText = '-';
-  document.getElementById('statusAcademicoAluno').innerText = aluno.statusAcademico || '-';
+  const statusSpan = document.getElementById('statusAcademicoAluno');
+  statusSpan.innerText = aluno.statusAcademico || '-';
+  statusSpan.style.color = 'black';
 
   // NOTAS
   const tabelaBody = document.querySelector('#tabelaNotas tbody');
@@ -310,25 +312,31 @@ async function mostrarPainelAluno(aluno) {
   const dadosNotas = {};
 
   disciplinas.forEach(d => {
-    dadosNotas[d] = {1:{teste1:'-',teste2:'-',trabalho:'-',final:'-'}, 2:{teste1:'-',teste2:'-',trabalho:'-',final:'-'}, 3:{teste1:'-',teste2:'-',trabalho:'-',final:'-'}};
+    dadosNotas[d] = {
+      1: { teste1: '-', teste2: '-', trabalho: '-', final: '-' },
+      2: { teste1: '-', teste2: '-', trabalho: '-', final: '-' },
+      3: { teste1: '-', teste2: '-', trabalho: '-', final: '-' }
+    };
   });
 
   // Buscar notas do Firestore
-  const notasSnap = await db.collection('notas').where('numeroAluno','==',aluno.numeroAluno).get();
+  const notasSnap = await db.collection('notas').where('numeroAluno', '==', aluno.numeroAluno).get();
   notasSnap.forEach(doc => {
     const n = doc.data();
-    if(dadosNotas[n.disciplina] && dadosNotas[n.disciplina][n.trimestre]){
+    if (dadosNotas[n.disciplina] && dadosNotas[n.disciplina][n.trimestre] && ['teste1','teste2','trabalho','final'].includes(n.tipo)) {
       dadosNotas[n.disciplina][n.trimestre][n.tipo] = n.nota;
     }
   });
 
-  function mediaTrimestre(tri){
-    const notas = ['teste1','teste2','trabalho','final'].map(t => tri[t]).filter(v => typeof v === 'number');
-    if(!notas.length) return '-';
+  function mediaTrimestre(tri) {
+    const notas = ['teste1','teste2','trabalho','final']
+      .map(t => parseFloat(tri[t]))
+      .filter(v => !isNaN(v));
+    if (!notas.length) return '-';
     return (notas.reduce((a,b)=>a+b,0)/notas.length).toFixed(1);
   }
 
-  let somaMedias=0, contadorMedias=0;
+  let somaMedias = 0, contadorMedias = 0;
 
   disciplinas.forEach(disc => {
     [1,2,3].forEach(t => {
@@ -346,18 +354,24 @@ async function mostrarPainelAluno(aluno) {
     });
   });
 
-  const mediaFinal = contadorMedias ? (somaMedias/contadorMedias).toFixed(1) : '-';
+  const mediaFinal = contadorMedias ? (somaMedias / contadorMedias).toFixed(1) : '-';
   document.getElementById('mediaFinalAluno').innerText = mediaFinal;
 
   // Define cor e status
-  const statusSpan = document.getElementById('statusAcademicoAluno');
-  if(mediaFinal==='-'){ statusSpan.innerText='-'; statusSpan.style.color='black'; }
-  else if(mediaFinal>=10){ statusSpan.innerText='Aprovado'; statusSpan.style.color='green'; }
-  else{ statusSpan.innerText='Reprovado'; statusSpan.style.color='red'; }
+  if (mediaFinal === '-') {
+    statusSpan.innerText = '-';
+    statusSpan.style.color = 'black';
+  } else if (parseFloat(mediaFinal) >= 10) {
+    statusSpan.innerText = 'Aprovado';
+    statusSpan.style.color = 'green';
+  } else {
+    statusSpan.innerText = 'Reprovado';
+    statusSpan.style.color = 'red';
+  }
 
   // Inicializa aba perfil
   mostrarAba('perfil');
-}
+      }
 
 
 // ===== PAINEL ADMIN =====
