@@ -356,10 +356,14 @@
   }
 </style>
 
-<div id="alertaInscricao" class="alerta-inscricao">
+<div id="alertaInscricao" class="alerta-inscricao" style="display:none;">
   <strong id="alertaTitulo"></strong>
   <p id="alertaMensagem"></p>
-  <button onclick="fecharAlerta()" style="
+
+  <button 
+    type="button" 
+    onclick="fecharAlerta()" 
+    style="
       margin-top:10px;
       padding:8px 16px;
       background:#007bff;
@@ -367,8 +371,9 @@
       border:none;
       border-radius:5px;
       cursor:pointer;
-      font-size:14px;
-    ">OK</button>
+    ">
+    OK
+  </button>
 </div>
 <script src="script.js"></script>
 </body>
