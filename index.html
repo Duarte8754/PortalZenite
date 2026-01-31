@@ -127,36 +127,24 @@
 </div>
 
 <!-- PAINEL DO ALUNO -->
-<div id="painelAluno" class="page">
-  <h2>Painel do Aluno</h2>
-  <div class="abas">
-    <button onclick="mostrarAba('perfil')">MeuPerfil</button>
-    <button onclick="mostrarAba('notas')">Notas</button>
-    <button onclick="mostrarAba('pagamento')">Plano de Pagamento</button>
-    <button onclick="mostrarAba('extrato')">Extrato</button>
-    <button onclick="mostrarAba('calendarioAluno')">Calendário</button>
-    <button onclick="mostrarAba('dividas')">Saldo Negativo:</button>
-    <button onclick="mostrarAba('historico')">Histórico</button>
-  </div>
+<div id="painelAluno" class="page" style="display:none; padding:20px;">
 
-  <!-- ABA PERFIL -->
-  <div id="abaPerfil" class="aba">
-    <h3>Perfil do Aluno</h3>
-    <p>Nome: <span id="perfilNome"></span></p>
-    <p>Número: <span id="perfilNumero"></span></p>
-    <p>Classe: <span id="perfilClasse"></span></p>
-    <p>Turma: <span id="perfilTurma"></span></p>
-    <p>Data de nascimento: <span id="perfilNascimento"></span></p>
-    <p>Contato: <span id="perfilContato"></span></p>
-    <p>Média Final: <span id="mediaFinalAluno">-</span></p>
-    <p>Status Académico: <span id="statusAcademicoAluno">-</span></p>
-  </div>
+    <h1>Painel do Aluno</h1>
 
-  <!-- ABA NOTAS - dentro do painel do aluno -->
-<div id="abaNotas" class="aba" style="display:none; padding:20px;">
-    <h2>Notas do Aluno</h2>
+    <!-- Navegação entre abas -->
+    <div class="menu-abas">
+        <button onclick="mostrarAba('perfil')">Perfil</button>
+        <button onclick="mostrarAba('notas')">Notas</button>
+        <button onclick="mostrarAba('extrato')">Extrato</button>
+        <button onclick="mostrarAba('historico')">Histórico</button>
+        <button onclick="mostrarAba('calendario')">Calendário</button>
+        <button onclick="mostrarAba('dividas')">Dívidas</button>
+        <button onclick="voltarHome()">Sair</button>
+    </div>
 
-    <div>
+    <!-- PERFIL -->
+    <div id="abaPerfil" class="aba" style="display:none; padding-top:15px;">
+        <h2>Perfil</h2>
         <p><strong>Nome:</strong> <span id="perfilNome"></span></p>
         <p><strong>Número do Aluno:</strong> <span id="perfilNumero"></span></p>
         <p><strong>Classe:</strong> <span id="perfilClasse"></span></p>
@@ -165,49 +153,39 @@
         <p><strong>Contato:</strong> <span id="perfilContato"></span></p>
     </div>
 
-    <hr>
-
-    <div>
-        <h3>Tabela de Notas</h3>
+    <!-- NOTAS -->
+    <div id="abaNotas" class="aba" style="display:none; padding-top:15px;">
+        <h2>Notas</h2>
         <div id="listaNotas"></div>
         <p><strong>Média Final:</strong> <span id="mediaFinalAluno">-</span></p>
         <p><strong>Status Acadêmico:</strong> <span id="statusAcademicoAluno">-</span></p>
     </div>
-                                                                              </div>
 
-  <!-- ABA PAGAMENTO -->
-  <div id="abaPagamento" class="aba">
-    <h3>Plano de Pagamento</h3>
-    <p>Valor total da matrícula: <span id="valorTotal">0</span></p>
-    <p>Parcelas: <span id="parcelas">0</span></p>
+    <!-- EXTRATO DE PAGAMENTOS -->
+    <div id="abaExtrato" class="aba" style="display:none; padding-top:15px;">
+        <h2>Extrato de Pagamentos</h2>
+        <ul id="listaExtrato"></ul>
+    </div>
+
+    <!-- HISTÓRICO -->
+    <div id="abaHistorico" class="aba" style="display:none; padding-top:15px;">
+        <h2>Histórico Acadêmico</h2>
+        <ul id="listaHistorico"></ul>
+    </div>
+
+    <!-- CALENDÁRIO -->
+    <div id="abaCalendario" class="aba" style="display:none; padding-top:15px;">
+        <h2>Calendário Escolar</h2>
+        <ul id="listaCalendario"></ul>
+    </div>
+
+    <!-- DÍVIDAS -->
+    <div id="abaDividas" class="aba" style="display:none; padding-top:15px;">
+        <h2>Dívidas</h2>
+        <p>Total de Dívidas: <span id="totalDivida">0</span></p>
+    </div>
+
   </div>
-
-  <!-- ABA EXTRATO -->
-  <div id="abaExtrato" class="aba">
-    <h3>Extrato</h3>
-    <ul id="listaExtrato"></ul>
-  </div>
-
-  <!-- ABA CALENDÁRIO -->
-  <div id="abaCalendarioAluno" class="aba">
-    <h3>Calendário Escolar</h3>
-    <ul id="listaCalendario"></ul>
-  </div>
-
-  <!-- ABA DÍVIDAS -->
-  <div id="abaDividas" class="aba">
-    <h3>Saldo Negativo</h3>
-    <p>Total em dívida: <span id="totalDivida">0</span></p>
-  </div>
-
-  <!-- ABA HISTÓRICO -->
-  <div id="abaHistorico" class="aba">
-    <h3>Histórico Académico</h3>
-    <ul id="listaHistorico"></ul>
-  </div>
-
-  <button onclick="logout()">Sair</button>
-</div>
 
 <!-- PAINEL DO ADMIN -->
 <div id="painelAdmin" class="page">
