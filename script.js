@@ -584,7 +584,7 @@ async function verFormulario(numeroAluno) {
             <h3>INFORMAÇÕES ACADÊMICAS</h3>
             <p><strong>Classe:</strong> ${a.classe || '-'}</p>
             <p><strong>Curso:</strong> ${a.curso || 'Geral'}</p>
-            <p><strong>Número do Aluno:</strong> ${a.numero || '-'}</p>
+            <p><strong>Número do Aluno:</strong> ${a.numero || numeroAluno}</p>
             <p><strong>Senha:</strong> ${a.senha || '-'}</p>
         `);
     } catch (err) {
