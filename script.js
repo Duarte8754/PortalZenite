@@ -246,7 +246,7 @@ document.getElementById('formLogin').addEventListener('submit', async e=>{
   }catch(err){ alert(err.message); }
 });
 
-// ===== ABAS DO ALUNO =====
+// ===== ABAS DO ALUNO ====
 
 
 // ===== PAINEL DO ALUNO =====
@@ -263,6 +263,7 @@ document.querySelectorAll('.aba-btn').forEach(btn => {
     if (aba) mostrarAba(aba);
   });
 });
+
 
 // Função para mostrar abas
 function mostrarAba(nome) {
