@@ -127,65 +127,84 @@
 </div>
 
 <!-- PAINEL DO ALUNO -->
-<div id="painelAluno" class="page" style="display:none; padding:20px;">
+<div id="painelAluno" class="page" style="display:none; font-family: 'Segoe UI', sans-serif; padding:20px; max-width:1200px; margin:auto;">
 
-    <h1>Painel do Aluno</h1>
+  <h1 style="text-align:center; margin-bottom:20px;">Painel do Aluno</h1>
 
-    <!-- Navegação entre abas -->
-    <div class="menu-abas">
-        <button onclick="mostrarAba('perfil')">Perfil</button>
-        <button onclick="mostrarAba('notas')">Notas</button>
-        <button onclick="mostrarAba('extrato')">Extrato</button>
-        <button onclick="mostrarAba('historico')">Histórico</button>
-        <button onclick="mostrarAba('calendario')">Calendário</button>
-        <button onclick="mostrarAba('dividas')">Dívidas</button>
-        <button onclick="voltarHome()">Sair</button>
-    </div>
+  <!-- Menu de Abas -->
+  <div class="menu-abas" style="display:flex; gap:10px; margin-bottom:30px; flex-wrap:wrap;">
+    <button class="aba-btn" data-aba="perfil">Perfil</button>
+    <button class="aba-btn" data-aba="notas">Notas</button>
+    <button class="aba-btn" data-aba="extrato">Extrato</button>
+    <button class="aba-btn" data-aba="historico">Histórico</button>
+    <button class="aba-btn" data-aba="calendario">Calendário</button>
+    <button class="aba-btn" data-aba="dividas">Dívidas</button>
+    <button class="aba-btn" onclick="voltarHome()">Sair</button>
+  </div>
 
-    <!-- PERFIL -->
-    <div id="abaPerfil" class="aba" style="display:none; padding-top:15px;">
-        <h2>Perfil</h2>
+  <!-- Conteúdo das Abas -->
+  <div id="abasAluno">
+
+    <!-- Perfil -->
+    <div id="abaPerfil" class="aba" style="display:none;">
+      <h2>Perfil</h2>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; max-width:600px;">
         <p><strong>Nome:</strong> <span id="perfilNome"></span></p>
         <p><strong>Número do Aluno:</strong> <span id="perfilNumero"></span></p>
         <p><strong>Classe:</strong> <span id="perfilClasse"></span></p>
         <p><strong>Turma:</strong> <span id="perfilTurma"></span></p>
         <p><strong>Data de Nascimento:</strong> <span id="perfilNascimento"></span></p>
         <p><strong>Contato:</strong> <span id="perfilContato"></span></p>
+        <p><strong>Média Final:</strong> <span id="mediaFinalAluno"></span></p>
+        <p><strong>Status Acadêmico:</strong> <span id="statusAcademicoAluno"></span></p>
+      </div>
     </div>
 
-    <!-- NOTAS -->
-    <div id="abaNotas" class="aba" style="display:none; padding-top:15px;">
-        <h2>Notas</h2>
-        <div id="listaNotas"></div>
-        <p><strong>Média Final:</strong> <span id="mediaFinalAluno">-</span></p>
-        <p><strong>Status Acadêmico:</strong> <span id="statusAcademicoAluno">-</span></p>
+    <!-- Notas -->
+    <div id="abaNotas" class="aba" style="display:none;">
+      <h2>Notas</h2>
+      <table id="tabelaNotas" style="width:100%; border-collapse:collapse; text-align:center;">
+        <thead>
+          <tr style="background:#1976d2; color:white;">
+            <th>Disciplina</th>
+            <th>Trimestre</th>
+            <th>Teste 1</th>
+            <th>Teste 2</th>
+            <th>Trabalho</th>
+            <th>Final</th>
+            <th>Média</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
     </div>
 
-    <!-- EXTRATO DE PAGAMENTOS -->
-    <div id="abaExtrato" class="aba" style="display:none; padding-top:15px;">
-        <h2>Extrato de Pagamentos</h2>
-        <ul id="listaExtrato"></ul>
+    <!-- Extrato -->
+    <div id="abaExtrato" class="aba" style="display:none;">
+      <h2>Extrato de Pagamentos</h2>
+      <ul id="listaExtrato" style="list-style:none; padding:0;"></ul>
     </div>
 
-    <!-- HISTÓRICO -->
-    <div id="abaHistorico" class="aba" style="display:none; padding-top:15px;">
-        <h2>Histórico Acadêmico</h2>
-        <ul id="listaHistorico"></ul>
+    <!-- Histórico -->
+    <div id="abaHistorico" class="aba" style="display:none;">
+      <h2>Histórico Escolar</h2>
+      <ul id="listaHistorico" style="list-style:none; padding:0;"></ul>
     </div>
 
-    <!-- CALENDÁRIO -->
-    <div id="abaCalendario" class="aba" style="display:none; padding-top:15px;">
-        <h2>Calendário Escolar</h2>
-        <ul id="listaCalendario"></ul>
+    <!-- Calendário -->
+    <div id="abaCalendario" class="aba" style="display:none;">
+      <h2>Calendário Acadêmico</h2>
+      <ul id="listaCalendario" style="list-style:none; padding:0;"></ul>
     </div>
 
-    <!-- DÍVIDAS -->
-    <div id="abaDividas" class="aba" style="display:none; padding-top:15px;">
-        <h2>Dívidas</h2>
-        <p>Total de Dívidas: <span id="totalDivida">0</span></p>
+    <!-- Dívidas -->
+    <div id="abaDividas" class="aba" style="display:none;">
+      <h2>Dívidas</h2>
+      <p><strong>Total a Pagar:</strong> <span id="totalDivida"></span></p>
     </div>
 
   </div>
+        </div>
 
 <!-- PAINEL DO ADMIN -->
 <div id="painelAdmin" class="page">
