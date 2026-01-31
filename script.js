@@ -275,7 +275,7 @@ const listaNotas = document.getElementById('listaNotas');
 listaNotas.innerHTML = '';
 
 // Pega disciplinas do aluno
-const disciplinas = aluno.disciplina; // array de disciplinas selecionadas
+const disciplinas = aluno.disciplinas; // ✅ plural
 
 // Cria estrutura de dados por disciplina e trimestre
 const dados = {};
@@ -473,7 +473,7 @@ document.getElementById('notaAluno').addEventListener('change', async e => {
   try {
       const doc = await db.collection('alunos').doc(numero).get();
       if (!doc.exists) { alert('Aluno não encontrado'); return; }
-      doc.data().disciplina.forEach(d => {
+      doc.data().disciplinas.forEach(d => {
           const option = document.createElement('option');
           option.value = d;
           option.textContent = d;
