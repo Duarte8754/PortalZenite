@@ -275,7 +275,7 @@ const listaNotas = document.getElementById('listaNotas');
 listaNotas.innerHTML = '';
 
 // Pega disciplinas do aluno
-const disciplinas = aluno.disciplinas; // ✅ plural
+const disciplinas = aluno.disciplinas || []; // <-- corrigido
 
 // Cria estrutura de dados por disciplina e trimestre
 const dados = {};
