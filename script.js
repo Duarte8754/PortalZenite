@@ -133,27 +133,30 @@ document.addEventListener("DOMContentLoaded", () => {
   function gerarNumeroAluno(){ return "2007"+Math.floor(10000+Math.random()*90000); }
 
   // ==========================
-  // ALERTA PERSONALIZADO
-  // ==========================
-  function mostrarAlerta(titulo, mensagem, tipo = "sucesso") {
-    const alerta = document.getElementById("alertaInscricao");
-    const tituloEl = document.getElementById("alertaTitulo");
-    const mensagemEl = document.getElementById("alertaMensagem");
+// ALERTA PERSONALIZADO FIXO
+// ==========================
+function mostrarAlerta(titulo, mensagem, tipo = "sucesso") {
+  const alerta = document.getElementById("alertaInscricao");
+  const tituloEl = document.getElementById("alertaTitulo");
+  const mensagemEl = document.getElementById("alertaMensagem");
 
-    if (!alerta) return console.error("Alerta não encontrado no HTML");
+  if (!alerta) return console.error("Alerta não encontrado no HTML");
 
-    tituloEl.textContent = titulo;
-    mensagemEl.textContent = mensagem;
+  tituloEl.textContent = titulo;
+  mensagemEl.textContent = mensagem;
 
-    alerta.classList.remove("erro");
-    if (tipo === "erro") alerta.classList.add("erro");
+  alerta.classList.remove("erro");
+  if (tipo === "erro") alerta.classList.add("erro");
 
-    alerta.style.display = "block";
+  alerta.style.display = "block";
+}
 
-    setTimeout(() => {
-      alerta.style.display = "none";
-    }, 4000000);
-  }
+// Função para fechar o alerta manualmente
+function fecharAlerta() {
+  const alerta = document.getElementById("alertaInscricao");
+  if (!alerta) return;
+  alerta.style.display = "none";
+    }
 
   // ==========================
   // ENVIO DO FORMULÁRIO
