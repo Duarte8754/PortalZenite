@@ -229,27 +229,41 @@
 
   <h3>Calendário Escolar</h3>
   <ul id="adminCalendario"></ul>
-<h3>Lançar Nota</h3>
+<h3>Lançar Notas</h3>
 <form id="formNota">
-    <input type="text" placeholder="Número do aluno" id="notaAluno" required>
+    <label for="notaAluno">Aluno:</label>
+    <select id="notaAluno" required>
+        <option value="">Selecione o aluno</option>
+        <!-- JS vai preencher os alunos aqui -->
+    </select>
+
+    <label for="notaDisciplina">Disciplina:</label>
     <select id="notaDisciplina" required>
         <option value="">Selecione a disciplina</option>
+        <!-- JS vai preencher as disciplinas do aluno selecionado -->
     </select>
+
+    <label for="notaValor">Nota:</label>
     <input type="number" placeholder="Nota" id="notaValor" required min="0" max="20">
+
+    <label for="notaTrimestre">Trimestre:</label>
     <select id="notaTrimestre" required>
         <option value="1">Trimestre 1</option>
         <option value="2">Trimestre 2</option>
         <option value="3">Trimestre 3</option>
     </select>
+
+    <label for="notaTipo">Tipo de Nota:</label>
     <select id="notaTipo" required>
         <option value="teste1">Teste 1</option>
         <option value="teste2">Teste 2</option>
         <option value="trabalho">Trabalho</option>
         <option value="final">Teste Final</option>
     </select>
+
     <button type="submit">Lançar Nota</button>
 </form>
-
+  
   <h3>Adicionar Evento</h3>
   <form id="formEvento">
     <input type="date" placeholder="Data" id="eventoData" required>
