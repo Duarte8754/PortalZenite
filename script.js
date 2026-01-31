@@ -375,48 +375,51 @@ async function mostrarPainelAluno(aluno) {
 
 
 // ===== PAINEL ADMIN =====
-async function mostrarPainelAdmin(){
+async function mostrarPainelAdmin() {
   mostrarPagina('painelAdmin');
 
-    
   // LISTAR ALUNOS
-  const snapshot=await db.collection('alunos').get();
-  const tabela=document.getElementById('tabelaAlunos');
-  tabela.innerHTML=`<tr>
+  const snapshot = await db.collection('alunos').get();
+  const tabela = document.getElementById('tabelaAlunos');
+  tabela.innerHTML = `<tr>
     <th>Nome</th><th>Número</th><th>Status</th><th>Status Académico</th><th>Dívida</th><th>Ações</th>
   </tr>`;
-  snapshot.forEach(doc=>{
-  const a = doc.data();
-  const numero = a.numeroAluno || doc.id;
 
-  const tr = document.createElement('tr');
-  tr.innerHTML = `
-    <td>${a.nome || '-'}</td>
-    <td>${numero}</td>
-    <td>${a.ativo ? 'Ativo' : 'Suspenso'}</td>
-    <td>${a.statusAcademico || 'Regular'}</td>
-    <td>${a.divida ?? 0}</td>
-    <td>
-      <button onclick="confirmar('${numero}')">Confirmar</button>
-      <button onclick="verFormulario('${numero}')">Ver Formulário</button>
-      <button onclick="registrarPagamento('${numero}')">Registrar Pagamento</button>
-      <button onclick="editarPlanoPagamento('${numero}')">Editar Plano</button>
-      <button onclick="suspender('${numero}', ${a.ativo})">${a.ativo ? 'Suspender' : 'Ativar'}</button>
-      <button onclick="excluir('${numero}')">Excluir</button>
-      <button onclick="editarDivida('${numero}')">Editar Dívida</button>
-      <button onclick="fecharAno('${numero}')">Fechar Ano</button>
-    </td>
-  `;
-  tabela.appendChild(tr);
-});
+  snapshot.forEach(doc => {
+    const a = doc.data();
+    const numero = a.numeroAluno || doc.id;
+    const ativo = !!a.ativo;
+
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${a.nome || '-'}</td>
+      <td>${numero}</td>
+      <td>${ativo ? 'Ativo' : 'Suspenso'}</td>
+      <td>${a.statusAcademico || 'Regular'}</td>
+      <td>${a.divida ?? 0}</td>
+      <td>
+        <button onclick="confirmar('${numero}')">Confirmar</button>
+        <button onclick="verFormulario('${numero}')">Ver Formulário</button>
+        <button onclick="registrarPagamento('${numero}')">Registrar Pagamento</button>
+        <button onclick="editarPlanoPagamento('${numero}')">Editar Plano</button>
+        <button onclick="suspender('${numero}', ${ativo})">${ativo ? 'Suspender' : 'Ativar'}</button>
+        <button onclick="excluir('${numero}')">Excluir</button>
+        <button onclick="editarDivida('${numero}')">Editar Dívida</button>
+        <button onclick="fecharAno('${numero}')">Fechar Ano</button>
+      </td>
+    `;
+    tabela.appendChild(tr);
+  });
 
   // CALENDÁRIO
-  const calSnap=await db.collection('calendario').get();
-  const lista=document.getElementById('adminCalendario');
-  lista.innerHTML='';
+  const calSnap = await db.collection('calendario').get();
+  const lista = document.getElementById('adminCalendario');
+  lista.innerHTML = '';
   calSnap.forEach(doc => {
+    const evento = doc.data();
+    if (!evento) return;
     const li = document.createElement('li');
-    li.innerHTML = `${doc.data().data}: ${doc.data().evento} 
+    li.innerHTML = `${evento.data}: ${evento.evento} 
       <button onclick="editarEvento('${doc.id}')">Editar</button>
       <button onclick="limparEvento('${doc.id}')">Limpar</button>`;
     lista.appendChild(li);
@@ -424,32 +427,40 @@ async function mostrarPainelAdmin(){
 }
 
 // ===== Preencher disciplinas no select do admin =====
-document.getElementById('notaAluno').addEventListener('change', async e => {
-  const numero = e.target.value;
-  const selectDisciplina = document.getElementById('notaDisciplina');
-  selectDisciplina.innerHTML = '<option value="">Selecione a disciplina</option>';
+const selectAluno = document.getElementById('notaAluno');
+if (selectAluno) {
+  selectAluno.addEventListener('change', async e => {
+    const numero = e.target.value;
+    const selectDisciplina = document.getElementById('notaDisciplina');
+    selectDisciplina.innerHTML = '<option value="">Selecione a disciplina</option>';
 
-  if (!numero) return;
-  try {
+    if (!numero) return;
+    try {
       const doc = await db.collection('alunos').doc(numero).get();
-      if (!doc.exists) { alert('Aluno não encontrado'); return; }
-      doc.data().disciplinas.forEach(d => {
-          const option = document.createElement('option');
-          option.value = d;
-          option.textContent = d;
-          selectDisciplina.appendChild(option);
+      const aluno = doc.data();
+      if (!aluno || !aluno.disciplinas) { 
+        mostrarAlerta("Erro", "Aluno não encontrado ou sem disciplinas", "erro"); 
+        return; 
+      }
+      aluno.disciplinas.forEach(d => {
+        const option = document.createElement('option');
+        option.value = d;
+        option.textContent = d;
+        selectDisciplina.appendChild(option);
       });
-  } catch(err) {
+    } catch(err) {
       console.error(err);
-      alert('Erro ao buscar disciplinas do aluno');
-  }
-});
-
-function fecharModal() {
-    const modal = document.getElementById('modalFormulario');
-    if (!modal) return;
-    modal.style.display = 'none';
+      mostrarAlerta("Erro", "Erro ao buscar disciplinas do aluno", "erro");
+    }
+  });
 }
+
+// ===== FECHAR MODAL =====
+function fecharModal() {
+  const modal = document.getElementById('modalFormulario');
+  if (!modal) return;
+  modal.style.display = 'none';
+        }
 
 // ===== BUSCAR ALUNO =====
 document.getElementById('btnBuscarAluno').addEventListener('click', async () => {
