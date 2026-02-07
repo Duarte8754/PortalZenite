@@ -222,7 +222,7 @@ document.getElementById('formLogin').addEventListener('submit', async function(e
     const senha = document.getElementById('loginSenha').value.trim();
     
     // Login do administrador
-    if (usuario === 'admin' && senha === 'admin123') {
+    if (usuario === 'charmyla.admin' && senha === 'zenite1818') {
         adminLogado = true;
         mostrarPagina('painelAdmin');
         mostrarAlerta('Bem-vindo!', 'Login como administrador realizado!', 'sucesso');
@@ -825,10 +825,15 @@ async function carregarAlunosAdmin() {
                 <td><span class="status ${aluno.ativo ? 'ativo' : 'inativo'}">${aluno.ativo ? 'Ativo' : 'Inativo'}</span></td>
                 <td>${aluno.divida || 0} MZN</td>
                 <td>
-                    <button onclick="editarAluno('${numeroAluno}')" class="btn-acao">✏️ Editar</button>
-                    <button onclick="suspenderAluno('${numeroAluno}', ${aluno.ativo})" class="btn-acao">
-                        ${aluno.ativo ? '⏸️ Suspender' : '▶️ Ativar'}
-                    </button>
+                    <div class="acoes-admin">
+                        <button onclick="verFormularioAluno('${numeroAluno}')" class="btn-acao ver">📄 Ver Formulário</button>
+                        <button onclick="editarPlanoPagamento('${numeroAluno}', '${aluno.planoPagamento || 'normal'}')" class="btn-acao plano">💰 Plano</button>
+                        <button onclick="editarAluno('${numeroAluno}')" class="btn-acao editar">✏️ Editar</button>
+                        <button onclick="suspenderAluno('${numeroAluno}', ${aluno.ativo})" class="btn-acao ${aluno.ativo ? 'suspender' : 'ativar'}">
+                            ${aluno.ativo ? '⏸️ Suspender' : '▶️ Ativar'}
+                        </button>
+                        <button onclick="excluirAluno('${numeroAluno}')" class="btn-acao excluir">🗑️ Excluir</button>
+                    </div>
                 </td>
             `;
             tbody.appendChild(tr);
@@ -846,7 +851,7 @@ async function carregarAlunosAdmin() {
     } catch (error) {
         console.error('Erro ao carregar alunos:', error);
     }
-}
+        }
 
 function configurarFormulariosAdmin() {
     // FORMULÁRIO DE NOTAS
