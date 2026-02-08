@@ -784,3 +784,207 @@ function configurarAbasAluno(aluno) {
     // Ativar primeira aba
     botoesAbas[0].click();
 }
+
+// ===== PAINEL DO ADMINISTRADOR =====
+async function carregarPainelAdmin() {
+    try {
+        await carregarAlunosAdmin();
+        await carregarCalendarioAdmin();
+        configurarFormulariosAdmin();
+        await mostrarNotasRecentes();
+        
+    } catch (error) {
+        console.error('Erro ao carregar painel admin:', error);
+        mostrarAlerta('Erro', 'Não foi possível carregar o painel administrativo', 'erro');
+    }
+}
+
+async function carregarAlunosAdmin() {
+    try {
+        const alunosSnap = await db.collection('alunos').orderBy('nome').get();
+        const tbody = document.querySelector('#tabelaAlunos tbody');
+        tbody.innerHTML = '';
+        
+        // Limpar selects
+        ['notaAluno', 'dividaAluno', 'pagamentoAluno'].forEach(id => {
+            const select = document.getElementById(id);
+            select.innerHTML = '<option value="">Selecione o aluno</option>';
+        });
+        
+        alunosSnap.forEach(doc => {
+            const aluno = doc.data();
+            const numeroAluno = aluno.numeroAluno;
+            
+            // Adicionar à tabela
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${aluno.nome} ${aluno.apelido}</td>
+                <td>${numeroAluno}</td>
+                <td>${aluno.classe}ª</td>
+                <td>${aluno.turma}</td>
+                <td><span class="status ${aluno.ativo ? 'ativo' : 'inativo'}">${aluno.ativo ? 'Ativo' : 'Inativo'}</span></td>
+                <td>${aluno.divida || 0} MZN</td>
+                <td>
+                    <div class="acoes-admin">
+                        <button onclick="verFormularioAluno('${numeroAluno}')" class="btn-acao ver">📄 Ver Formulário</button>
+                        <button onclick="editarPlanoPagamento('${numeroAluno}', '${aluno.planoPagamento || 'normal'}')" class="btn-acao plano">💰 Plano</button>
+                        <button onclick="editarAluno('${numeroAluno}')" class="btn-acao editar">✏️ Editar</button>
+                        <button onclick="suspenderAluno('${numeroAluno}', ${aluno.ativo})" class="btn-acao ${aluno.ativo ? 'suspender' : 'ativar'}">
+                            ${aluno.ativo ? '⏸️ Suspender' : '▶️ Ativar'}
+                        </button>
+                        <button onclick="excluirAluno('${numeroAluno}')" class="btn-acao excluir">🗑️ Excluir</button>
+                    </div>
+                </td>
+            `;
+            tbody.appendChild(tr);
+            
+            // Adicionar aos selects
+            ['notaAluno', 'dividaAluno', 'pagamentoAluno'].forEach(id => {
+                const select = document.getElementById(id);
+                const option = document.createElement('option');
+                option.value = numeroAluno;
+                option.textContent = `${aluno.nome} - ${numeroAluno}`;
+                select.appendChild(option);
+            });
+        });
+        
+    } catch (error) {
+        console.error('Erro ao carregar alunos:', error);
+    }
+            }
+
+function configurarFormulariosAdmin() {
+    // FORMULÁRIO DE NOTAS
+    document.getElementById('formNota').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const alunoNumero = document.getElementById('notaAluno').value;
+        const disciplina = document.getElementById('notaDisciplina').value;
+        const trimestre = parseInt(document.getElementById('notaTrimestre').value);
+        const tipo = document.getElementById('notaTipo').value;
+        const valor = parseFloat(document.getElementById('notaValor').value);
+        
+        if (!alunoNumero || !disciplina || valor < 0 || valor > 20) {
+            mostrarAlerta('Erro', 'Preencha todos os campos corretamente!', 'erro');
+            return;
+        }
+        
+        try {
+            // Verificar aluno e disciplina
+            const alunoDoc = await db.collection('alunos').doc(alunoNumero).get();
+            if (!alunoDoc.exists) {
+                mostrarAlerta('Erro', 'Aluno não encontrado!', 'erro');
+                return;
+            }
+            
+            const aluno = alunoDoc.data();
+            if (!aluno.disciplinas.includes(disciplina)) {
+                mostrarAlerta('Erro', 'Esta disciplina não pertence ao aluno!', 'erro');
+                return;
+            }
+            
+            // Criar/Atualizar nota
+            const notaId = `${alunoNumero}_${disciplina}_${trimestre}_${tipo}`;
+            const notaData = {
+                numeroAluno: alunoNumero,
+                disciplina: disciplina,
+                trimestre: trimestre,
+                tipo: tipo,
+                nota: valor,
+                alunoNome: aluno.nome + ' ' + aluno.apelido,
+                alunoClasse: aluno.classe,
+                alunoTurma: aluno.turma,
+                atualizadoEm: firebase.firestore.FieldValue.serverTimestamp()
+            };
+            
+            await db.collection('notas').doc(notaId).set(notaData);
+            
+            // Atualizar média do aluno
+            await atualizarMediaAluno(alunoNumero);
+            
+            mostrarAlerta('✅ Nota Lançada!', 
+                `Nota registrada para ${aluno.nome}\n` +
+                `Disciplina: ${disciplina}\n` +
+                `Nota: ${valor}\n\n` +
+                `A nota já está disponível no painel do aluno!`,
+                'sucesso'
+            );
+            
+            this.reset();
+            carregarAlunosAdmin();
+            
+        } catch (error) {
+            mostrarAlerta('Erro', 'Não foi possível lançar a nota', 'erro');
+        }
+    });
+    
+    // Atualizar disciplinas quando selecionar aluno
+    document.getElementById('notaAluno').addEventListener('change', async function() {
+        const numeroAluno = this.value;
+        const selectDisciplina = document.getElementById('notaDisciplina');
+        
+        selectDisciplina.innerHTML = '<option value="">Selecione a disciplina</option>';
+        
+        if (!numeroAluno) return;
+        
+        try {
+            const alunoDoc = await db.collection('alunos').doc(numeroAluno).get();
+            const aluno = alunoDoc.data();
+            
+            if (aluno && aluno.disciplinas) {
+                aluno.disciplinas.forEach(disciplina => {
+                    const option = document.createElement('option');
+                    option.value = disciplina;
+                    option.textContent = disciplina;
+                    selectDisciplina.appendChild(option);
+                });
+            }
+        } catch (error) {
+            console.error('Erro ao carregar disciplinas:', error);
+        }
+    });
+    
+    // FORMULÁRIO DE DÍVIDAS
+    document.getElementById('formDivida').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const alunoNumero = document.getElementById('dividaAluno').value;
+        const valor = parseFloat(document.getElementById('dividaValor').value);
+        const descricao = document.getElementById('dividaDescricao').value;
+        
+        if (!alunoNumero || !valor || !descricao) {
+            mostrarAlerta('Erro', 'Preencha todos os campos!', 'erro');
+            return;
+        }
+        
+        try {
+            // Atualizar dívida do aluno
+            const alunoDoc = await db.collection('alunos').doc(alunoNumero).get();
+            const dividaAtual = alunoDoc.data().divida || 0;
+            const novaDivida = dividaAtual + valor;
+            
+            await db.collection('alunos').doc(alunoNumero).update({
+                divida: novaDivida
+            });
+            
+            // Registrar no histórico de dívidas
+            await db.collection('dividas').add({
+                numeroAluno: alunoNumero,
+                valor: valor,
+                descricao: descricao,
+                data: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            
+            mostrarAlerta('✅ Dívida Registrada!', 
+                `Dívida de ${valor} MZN registrada para o aluno.\n` +
+                `Total atual: ${novaDivida} MZN`,
+                'sucesso'
+            );
+            
+            this.reset();
+            carregarAlunosAdmin();
+            
+        } catch (error) {
+            mostrarAlerta('Erro', 'Não foi possível registrar a dívida', 'erro');
+        }
+    });
