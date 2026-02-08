@@ -1456,6 +1456,316 @@ async function editarPlanoPagamento(numeroAluno, planoAtual = 'normal') {
     }
                             }
 
+// ===== SISTEMA DE CONFIRMAÇÃO DE MATRÍCULA =====
+
+// 1. CONFIRMAR MATRÍCULA (Admin)
+async function confirmarMatricula(numeroAluno, status = 'confirmada') {
+    try {
+        const alunoDoc = await db.collection('alunos').doc(numeroAluno).get();
+        if (!alunoDoc.exists) {
+            mostrarAlerta('Erro', 'Aluno não encontrado!', 'erro');
+            return;
+        }
+        
+        const aluno = alunoDoc.data();
+        const statusAtual = aluno.statusMatricula || 'pendente';
+        
+        // Não permitir mudar de anulada para outra coisa
+        if (statusAtual === 'anulada' && status !== 'anulada') {
+            mostrarAlerta('Atenção', 'Matrícula anulada não pode ser reativada!', 'erro');
+            return;
+        }
+        
+        let mensagem = '';
+        switch(status) {
+            case 'confirmada':
+                mensagem = '✅ Matrícula CONFIRMADA! O aluno agora tem acesso completo ao sistema.';
+                break;
+            case 'pendente':
+                mensagem = '🟡 Matrícula marcada como PENDENTE. O aluno tem acesso limitado.';
+                break;
+            case 'anulada':
+                mensagem = '❌ Matrícula ANULADA! O aluno perdeu o acesso ao sistema.';
+                break;
+        }
+        
+        await db.collection('alunos').doc(numeroAluno).update({
+            statusMatricula: status,
+            dataConfirmacaoMatricula: status === 'confirmada' ? firebase.firestore.FieldValue.serverTimestamp() : null,
+            dataAnulacaoMatricula: status === 'anulada' ? firebase.firestore.FieldValue.serverTimestamp() : null,
+            ativo: status === 'confirmada' // Inativa aluno se matrícula for anulada
+        });
+        
+        // Registrar no histórico
+        await db.collection('historicoMatriculas').add({
+            numeroAluno: numeroAluno,
+            alunoNome: aluno.nome + ' ' + aluno.apelido,
+            statusAnterior: statusAtual,
+            statusNovo: status,
+            dataAlteracao: firebase.firestore.FieldValue.serverTimestamp(),
+            administrador: 'Sistema' // Você pode adicionar nome do admin logado
+        });
+        
+        mostrarAlerta('Status Atualizado', 
+            `${mensagem}\n\n` +
+            `Aluno: ${aluno.nome}\n` +
+            `Status anterior: ${statusAtual}\n` +
+            `Novo status: ${status}`,
+            status === 'confirmada' ? 'sucesso' : 
+            status === 'anulada' ? 'erro' : 'info'
+        );
+        
+        // Atualizar tabela
+        carregarAlunosAdmin();
+        
+    } catch (error) {
+        console.error('Erro ao confirmar matrícula:', error);
+        mostrarAlerta('Erro', 'Não foi possível atualizar o status da matrícula', 'erro');
+    }
+}
+
+// 2. BOTÃO DE STATUS DA MATRÍCULA (Para admin)
+async function gerenciarMatricula(numeroAluno, statusAtual = 'pendente') {
+    const alunoDoc = await db.collection('alunos').doc(numeroAluno).get();
+    const aluno = alunoDoc.data();
+    
+    const conteudo = `
+        <div style="max-width:500px;">
+            <h4 style="color:#1976d2;">🎓 Gerenciar Matrícula</h4>
+            <p><strong>Aluno:</strong> ${aluno.nome} ${aluno.apelido}</p>
+            <p><strong>Número:</strong> ${numeroAluno}</p>
+            <p><strong>Status Atual:</strong> 
+                <span class="status-matricula ${statusAtual}">
+                    ${statusAtual.toUpperCase()}
+                </span>
+            </p>
+            
+            <div style="margin:20px 0; padding:15px; background:#f5f5f5; border-radius:8px;">
+                <h5 style="margin-top:0;">Escolha o novo status:</h5>
+                
+                <div style="display:grid; gap:10px;">
+                    <button onclick="mudarStatusMatricula('${numeroAluno}', 'pendente')" 
+                            style="padding:12px; border:none; border-radius:5px; cursor:pointer; background:#ff9800; color:white; text-align:left;">
+                        🟡 PENDENTE
+                        <small style="display:block; opacity:0.9;">Acesso limitado (apenas perfil)</small>
+                    </button>
+                    
+                    <button onclick="mudarStatusMatricula('${numeroAluno}', 'confirmada')" 
+                            style="padding:12px; border:none; border-radius:5px; cursor:pointer; background:#4caf50; color:white; text-align:left;">
+                        ✅ CONFIRMADA
+                        <small style="display:block; opacity:0.9;">Acesso completo ao sistema</small>
+                    </button>
+                    
+                    <button onclick="mudarStatusMatricula('${numeroAluno}', 'anulada')" 
+                            style="padding:12px; border:none; border-radius:5px; cursor:pointer; background:#f44336; color:white; text-align:left;">
+                        ❌ ANULADA
+                        <small style="display:block; opacity:0.9;">Matrícula cancelada</small>
+                    </button>
+                </div>
+            </div>
+            
+            <div style="text-align:center; margin-top:20px;">
+                <button onclick="fecharAlerta()" 
+                        style="background:#757575; color:white; padding:10px 20px; border:none; border-radius:5px; cursor:pointer;">
+                    Fechar
+                </button>
+            </div>
+        </div>
+    `;
+    
+    document.getElementById('alertTitle').textContent = 'Gerenciar Matrícula';
+    document.getElementById('alertMessage').innerHTML = conteudo;
+    document.getElementById('alertModal').style.display = 'flex';
+    
+    // Adicionar estilos
+    const style = document.createElement('style');
+    style.textContent = `
+        .status-matricula {
+            padding: 4px 10px;
+            border-radius: 15px;
+            font-size: 0.9rem;
+            font-weight: bold;
+        }
+        .status-matricula.pendente { background: #ff9800; color: white; }
+        .status-matricula.confirmada { background: #4caf50; color: white; }
+        .status-matricula.anulada { background: #f44336; color: white; }
+    `;
+    document.head.appendChild(style);
+}
+
+// 3. Função auxiliar para mudar status
+window.mudarStatusMatricula = function(numeroAluno, status) {
+    confirmarMatricula(numeroAluno, status);
+    fecharAlerta();
+};
+
+// 4. VERIFICAR STATUS DA MATRÍCULA NO PAINEL DO ALUNO
+function verificarAcessoPorMatricula(aluno) {
+    const statusMatricula = aluno.statusMatricula || 'pendente';
+    const menuAbas = document.querySelector('.menu-abas');
+    const abas = document.querySelectorAll('.aba-btn[data-aba]');
+    
+    // Bloquear/desbloquear abas baseado no status
+    if (statusMatricula !== 'confirmada') {
+        // Bloquear todas as abas exceto perfil
+        abas.forEach(botao => {
+            const abaAlvo = botao.dataset.aba;
+            if (abaAlvo !== 'perfil') {
+                botao.disabled = true;
+                botao.style.opacity = '0.5';
+                botao.style.cursor = 'not-allowed';
+                botao.title = 'Matrícula pendente de confirmação';
+            }
+        });
+        
+        // Mostrar aviso
+        const aviso = document.createElement('div');
+        aviso.id = 'avisoMatricula';
+        aviso.style.cssText = `
+            background: #fff3cd;
+            color: #856404;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            border: 1px solid #ffeaa7;
+            text-align: center;
+        `;
+        aviso.innerHTML = `
+            <strong>⚠️ MATRÍCULA ${statusMatricula.toUpperCase()}</strong>
+            <p>Sua matrícula está <strong>${statusMatricula}</strong>. Apenas a aba "Perfil" está disponível.</p>
+            <p>Aguarde a confirmação da administração para acessar todas as funcionalidades.</p>
+            ${statusMatricula === 'anulada' ? 
+                '<p style="color:#721c24; background:#f8d7da; padding:10px; border-radius:3px; margin-top:10px;">' +
+                '<strong>❌ MATRÍCULA ANULADA:</strong> Entre em contato com a secretaria.</p>' : ''}
+        `;
+        
+        // Adicionar aviso após o cabeçalho
+        const painelHeader = document.querySelector('.painel-header');
+        if (painelHeader && !document.getElementById('avisoMatricula')) {
+            painelHeader.parentNode.insertBefore(aviso, painelHeader.nextSibling);
+        }
+        
+        // Forçar mostrar apenas a aba perfil
+        mostrarApenasPerfil();
+        
+    } else {
+        // Desbloquear todas as abas
+        abas.forEach(botao => {
+            botao.disabled = false;
+            botao.style.opacity = '1';
+            botao.style.cursor = 'pointer';
+            botao.title = '';
+        });
+        
+        // Remover aviso se existir
+        const avisoExistente = document.getElementById('avisoMatricula');
+        if (avisoExistente) {
+            avisoExistente.remove();
+        }
+    }
+    
+    return statusMatricula;
+}
+
+// 5. MOSTRAR APENAS ABA PERFIL
+function mostrarApenasPerfil() {
+    // Esconder todas as abas
+    document.querySelectorAll('.aba').forEach(aba => {
+        aba.classList.remove('active');
+        aba.style.display = 'none';
+    });
+    
+    // Mostrar apenas perfil
+    const abaPerfil = document.getElementById('abaPerfil');
+    if (abaPerfil) {
+        abaPerfil.classList.add('active');
+        abaPerfil.style.display = 'block';
+    }
+    
+    // Ativar apenas botão perfil
+    document.querySelectorAll('.aba-btn').forEach(botao => {
+        botao.classList.remove('active');
+    });
+    const btnPerfil = document.querySelector('.aba-btn[data-aba="perfil"]');
+    if (btnPerfil) btnPerfil.classList.add('active');
+}
+
+// 6. ATUALIZAR FUNÇÃO mostrarPainelAluno PARA INCLUIR VERIFICAÇÃO
+async function mostrarPainelAluno(aluno) {
+    mostrarPagina('painelAluno');
+    
+    // Verificar status da matrícula ANTES de configurar abas
+    const statusMatricula = verificarAcessoPorMatricula(aluno);
+    
+    // Atualizar cabeçalho com status
+    const alunoNomePainel = document.getElementById('alunoNomePainel');
+    const alunoNumeroPainel = document.getElementById('alunoNumeroPainel');
+    
+    alunoNomePainel.textContent = aluno.nome + ' ' + aluno.apelido;
+    alunoNumeroPainel.innerHTML = `Nº: ${aluno.numeroAluno} <span class="status-matricula-aluno ${statusMatricula}">${statusMatricula.toUpperCase()}</span>`;
+    
+    // Adicionar estilo para o status
+    const style = document.createElement('style');
+    style.textContent = `
+        .status-matricula-aluno {
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        .status-matricula-aluno.pendente { background: #ff9800; color: white; }
+        .status-matricula-aluno.confirmada { background: #4caf50; color: white; }
+        .status-matricula-aluno.anulada { background: #f44336; color: white; }
+    `;
+    document.head.appendChild(style);
+    
+    // Preencher perfil (mantenha seu código existente)
+    document.getElementById('perfilNome').textContent = aluno.nome + ' ' + aluno.apelido;
+    document.getElementById('perfilNumero').textContent = aluno.numeroAluno;
+    document.getElementById('perfilClasse').textContent = aluno.classe + 'ª Classe';
+    // ... continue com os outros campos ...
+    
+    // Configurar abas (só funciona se matrícula confirmada)
+    if (statusMatricula === 'confirmada') {
+        configurarAbasAluno(aluno);
+        
+        // Carregar dados apenas se confirmado
+        await carregarNotasAluno(aluno.numeroAluno);
+        await carregarExtratoAluno(aluno.numeroAluno);
+        await carregarHistoricoAluno(aluno.numeroAluno);
+        await carregarCalendarioAluno();
+        await carregarDividasAluno(aluno.numeroAluno);
+        
+        iniciarObservadoresAluno(aluno.numeroAluno);
+    } else {
+        // Se não confirmado, carregar apenas perfil
+        document.getElementById('perfilNome').textContent = aluno.nome + ' ' + aluno.apelido;
+        // ... preencher outros campos do perfil ...
+        
+        // Mostrar mensagem no perfil sobre matrícula
+        const perfilDiv = document.getElementById('abaPerfil');
+        const mensagemMatricula = document.createElement('div');
+        mensagemMatricula.style.cssText = `
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            border-left: 4px solid #2196f3;
+        `;
+        mensagemMatricula.innerHTML = `
+            <h4>Status da Matrícula: ${statusMatricula.toUpperCase()}</h4>
+            <p>Seu acesso está limitado até a confirmação da matrícula pela administração.</p>
+            <p><strong>Status atual:</strong> ${statusMatricula}</p>
+            ${statusMatricula === 'anulada' ? 
+                '<p><strong>⚠️ Atenção:</strong> Sua matrícula foi anulada. Entre em contato com a secretaria.</p>' : 
+                '<p><strong>⏳ Aguarde:</strong> A confirmação será feita em breve pela administração.</p>'}
+        `;
+        perfilDiv.appendChild(mensagemMatricula);
+    }
+                }
+
+
 function buscarAluno() {
     const termo = document.getElementById('buscaAluno').value.trim().toLowerCase();
     const linhas = document.querySelectorAll('#tabelaAlunos tbody tr');
