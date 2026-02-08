@@ -818,18 +818,30 @@ async function carregarAlunosAdmin() {
             // Adicionar à tabela
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td>${aluno.nome} ${aluno.apelido}</td>
-                <td>${numeroAluno}</td>
-                <td>${aluno.classe}ª</td>
-                <td>${aluno.turma}</td>
-                <td><span class="status ${aluno.ativo ? 'ativo' : 'inativo'}">${aluno.ativo ? 'Ativo' : 'Inativo'}</span></td>
-                <td>${aluno.divida || 0} MZN</td>
-                <td>
-                    <button onclick="editarAluno('${numeroAluno}')" class="btn-acao">✏️ Editar</button>
-                    <button onclick="suspenderAluno('${numeroAluno}', ${aluno.ativo})" class="btn-acao">
-                        ${aluno.ativo ? '⏸️ Suspender' : '▶️ Ativar'}
-                    </button>
-                </td>
+    <td>${a.nome}</td>
+    <td>${numeroAluno}</td>
+    <td>${a.classe}ª</td>
+    <td>${a.turma}</td>
+    <td>${a.ativo?'Ativo':'Suspenso'}</td>
+    <td>${a.divida || 0} MZN</td>
+    <td>
+        <button onclick="verFormularioAluno('${numeroAluno}')" style="background:#2196f3;color:white;padding:5px 10px;border:none;border-radius:3px;margin:2px;cursor:pointer;">
+            📄 Ver
+        </button>
+        <button onclick="editarPlanoPagamento('${numeroAluno}', '${a.planoPagamento || 'normal'}')" style="background:#ff9800;color:white;padding:5px 10px;border:none;border-radius:3px;margin:2px;cursor:pointer;">
+            💰 Plano
+        </button>
+        <button onclick="editarAluno('${numeroAluno}')" style="background:#4caf50;color:white;padding:5px 10px;border:none;border-radius:3px;margin:2px;cursor:pointer;">
+            ✏️ Editar
+        </button>
+        <button onclick="suspenderAluno('${numeroAluno}',${a.ativo})" style="background:${a.ativo?'#ff5722':'#00bcd4'};color:white;padding:5px 10px;border:none;border-radius:3px;margin:2px;cursor:pointer;">
+            ${a.ativo?'⏸️ Suspender':'▶️ Ativar'}
+        </button>
+        <button onclick="excluirAluno('${numeroAluno}')" style="background:#f44336;color:white;padding:5px 10px;border:none;border-radius:3px;margin:2px;cursor:pointer;">
+            🗑️ Excluir
+        </button>
+    </td>
+                
             `;
             tbody.appendChild(tr);
             
