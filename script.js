@@ -988,3 +988,364 @@ function configurarFormulariosAdmin() {
             mostrarAlerta('Erro', 'Não foi possível registrar a dívida', 'erro');
         }
     });
+
+    // FORMULÁRIO DE PAGAMENTOS
+    document.getElementById('formPagamento').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const alunoNumero = document.getElementById('pagamentoAluno').value;
+        const valor = parseFloat(document.getElementById('pagamentoValor').value);
+        const mes = document.getElementById('pagamentoMes').value;
+        
+        if (!alunoNumero || !valor || !mes) {
+            mostrarAlerta('Erro', 'Preencha todos os campos!', 'erro');
+            return;
+        }
+        
+        try {
+            // Registrar pagamento
+            await db.collection('pagamentos').add({
+                numeroAluno: alunoNumero,
+                valor: valor,
+                mes: mes,
+                descricao: `Pagamento - ${mes}`,
+                data: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            
+            // Reduzir dívida
+            const alunoDoc = await db.collection('alunos').doc(alunoNumero).get();
+            const dividaAtual = alunoDoc.data().divida || 0;
+            const novaDivida = Math.max(0, dividaAtual - valor);
+            
+            await db.collection('alunos').doc(alunoNumero).update({
+                divida: novaDivida
+            });
+            
+            mostrarAlerta('✅ Pagamento Registrado!', 
+                `Pagamento de ${valor} MZN registrado.\n` +
+                `Dívida restante: ${novaDivida} MZN`,
+                'sucesso'
+            );
+            
+            this.reset();
+            carregarAlunosAdmin();
+            
+        } catch (error) {
+            mostrarAlerta('Erro', 'Não foi possível registrar o pagamento', 'erro');
+        }
+    });
+    
+    // FORMULÁRIO DE CALENDÁRIO
+    document.getElementById('formEvento').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const data = document.getElementById('eventoData').value;
+        const descricao = document.getElementById('eventoDesc').value;
+        
+        if (!data || !descricao) {
+            mostrarAlerta('Erro', 'Preencha todos os campos!', 'erro');
+            return;
+        }
+        
+        try {
+            await db.collection('calendario').add({
+                data: data,
+                evento: descricao,
+                tipo: 'Acadêmico',
+                criadoEm: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            
+            mostrarAlerta('✅ Evento Adicionado!', 
+                `Evento "${descricao}" adicionado ao calendário.\n` +
+                `Data: ${formatarDataCompleta(new Date(data))}\n\n` +
+                `O evento já está visível para todos os alunos!`,
+                'sucesso'
+            );
+            
+            this.reset();
+            await carregarCalendarioAdmin();
+            
+        } catch (error) {
+            mostrarAlerta('Erro', 'Não foi possível adicionar o evento', 'erro');
+        }
+    });
+}
+
+async function atualizarMediaAluno(numeroAluno) {
+    try {
+        const notasSnap = await db.collection('notas')
+            .where('numeroAluno', '==', numeroAluno)
+            .get();
+        
+        if (notasSnap.empty) return;
+        
+        let somaNotas = 0;
+        let contadorNotas = 0;
+        
+        notasSnap.forEach(doc => {
+            const nota = doc.data().nota;
+            if (!isNaN(nota)) {
+                somaNotas += nota;
+                contadorNotas++;
+            }
+        });
+        
+        const media = contadorNotas > 0 ? (somaNotas / contadorNotas).toFixed(1) : 0;
+        
+        let status = 'Reprovado';
+        if (media >= 10) status = 'Aprovado';
+        else if (media >= 8) status = 'Recuperação';
+        
+        await db.collection('alunos').doc(numeroAluno).update({
+            mediaFinal: parseFloat(media),
+            statusAcademico: status
+        });
+        
+    } catch (error) {
+        console.error('Erro ao atualizar média:', error);
+    }
+}
+
+async function carregarCalendarioAdmin() {
+    try {
+        const calendarioSnap = await db.collection('calendario')
+            .orderBy('data')
+            .get();
+        
+        const lista = document.getElementById('adminCalendario');
+        lista.innerHTML = '';
+        
+        calendarioSnap.forEach(doc => {
+            const evento = doc.data();
+            const li = document.createElement('li');
+            li.className = 'evento-admin';
+            li.innerHTML = `
+                <div>
+                    <strong>${formatarData(evento.data)}</strong>
+                    <span>${evento.evento}</span>
+                </div>
+                <button onclick="removerEvento('${doc.id}')" class="btn-remover">Remover</button>
+            `;
+            lista.appendChild(li);
+        });
+        
+    } catch (error) {
+        console.error('Erro ao carregar calendário admin:', error);
+    }
+}
+
+async function removerEvento(idEvento) {
+    if (!confirm('Remover este evento do calendário?')) return;
+    
+    try {
+        await db.collection('calendario').doc(idEvento).delete();
+        await carregarCalendarioAdmin();
+        mostrarAlerta('Evento Removido', 'O evento foi removido do calendário.', 'sucesso');
+    } catch (error) {
+        mostrarAlerta('Erro', 'Não foi possível remover o evento', 'erro');
+    }
+}
+
+async function mostrarNotasRecentes() {
+    try {
+        const notasSnap = await db.collection('notas')
+            .orderBy('atualizadoEm', 'desc')
+            .limit(5)
+            .get();
+        
+        const container = document.createElement('div');
+        container.className = 'notas-recentes';
+        container.innerHTML = '<h3>📝 Últimas Notas Lançadas</h3>';
+        
+        if (notasSnap.empty) {
+            container.innerHTML += '<p>Nenhuma nota lançada ainda.</p>';
+        } else {
+            const lista = document.createElement('div');
+            notasSnap.forEach(doc => {
+                const nota = doc.data();
+                const item = document.createElement('div');
+                item.className = 'nota-recente';
+                item.innerHTML = `
+                    <strong>${nota.alunoNome}</strong>
+                    <span>${nota.disciplina}: ${nota.nota}</span>
+                    <small>${formatarData(nota.atualizadoEm)}</small>
+                `;
+                lista.appendChild(item);
+            });
+            container.appendChild(lista);
+        }
+        
+        // Adicionar ao painel
+        const adminFunc = document.querySelector('.admin-funcionalidades');
+        if (adminFunc) {
+            adminFunc.insertBefore(container, adminFunc.firstChild);
+        }
+        
+    } catch (error) {
+        console.error('Erro ao mostrar notas recentes:', error);
+    }
+}
+
+async function editarAluno(numeroAluno) {
+    try {
+        const alunoDoc = await db.collection('alunos').doc(numeroAluno).get();
+        const aluno = alunoDoc.data();
+        
+        const novoNome = prompt('Novo nome:', aluno.nome);
+        const novoEmail = prompt('Novo email:', aluno.email);
+        const novoTelefone = prompt('Novo telefone:', aluno.telefone);
+        
+        if (novoNome && novoEmail && novoTelefone) {
+            await db.collection('alunos').doc(numeroAluno).update({
+                nome: novoNome,
+                email: novoEmail,
+                telefone: novoTelefone
+            });
+            
+            mostrarAlerta('Aluno Atualizado', 'Os dados do aluno foram atualizados.', 'sucesso');
+            carregarAlunosAdmin();
+        }
+        
+    } catch (error) {
+        mostrarAlerta('Erro', 'Não foi possível editar o aluno', 'erro');
+    }
+}
+
+async function suspenderAluno(numeroAluno, ativo) {
+    try {
+        await db.collection('alunos').doc(numeroAluno).update({
+            ativo: !ativo
+        });
+        
+        const acao = ativo ? 'suspenso' : 'ativado';
+        mostrarAlerta('Status Alterado', `Aluno ${acao} com sucesso!`, 'sucesso');
+        carregarAlunosAdmin();
+        
+    } catch (error) {
+        mostrarAlerta('Erro', 'Não foi possível alterar o status', 'erro');
+    }
+}
+
+// ===== NOVAS FUNÇÕES PARA OS BOTÕES DO ADMIN =====
+
+// 1. VER FORMULÁRIO DO ALUNO
+async function verFormularioAluno(numeroAluno) {
+    try {
+        const alunoDoc = await db.collection('alunos').doc(numeroAluno).get();
+        if (!alunoDoc.exists) {
+            mostrarAlerta('Erro', 'Aluno não encontrado!', 'erro');
+            return;
+        }
+        
+        const aluno = alunoDoc.data();
+        
+        // Criar conteúdo detalhado do formulário
+        let conteudo = `
+            <div class="formulario-detalhado">
+                <h3>📋 FORMULÁRIO COMPLETO DO ALUNO</h3>
+                <div class="info-grid">
+                    
+                    <div class="info-section">
+                        <h4>👤 DADOS PESSOAIS</h4>
+                        <p><strong>Nome Completo:</strong> ${aluno.nome} ${aluno.apelido}</p>
+                        <p><strong>Número do Aluno:</strong> ${numeroAluno}</p>
+                        <p><strong>BI/Passaporte:</strong> ${aluno.bi || 'Não informado'}</p>
+                        <p><strong>Data de Nascimento:</strong> ${formatarData(aluno.dataNascimento)}</p>
+                        <p><strong>Email:</strong> ${aluno.email}</p>
+                        <p><strong>Telefone:</strong> ${aluno.telefone}</p>
+                        <p><strong>WhatsApp:</strong> ${aluno.whatsapp || 'Não informado'}</p>
+                    </div>
+                    
+                    <div class="info-section">
+                        <h4>🏠 DADOS RESIDENCIAIS</h4>
+                        <p><strong>Província:</strong> ${aluno.provincia}</p>
+                        <p><strong>Distrito:</strong> ${aluno.distrito}</p>
+                    </div>
+                    
+                    <div class="info-section">
+                        <h4>👨‍👩‍👧‍👦 DADOS FAMILIARES</h4>
+                        <p><strong>Nome do Pai:</strong> ${aluno.nomePai || 'Não informado'}</p>
+                        <p><strong>Nome da Mãe:</strong> ${aluno.nomeMae || 'Não informado'}</p>
+                        <p><strong>Encarregado:</strong> ${aluno.nomeEncarregado}</p>
+                        <p><strong>Telefone do Encarregado:</strong> ${aluno.telefoneEncarregado}</p>
+                    </div>
+                    
+                    <div class="info-section">
+                        <h4>🎓 DADOS ACADÊMICOS</h4>
+                        <p><strong>Classe:</strong> ${aluno.classe}ª</p>
+                        <p><strong>Curso:</strong> ${aluno.curso || 'Geral'}</p>
+                        <p><strong>Turma:</strong> ${aluno.turma}</p>
+                        <p><strong>Status Acadêmico:</strong> ${aluno.statusAcademico || 'Regular'}</p>
+                        <p><strong>Média Final:</strong> ${aluno.mediaFinal || 'Não calculada'}</p>
+                    </div>
+                    
+                    <div class="info-section">
+                        <h4>📚 DISCIPLINAS INSCRITAS</h4>
+                        <ul class="disciplinas-lista">
+                            ${aluno.disciplinas ? aluno.disciplinas.map(d => `<li>${d}</li>`).join('') : '<li>Nenhuma disciplina</li>'}
+                        </ul>
+                    </div>
+                    
+                    <div class="info-section">
+                        <h4>💰 DADOS FINANCEIROS</h4>
+                        <p><strong>Plano de Pagamento:</strong> ${aluno.planoPagamento || 'Normal'}</p>
+                        <p><strong>Dívida Atual:</strong> ${aluno.divida || 0} MZN</p>
+                        <p><strong>Status da Conta:</strong> ${aluno.ativo ? 'Ativa' : 'Suspensa'}</p>
+                        <p><strong>Data de Inscrição:</strong> ${formatarData(aluno.criadoEm)}</p>
+                    </div>
+                    
+                </div>
+                
+                <div class="botoes-acao">
+                    <button onclick="imprimirFormulario('${numeroAluno}')" class="btn-imprimir">🖨️ Imprimir Formulário</button>
+                    <button onclick="fecharAlerta()" class="btn-fechar">Fechar</button>
+                </div>
+            </div>
+        `;
+        
+        // Abrir modal com o formulário
+        document.getElementById('alertTitle').textContent = `Formulário do Aluno: ${aluno.nome}`;
+        document.getElementById('alertMessage').innerHTML = conteudo;
+        document.getElementById('alertModal').style.display = 'flex';
+        
+    } catch (error) {
+        console.error('Erro ao carregar formulário:', error);
+        mostrarAlerta('Erro', 'Não foi possível carregar o formulário do aluno', 'erro');
+    }
+}
+
+// 2. FUNÇÃO PARA IMPRIMIR FORMULÁRIO
+function imprimirFormulario(numeroAluno) {
+    const conteudo = document.querySelector('.formulario-detalhado').innerHTML;
+    
+    const janelaImpressao = window.open('', '_blank');
+    janelaImpressao.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Formulário do Aluno - ${numeroAluno}</title>
+            <style>
+                body { font-family: Arial, sans-serif; padding: 20px; }
+                h3 { color: #1976d2; border-bottom: 2px solid #1976d2; padding-bottom: 10px; }
+                .info-section { margin-bottom: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+                .info-section h4 { color: #555; margin-top: 0; }
+                .disciplinas-lista { columns: 2; }
+                strong { color: #333; }
+                @media print {
+                    .no-print { display: none; }
+                    body { font-size: 12px; }
+                }
+            </style>
+        </head>
+        <body>
+            ${conteudo}
+            <div class="no-print">
+                <button onclick="window.print()">🖨️ Imprimir</button>
+                <button onclick="window.close()">❌ Fechar</button>
+            </div>
+        </body>
+        </html>
+    `);
+    janelaImpressao.document.close();
+        }
+
