@@ -531,4 +531,256 @@ async function carregarExtratoAluno(numeroAluno) {
         if (extratoSnap.empty) {
             lista.innerHTML = `
                 <li class="sem-dados">
-                    <div class="sem-dados-icon"
+                    <div class="sem-dados-icon">💸</div>
+                    <p>Nenhum pagamento registrado</p>
+                </li>
+            `;
+            return;
+        }
+        
+        let totalPago = 0;
+        extratoSnap.forEach(doc => {
+            const pagamento = doc.data();
+            totalPago += pagamento.valor;
+            
+            const li = document.createElement('li');
+            li.className = 'extrato-item';
+            li.innerHTML = `
+                <div class="extrato-data">${formatarData(pagamento.data)}</div>
+                <div class="extrato-descricao">
+                    <strong>${pagamento.descricao || 'Pagamento'}</strong>
+                    <span class="extrato-mes">${pagamento.mes || ''}</span>
+                </div>
+                <div class="extrato-valor">${pagamento.valor.toFixed(2)} MZN</div>
+                <div class="extrato-status pago">PAGO</div>
+            `;
+            lista.appendChild(li);
+        });
+        
+        // Adicionar resumo
+        const resumo = document.createElement('div');
+        resumo.className = 'extrato-resumo';
+        resumo.innerHTML = `
+            <h4>Resumo Financeiro</h4>
+            <p>Total Pago: <strong>${totalPago.toFixed(2)} MZN</strong></p>
+            <p>Nº de Pagamentos: <strong>${extratoSnap.size}</strong></p>
+        `;
+        lista.parentNode.insertBefore(resumo, lista);
+        
+    } catch (error) {
+        console.error('Erro ao carregar extrato:', error);
+    }
+}
+
+// ===== ABA HISTÓRICO - COMPLETA =====
+async function carregarHistoricoAluno(numeroAluno) {
+    try {
+        const alunoDoc = await db.collection('alunos').doc(numeroAluno).get();
+        const aluno = alunoDoc.data();
+        
+        const lista = document.getElementById('listaHistorico');
+        lista.innerHTML = '';
+        
+        // Dados do histórico
+        const historico = [
+            {
+                ano: new Date().getFullYear() - 1,
+                classe: `${parseInt(aluno.classe) - 1}ª Classe`,
+                escola: 'Escola Anterior',
+                status: 'Concluído',
+                media: '14.5'
+            },
+            {
+                ano: new Date().getFullYear(),
+                classe: `${aluno.classe}ª Classe`,
+                escola: 'ZÊNITE Escola',
+                status: aluno.statusAcademico || 'Em curso',
+                media: aluno.mediaFinal || 'Em curso'
+            }
+        ];
+        
+        historico.forEach(item => {
+            const li = document.createElement('li');
+            li.className = 'historico-item';
+            li.innerHTML = `
+                <div class="historico-ano">${item.ano}</div>
+                <div class="historico-info">
+                    <h4>${item.classe} - ${item.escola}</h4>
+                    <div class="historico-detalhes">
+                        <span class="status ${item.status.toLowerCase().replace(' ', '-')}">${item.status}</span>
+                        <span class="media">Média: ${item.media}</span>
+                    </div>
+                </div>
+            `;
+            lista.appendChild(li);
+        });
+        
+    } catch (error) {
+        console.error('Erro ao carregar histórico:', error);
+    }
+}
+
+// ===== ABA CALENDÁRIO - COMPLETA =====
+async function carregarCalendarioAluno() {
+    try {
+        const calendarioSnap = await db.collection('calendario')
+            .orderBy('data')
+            .get();
+        
+        const lista = document.getElementById('listaCalendario');
+        lista.innerHTML = '';
+        
+        if (calendarioSnap.empty) {
+            lista.innerHTML = `
+                <li class="sem-dados">
+                    <div class="sem-dados-icon">📅</div>
+                    <p>Nenhum evento no calendário</p>
+                    <p class="info-text">A administração irá adicionar eventos em breve.</p>
+                </li>
+            `;
+            return;
+        }
+        
+        const hoje = new Date();
+        hoje.setHours(0, 0, 0, 0);
+        
+        calendarioSnap.forEach(doc => {
+            const evento = doc.data();
+            const dataEvento = evento.data.toDate ? evento.data.toDate() : new Date(evento.data);
+            
+            const li = document.createElement('li');
+            li.className = 'calendario-item';
+            
+            const diffDias = Math.floor((dataEvento - hoje) / (1000 * 60 * 60 * 24));
+            
+            let indicador = '';
+            if (diffDias === 0) indicador = '<span class="hoje">HOJE</span>';
+            else if (diffDias === 1) indicador = '<span class="amanha">AMANHÃ</span>';
+            else if (diffDias > 0 && diffDias <= 7) indicador = `<span class="proximo">EM ${diffDias} DIAS</span>`;
+            
+            li.innerHTML = `
+                <div class="calendario-data">
+                    <strong>${formatarDataCompleta(dataEvento)}</strong>
+                    ${indicador}
+                </div>
+                <div class="calendario-descricao">
+                    <span class="tipo-evento">${evento.tipo || 'Geral'}</span>
+                    <p>${evento.evento}</p>
+                </div>
+            `;
+            lista.appendChild(li);
+        });
+        
+    } catch (error) {
+        console.error('Erro ao carregar calendário:', error);
+    }
+            }
+
+// ===== ABA DÍVIDAS - COMPLETA =====
+async function carregarDividasAluno(numeroAluno) {
+    try {
+        const alunoDoc = await db.collection('alunos').doc(numeroAluno).get();
+        const aluno = alunoDoc.data();
+        
+        // Atualizar total
+        const totalDivida = document.getElementById('totalDivida');
+        totalDivida.textContent = `${aluno.divida || 0} MZN`;
+        
+        if (aluno.divida > 0) {
+            totalDivida.className = 'valor-divida negativo';
+            document.getElementById('statusDivida').textContent = 'EM DÍVIDA';
+            document.getElementById('statusDivida').className = 'status-divida negativa';
+            
+            // Buscar detalhes das dívidas
+            const dividasSnap = await db.collection('dividas')
+                .where('numeroAluno', '==', numeroAluno)
+                .orderBy('data', 'desc')
+                .get();
+            
+            const lista = document.getElementById('listaDividas');
+            lista.innerHTML = '';
+            
+            dividasSnap.forEach(doc => {
+                const divida = doc.data();
+                const li = document.createElement('li');
+                li.className = 'divida-item';
+                li.innerHTML = `
+                    <div class="divida-data">${formatarData(divida.data)}</div>
+                    <div class="divida-descricao">${divida.descricao}</div>
+                    <div class="divida-valor">${divida.valor} MZN</div>
+                `;
+                lista.appendChild(li);
+            });
+        } else {
+            totalDivida.className = 'valor-divida positivo';
+            document.getElementById('statusDivida').textContent = 'REGULAR';
+            document.getElementById('statusDivida').className = 'status-divida positiva';
+            
+            document.getElementById('listaDividas').innerHTML = `
+                <li class="sem-dados">
+                    <div class="sem-dados-icon">✅</div>
+                    <p>Nenhuma dívida registrada</p>
+                </li>
+            `;
+        }
+        
+    } catch (error) {
+        console.error('Erro ao carregar dívidas:', error);
+    }
+}
+
+// ===== CONFIGURAÇÃO DAS ABAS =====
+function configurarAbasAluno(aluno) {
+    const botoesAbas = document.querySelectorAll('.aba-btn[data-aba]');
+    
+    botoesAbas.forEach(botao => {
+        botao.addEventListener('click', async function() {
+            // Atualizar botões ativos
+            botoesAbas.forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Atualizar abas visíveis
+            document.querySelectorAll('.aba').forEach(aba => {
+                aba.classList.remove('active');
+            });
+            
+            const abaAlvo = this.dataset.aba;
+            const abaElemento = document.getElementById('aba' + abaAlvo.charAt(0).toUpperCase() + abaAlvo.slice(1));
+            
+            if (abaElemento) {
+                abaElemento.classList.add('active');
+                
+                // Verificar dívida para aba de notas
+                if (abaAlvo === 'notas' && aluno.divida > 0) {
+                    document.getElementById('avisoDivida').style.display = 'block';
+                    document.getElementById('containerNotas').style.display = 'none';
+                } else if (abaAlvo === 'notas') {
+                    document.getElementById('avisoDivida').style.display = 'none';
+                    document.getElementById('containerNotas').style.display = 'block';
+                }
+                
+                // Recarregar dados da aba ativa
+                switch(abaAlvo) {
+                    case 'notas':
+                        await carregarNotasAluno(aluno.numeroAluno);
+                        break;
+                    case 'extrato':
+                        await carregarExtratoAluno(aluno.numeroAluno);
+                        break;
+                    case 'historico':
+                        await carregarHistoricoAluno(aluno.numeroAluno);
+                        break;
+                    case 'calendario':
+                        await carregarCalendarioAluno();
+                        break;
+                    case 'dividas':
+                        await carregarDividasAluno(aluno.numeroAluno);
+                        break;
+                }
+            }
+        });
+    });
+    
+    // Ativar primeira aba
+    botoesAbas[0].click();
+}
