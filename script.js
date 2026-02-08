@@ -784,6 +784,7 @@ function configurarAbasAluno(aluno) {
     
     // Ativar primeira aba
     botoesAbas[0].click();
+}
                 
             
   // ===== PAINEL DO ADMINISTRADOR COMPLETO =====
