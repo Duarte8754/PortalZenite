@@ -181,6 +181,7 @@ function inicializarFormInscricao() {
                             .map(cb => cb.value),
             statusAcademico: 'Regular',
             divida: 0,
+            statusMatricula: 'pendente', // ← ADICIONE ESTA LINHA
             ativo: true,
             criadoEm: firebase.firestore.FieldValue.serverTimestamp()
         };
@@ -818,67 +819,101 @@ async function carregarAlunosAdmin() {
             // Adicionar à tabela
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td>${aluno.nome} ${aluno.apelido}</td>
-                <td>${numeroAluno}</td>
-                <td>${aluno.classe}ª</td>
-                <td>${aluno.turma}</td>
-                <td><span class="status ${aluno.ativo ? 'ativo' : 'inativo'}">${aluno.ativo ? 'Ativo' : 'Inativo'}</span></td>
-                <td>${aluno.divida || 0} MZN</td>
-                <td>
-                    <div class="acoes-admin">
-                        <button onclick="verFormularioAluno('${numeroAluno}')" class="btn-acao ver">📄 Ver Formulário</button>
-                        <button onclick="editarPlanoPagamento('${numeroAluno}', '${aluno.planoPagamento || 'normal'}')" class="btn-acao plano">💰 Plano</button>
-                        <button onclick="editarAluno('${numeroAluno}')" class="btn-acao editar">✏️ Editar</button>
-                        <button onclick="suspenderAluno('${numeroAluno}', ${aluno.ativo})" class="btn-acao ${aluno.ativo ? 'suspender' : 'ativar'}">
-                            ${aluno.ativo ? '⏸️ Suspender' : '▶️ Ativar'}
-                        </button>
-                        <button onclick="excluirAluno('${numeroAluno}')" class="btn-acao excluir">🗑️ Excluir</button>
-                    </div>
-                </td>
-            `;
-            tbody.appendChild(tr);
+    <td>${aluno.nome} ${aluno.apelido}</td>
+    <td>${numeroAluno}</td>
+    <td>${aluno.classe}ª</td>
+    <td>${aluno.turma}</td>
+    <td>
+        <span class="status-matricula-tabela ${aluno.statusMatricula || 'pendente'}">
+            ${aluno.statusMatricula ? aluno.statusMatricula.toUpperCase() : 'PENDENTE'}
+        </span>
+    </td>
+    <td>${aluno.ativo?'Ativo':'Inativo'}</td>
+    <td>${aluno.divida || 0} MZN</td>
+    <td>
+        <div style="display:flex; flex-wrap:wrap; gap:5px;">
+            <!-- Botão Matrícula -->
+            <button onclick="gerenciarMatricula('${numeroAluno}', '${aluno.statusMatricula || 'pendente'}')" 
+                    style="background:#9c27b0; color:white; padding:5px 10px; border:none; border-radius:3px; cursor:pointer; font-size:0.8rem;">
+                🎓 ${aluno.statusMatricula === 'confirmada' ? '✅' : 
+                     aluno.statusMatricula === 'anulada' ? '❌' : '🟡'}
+            </button>
             
-            // Adicionar aos selects
-            ['notaAluno', 'dividaAluno', 'pagamentoAluno'].forEach(id => {
-                const select = document.getElementById(id);
-                const option = document.createElement('option');
-                option.value = numeroAluno;
-                option.textContent = `${aluno.nome} - ${numeroAluno}`;
-                select.appendChild(option);
-            });
-        });
+            <!-- Botão Ver Formulário -->
+            <button onclick="verFormularioAluno('${numeroAluno}')" 
+                    style="background:#2196f3; color:white; padding:5px 10px; border:none; border-radius:3px; cursor:pointer; font-size:0.8rem;">
+                📄
+            </button>
+            
+            <!-- Botão Plano -->
+            <button onclick="editarPlanoPagamento('${numeroAluno}', '${aluno.planoPagamento || 'normal'}')" 
+                    style="background:#ff9800; color:white; padding:5px 10px; border:none; border-radius:3px; cursor:pointer; font-size:0.8rem;">
+                💰
+            </button>
+            
+            <!-- Botão Editar -->
+            <button onclick="editarAluno('${numeroAluno}')" 
+                    style="background:#4caf50; color:white; padding:5px 10px; border:none; border-radius:3px; cursor:pointer; font-size:0.8rem;">
+                ✏️
+            </button>
+            
+            <!-- Botão Suspensor/Ativar -->
+            <button onclick="suspenderAluno(' ${ numeroAluno } ', ${ aluno . ativo } )"
+                    style="background: ${ aluno . ativo ? '#ff5722' : '#00bcd4' } ; color:white; padding:5px 10px; border:none; border-radius:3px; cursor:pointer; font-size:0.8rem;">
+                ${ aluno . ativo ? '⏸️' : '▶️' }
+            </button>
+            
+            <!-- Excluir -->
+            <button onclick="excluirAluno(' ${ numeroAluno } ')"
+                    style="background:#f44336; color:white; padding:5px 10px; border:none; border-radius:3px; cursor:pointer; font-size:0.8rem;">
+                🗑️
+            </button>
+        </div>
+    </td>
+         ` ;
+            tbody.appendChild ( tr ) ;​​
+            
+            // adicionar aos selects
+            [ 'notaAluno' , 'dividaAluno' , 'pagamentoAluno' ] . forEach ( id => {
+                const  select = document.getElementById ( id ) ;​​
+                const  option = document.createElement ( ' option ' ) ;
+                opção . valor = numeroAluno ;
+                opção . textContent = ` ${ aluno . nome } - ${ numeroAluno } ` ;
+                selecionar.appendChild ( opção ) ;​​
+            } ) ;
+        } ) ;
         
-    } catch (error) {
-        console.error('Erro ao carregar alunos:', error);
+    }  catch  ( erro )  {
+        console . error ( 'Erro ao carregar alunos:' , erro ) ;
     }
             }
 
-function configurarFormulariosAdmin() {
+função  configurarFormulariosAdmin ( )  {
     // FORMULÁRIO DE NOTAS
-    document.getElementById('formNota').addEventListener('submit', async function(e) {
-        e.preventDefault();
+    document.getElementById ( 'formNota' ) . addEventListener ( ' submit ' , async function ( e ) {  
+        e.preventDefault ( ) ;​​
         
-        const alunoNumero = document.getElementById('notaAluno').value;
-        const disciplina = document.getElementById('notaDisciplina').value;
-        const trimestre = parseInt(document.getElementById('notaTrimestre').value);
-        const tipo = document.getElementById('notaTipo').value;
-        const valor = parseFloat(document.getElementById('notaValor').value);
+        const  alunoNumero = documento . getElementById ( 'notaAluno' ) . valor ;
+        const  disciplina = document.getElementById ( ' notaDisciplina ' ) . value ;
+        const  trimestre = parseInt ( document . getElementById ( 'notaTrimestre' ) . value ) ;
+        const  tipo = document.getElementById ( ' notaTipo ' ) . value ;
+        const  valor = parseFloat ( document.getElementById ( ' notaValor ' ) . valor ) ;
         
-        if (!alunoNumero || !disciplina || valor < 0 || valor > 20) {
-            mostrarAlerta('Erro', 'Preencha todos os campos corretamente!', 'erro');
-            return;
+        if  ( ! alunoNumero || ! disciplina || valor < 0 || valor > 20 )  {
+            mostrarAlerta ( 'Erro' , 'Preencha todos os campos corretamente!' , 'erro' ) ;
+            retornar ;
         }
         
-        try {
-            // Verificar aluno e disciplina
-            const alunoDoc = await db.collection('alunos').doc(alunoNumero).get();
-            if (!alunoDoc.exists) {
-                mostrarAlerta('Erro', 'Aluno não encontrado!', 'erro');
-                return;
+        tentar  {
+            //Verificar aluno e disciplina
+            const  alunoDoc = aguarda  banco de dados . coleção ( 'alunos' ) . doc ( alunoNumero ) . pegar ( ) ;
+            se  ( ! alunoDoc . existe )  {
+                mostrarAlerta ( 'Erro' , 'Aluno não encontrado!' , 'erro' ) ;
+                retornar ;
             }
             
-            const aluno = alunoDoc.data();
-            if (!aluno.disciplinas.includes(disciplina)) {
+            const  aluno = alunoDoc . dados ( ) ;
+            if  ( ! aluno . disciplinas . inclui ( disciplina ) )  {
                 mostrarAlerta('Erro', 'Esta disciplina não pertence ao aluno!', 'erro');
                 return;
             }
