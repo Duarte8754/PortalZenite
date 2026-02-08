@@ -1225,10 +1225,10 @@ async function suspenderAluno(numeroAluno, ativo) {
         mostrarAlerta('Erro', 'Não foi possível alterar o status', 'erro');
     }
 }
+   
+// ===== NOVAS FUNÇÕES PARA BOTÕES DO ADMIN =====
 
-// ===== NOVAS FUNÇÕES PARA OS BOTÕES DO ADMIN =====
-
-// 1. VER FORMULÁRIO DO ALUNO
+// 1. VER FORMULÁRIO DO ALUNO (Função Simples)
 async function verFormularioAluno(numeroAluno) {
     try {
         const alunoDoc = await db.collection('alunos').doc(numeroAluno).get();
@@ -1239,402 +1239,187 @@ async function verFormularioAluno(numeroAluno) {
         
         const aluno = alunoDoc.data();
         
-        // Criar conteúdo detalhado do formulário
         let conteudo = `
-            <div class="formulario-detalhado">
-                <h3>📋 FORMULÁRIO COMPLETO DO ALUNO</h3>
-                <div class="info-grid">
-                    
-                    <div class="info-section">
-                        <h4>👤 DADOS PESSOAIS</h4>
-                        <p><strong>Nome Completo:</strong> ${aluno.nome} ${aluno.apelido}</p>
-                        <p><strong>Número do Aluno:</strong> ${numeroAluno}</p>
-                        <p><strong>BI/Passaporte:</strong> ${aluno.bi || 'Não informado'}</p>
-                        <p><strong>Data de Nascimento:</strong> ${formatarData(aluno.dataNascimento)}</p>
+            <div style="max-width:600px; max-height:70vh; overflow-y:auto; padding:10px;">
+                <h3 style="color:#1976d2; border-bottom:2px solid #1976d2; padding-bottom:10px;">
+                    📋 Formulário do Aluno: ${aluno.nome} ${aluno.apelido}
+                </h3>
+                
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px; margin:20px 0;">
+                    <div style="background:#f9f9f9; padding:15px; border-radius:8px; border-left:4px solid #2196f3;">
+                        <h4 style="color:#2196f3; margin-top:0;">👤 Dados Pessoais</h4>
+                        <p><strong>Nome:</strong> ${aluno.nome} ${aluno.apelido}</p>
+                        <p><strong>Número:</strong> ${numeroAluno}</p>
+                        <p><strong>BI:</strong> ${aluno.bi || '-'}</p>
+                        <p><strong>Nascimento:</strong> ${formatarData(aluno.dataNascimento)}</p>
                         <p><strong>Email:</strong> ${aluno.email}</p>
                         <p><strong>Telefone:</strong> ${aluno.telefone}</p>
-                        <p><strong>WhatsApp:</strong> ${aluno.whatsapp || 'Não informado'}</p>
                     </div>
                     
-                    <div class="info-section">
-                        <h4>🏠 DADOS RESIDENCIAIS</h4>
-                        <p><strong>Província:</strong> ${aluno.provincia}</p>
-                        <p><strong>Distrito:</strong> ${aluno.distrito}</p>
-                    </div>
-                    
-                    <div class="info-section">
-                        <h4>👨‍👩‍👧‍👦 DADOS FAMILIARES</h4>
-                        <p><strong>Nome do Pai:</strong> ${aluno.nomePai || 'Não informado'}</p>
-                        <p><strong>Nome da Mãe:</strong> ${aluno.nomeMae || 'Não informado'}</p>
-                        <p><strong>Encarregado:</strong> ${aluno.nomeEncarregado}</p>
-                        <p><strong>Telefone do Encarregado:</strong> ${aluno.telefoneEncarregado}</p>
-                    </div>
-                    
-                    <div class="info-section">
-                        <h4>🎓 DADOS ACADÊMICOS</h4>
+                    <div style="background:#f9f9f9; padding:15px; border-radius:8px; border-left:4px solid #4caf50;">
+                        <h4 style="color:#4caf50; margin-top:0;">🎓 Dados Acadêmicos</h4>
                         <p><strong>Classe:</strong> ${aluno.classe}ª</p>
                         <p><strong>Curso:</strong> ${aluno.curso || 'Geral'}</p>
                         <p><strong>Turma:</strong> ${aluno.turma}</p>
-                        <p><strong>Status Acadêmico:</strong> ${aluno.statusAcademico || 'Regular'}</p>
-                        <p><strong>Média Final:</strong> ${aluno.mediaFinal || 'Não calculada'}</p>
+                        <p><strong>Disciplinas:</strong> ${aluno.disciplinas ? aluno.disciplinas.join(', ') : '-'}</p>
+                        <p><strong>Status:</strong> ${aluno.statusAcademico || 'Regular'}</p>
                     </div>
                     
-                    <div class="info-section">
-                        <h4>📚 DISCIPLINAS INSCRITAS</h4>
-                        <ul class="disciplinas-lista">
-                            ${aluno.disciplinas ? aluno.disciplinas.map(d => `<li>${d}</li>`).join('') : '<li>Nenhuma disciplina</li>'}
-                        </ul>
+                    <div style="background:#f9f9f9; padding:15px; border-radius:8px; border-left:4px solid #ff9800;">
+                        <h4 style="color:#ff9800; margin-top:0;">👨‍👩‍👧‍👦 Dados Familiares</h4>
+                        <p><strong>Encarregado:</strong> ${aluno.nomeEncarregado || '-'}</p>
+                        <p><strong>Tel. Encarregado:</strong> ${aluno.telefoneEncarregado || '-'}</p>
+                        <p><strong>Pai:</strong> ${aluno.nomePai || '-'}</p>
+                        <p><strong>Mãe:</strong> ${aluno.nomeMae || '-'}</p>
                     </div>
                     
-                    <div class="info-section">
-                        <h4>💰 DADOS FINANCEIROS</h4>
-                        <p><strong>Plano de Pagamento:</strong> ${aluno.planoPagamento || 'Normal'}</p>
-                        <p><strong>Dívida Atual:</strong> ${aluno.divida || 0} MZN</p>
-                        <p><strong>Status da Conta:</strong> ${aluno.ativo ? 'Ativa' : 'Suspensa'}</p>
-                        <p><strong>Data de Inscrição:</strong> ${formatarData(aluno.criadoEm)}</p>
+                    <div style="background:#f9f9f9; padding:15px; border-radius:8px; border-left:4px solid #9c27b0;">
+                        <h4 style="color:#9c27b0; margin-top:0;">💰 Dados Financeiros</h4>
+                        <p><strong>Plano:</strong> ${aluno.planoPagamento || 'Normal'}</p>
+                        <p><strong>Dívida:</strong> ${aluno.divida || 0} MZN</p>
+                        <p><strong>Status Conta:</strong> ${aluno.ativo ? 'Ativa' : 'Suspensa'}</p>
+                        <p><strong>Inscrição:</strong> ${formatarData(aluno.criadoEm)}</p>
                     </div>
-                    
                 </div>
                 
-                <div class="botoes-acao">
-                    <button onclick="imprimirFormulario('${numeroAluno}')" class="btn-imprimir">🖨️ Imprimir Formulário</button>
-                    <button onclick="fecharAlerta()" class="btn-fechar">Fechar</button>
+                <div style="text-align:center; margin-top:20px; padding-top:20px; border-top:2px solid #eee;">
+                    <button onclick="imprimirFormulario('${numeroAluno}')" 
+                            style="background:#2196f3; color:white; padding:10px 20px; border:none; border-radius:5px; cursor:pointer; margin-right:10px;">
+                        🖨️ Imprimir
+                    </button>
+                    <button onclick="fecharAlerta()" 
+                            style="background:#757575; color:white; padding:10px 20px; border:none; border-radius:5px; cursor:pointer;">
+                        Fechar
+                    </button>
                 </div>
             </div>
         `;
         
-        // Abrir modal com o formulário
-        document.getElementById('alertTitle').textContent = `Formulário do Aluno: ${aluno.nome}`;
+        document.getElementById('alertTitle').textContent = `Formulário do Aluno`;
         document.getElementById('alertMessage').innerHTML = conteudo;
         document.getElementById('alertModal').style.display = 'flex';
         
     } catch (error) {
-        console.error('Erro ao carregar formulário:', error);
-        mostrarAlerta('Erro', 'Não foi possível carregar o formulário do aluno', 'erro');
+        console.error('Erro:', error);
+        mostrarAlerta('Erro', 'Não foi possível carregar o formulário', 'erro');
     }
 }
 
-// 2. FUNÇÃO PARA IMPRIMIR FORMULÁRIO
+// Função auxiliar para imprimir
 function imprimirFormulario(numeroAluno) {
-    const conteudo = document.querySelector('.formulario-detalhado').innerHTML;
-    
-    const janelaImpressao = window.open('', '_blank');
-    janelaImpressao.document.write(`
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <title>Formulário do Aluno - ${numeroAluno}</title>
-            <style>
-                body { font-family: Arial, sans-serif; padding: 20px; }
-                h3 { color: #1976d2; border-bottom: 2px solid #1976d2; padding-bottom: 10px; }
-                .info-section { margin-bottom: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
-                .info-section h4 { color: #555; margin-top: 0; }
-                .disciplinas-lista { columns: 2; }
-                strong { color: #333; }
-                @media print {
-                    .no-print { display: none; }
-                    body { font-size: 12px; }
-                }
-            </style>
-        </head>
-        <body>
-            ${conteudo}
-            <div class="no-print">
-                <button onclick="window.print()">🖨️ Imprimir</button>
-                <button onclick="window.close()">❌ Fechar</button>
-            </div>
-        </body>
-        </html>
+    const conteudo = document.getElementById('alertMessage').innerHTML;
+    const janela = window.open('', '_blank');
+    janela.document.write(`
+        <html><head><title>Formulário ${numeroAluno}</title>
+        <style>body{font-family:Arial; padding:20px;} @media print{button{display:none;}}</style>
+        </head><body>${conteudo}</body></html>
     `);
-    janelaImpressao.document.close();
+    janela.document.close();
 }
 
-// 3. EDITAR PLANO DE PAGAMENTO
-async function editarPlanoPagamento(numeroAluno, planoAtual) {
-    try {
-        const alunoDoc = await db.collection('alunos').doc(numeroAluno).get();
-        if (!alunoDoc.exists) {
-            mostrarAlerta('Erro', 'Aluno não encontrado!', 'erro');
-            return;
-        }
-        
-        const aluno = alunoDoc.data();
-        
-        // Criar modal para selecionar plano
-        const conteudo = `
-            <div class="modal-plano-pagamento">
-                <h4>💰 EDITAR PLANO DE PAGAMENTO</h4>
-                <p><strong>Aluno:</strong> ${aluno.nome} ${aluno.apelido}</p>
-                <p><strong>Plano Atual:</strong> ${planoAtual.toUpperCase()}</p>
-                
-                <div class="planos-opcoes">
-                    <label class="plano-opcao ${planoAtual === 'normal' ? 'selecionado' : ''}">
-                        <input type="radio" name="plano" value="normal" ${planoAtual === 'normal' ? 'checked' : ''}>
-                        <div class="plano-card">
-                            <h5>NORMAL</h5>
-                            <p>Pagamento mensal padrão</p>
-                            <p><strong>Valor:</strong> 5.000 MZN/mês</p>
-                            <small>Prazo: Até dia 10 de cada mês</small>
-                        </div>
-                    </label>
-                    
-                    <label class="plano-opcao ${planoAtual === 'vip' ? 'selecionado' : ''}">
-                        <input type="radio" name="plano" value="vip" ${planoAtual === 'vip' ? 'checked' : ''}>
-                        <div class="plano-card vip">
-                            <h5>VIP</h5>
-                            <p>Pagamento trimestral com desconto</p>
-                            <p><strong>Valor:</strong> 13.500 MZN/trimestre</p>
-                            <small>Economia: 1.500 MZN/trimestre</small>
-                        </div>
-                    </label>
-                    
-                    <label class="plano-opcao ${planoAtual === 'premium' ? 'selecionado' : ''}">
-                        <input type="radio" name="plano" value="premium" ${planoAtual === 'premium' ? 'checked' : ''}>
-                        <div class="plano-card premium">
-                            <h5>PREMIUM</h5>
-                            <p>Pagamento anual com máximo desconto</p>
-                            <p><strong>Valor:</strong> 50.000 MZN/ano</p>
-                            <small>Economia: 10.000 MZN/ano</small>
-                        </div>
-                    </label>
-                </div>
-                
-                <div class="acoes-plano">
-                    <button onclick="confirmarPlanoPagamento('${numeroAluno}')" class="btn-confirmar">✅ Confirmar Plano</button>
-                    <button onclick="fecharAlerta()" class="btn-cancelar">❌ Cancelar</button>
-                </div>
-            </div>
-        `;
-        
-        document.getElementById('alertTitle').textContent = 'Editar Plano de Pagamento';
-        document.getElementById('alertMessage').innerHTML = conteudo;
-        document.getElementById('alertModal').style.display = 'flex';
-        
-        // Adicionar estilos para os planos
-        const style = document.createElement('style');
-        style.textContent = `
-            .modal-plano-pagamento { max-width: 600px; }
-            .planos-opcoes { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin: 20px 0; }
-            .plano-opcao input { display: none; }
-            .plano-card { padding: 15px; border: 2px solid #ddd; border-radius: 8px; cursor: pointer; transition: all 0.3s; }
-            .plano-card:hover { border-color: #1976d2; background: #f0f8ff; }
-            .plano-card.selecionado { border-color: #4caf50; background: #e8f5e9; }
-            .plano-card.vip { border-color: #ff9800; }
-            .plano-card.premium { border-color: #9c27b0; }
-            .plano-card h5 { margin: 0 0 10px 0; color: #1976d2; }
-            .plano-card.vip h5 { color: #ff9800; }
-            .plano-card.premium h5 { color: #9c27b0; }
-            .plano-card p { margin: 5px 0; font-size: 0.9rem; }
-            .plano-card small { display: block; color: #666; font-size: 0.8rem; margin-top: 10px; }
-            .acoes-plano { display: flex; gap: 10px; justify-content: center; margin-top: 20px; }
-            .btn-confirmar { background: #4caf50; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; }
-            .btn-cancelar { background: #f44336; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; }
-        `;
-        document.head.appendChild(style);
-        
-    } catch (error) {
-        console.error('Erro ao carregar plano de pagamento:', error);
-        mostrarAlerta('Erro', 'Não foi possível carregar os dados do plano', 'erro');
-    }
-}
-
-// 4. CONFIRMAR PLANO DE PAGAMENTO
-async function confirmarPlanoPagamento(numeroAluno) {
-    try {
-        const planoSelecionado = document.querySelector('input[name="plano"]:checked');
-        
-        if (!planoSelecionado) {
-            mostrarAlerta('Atenção', 'Selecione um plano de pagamento!', 'erro');
-            return;
-        }
-        
-        const novoPlano = planoSelecionado.value;
-        
-        // Atualizar plano no banco de dados
-        await db.collection('alunos').doc(numeroAluno).update({
-            planoPagamento: novoPlano,
-            planoAtualizadoEm: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        
-        // Ajustar dívida baseada no plano (opcional)
-        let ajusteDivida = 0;
-        switch(novoPlano) {
-            case 'normal':
-                ajusteDivida = 5000; // Mensalidade normal
-                break;
-            case 'vip':
-                ajusteDivida = 13500; // Trimestral VIP
-                break;
-            case 'premium':
-                ajusteDivida = 50000; // Anual Premium
-                break;
-        }
-        
-        // Atualizar dívida (opcional - você pode remover esta parte se quiser)
-        await db.collection('alunos').doc(numeroAluno).update({
-            divida: firebase.firestore.FieldValue.increment(ajusteDivida)
-        });
-        
-        mostrarAlerta('✅ Plano Atualizado!', 
-            `Plano alterado para: ${novoPlano.toUpperCase()}\n` +
-            `Aluno: ${numeroAluno}\n` +
-            `Nova mensalidade: ${ajusteDivida} MZN\n\n` +
-            `O plano foi atualizado com sucesso!`,
-            'sucesso'
-        );
-        
-        // Fechar modal e atualizar tabela
-        fecharAlerta();
-        carregarAlunosAdmin();
-        
-    } catch (error) {
-        console.error('Erro ao atualizar plano:', error);
-        mostrarAlerta('Erro', 'Não foi possível atualizar o plano de pagamento', 'erro');
-    }
-}
-
-// 5. EXCLUIR ALUNO
+// 2. EXCLUIR ALUNO (Função Simples)
 async function excluirAluno(numeroAluno) {
+    if (!confirm('Tem certeza que deseja excluir este aluno? Esta ação não pode ser desfeita.')) {
+        return;
+    }
+    
     try {
-        // Buscar dados do aluno para confirmação
-        const alunoDoc = await db.collection('alunos').doc(numeroAluno).get();
-        const aluno = alunoDoc.data();
-        
-        if (!alunoDoc.exists) {
-            mostrarAlerta('Erro', 'Aluno não encontrado!', 'erro');
-            return;
-        }
-        
-        // Pedir confirmação detalhada
-        const confirmar = await mostrarConfirmacaoExclusao(aluno, numeroAluno);
-        
-        if (!confirmar) return;
-        
-        // Verificar se há dados relacionados
-        const notasSnap = await db.collection('notas').where('numeroAluno', '==', numeroAluno).get();
-        const pagamentosSnap = await db.collection('pagamentos').where('numeroAluno', '==', numeroAluno).get();
-        const dividasSnap = await db.collection('dividas').where('numeroAluno', '==', numeroAluno).get();
-        
-        // Opção 1: Excluir completamente (aluno + dados relacionados)
-        // Opção 2: Marcar como excluído (manter histórico)
-        
-        // Vou implementar a opção 2 (marcar como excluído)
         await db.collection('alunos').doc(numeroAluno).update({
             excluido: true,
-            excluidoEm: firebase.firestore.FieldValue.serverTimestamp(),
             ativo: false,
-            motivoExclusao: 'Excluído pelo administrador'
+            dataExclusao: firebase.firestore.FieldValue.serverTimestamp()
         });
         
-        mostrarAlerta('✅ Aluno Excluído!', 
-            `Aluno: ${aluno.nome} ${aluno.apelido}\n` +
-            `Número: ${numeroAluno}\n` +
-            `Status: Excluído do sistema\n` +
-            `Notas relacionadas: ${notasSnap.size}\n` +
-            `Pagamentos: ${pagamentosSnap.size}\n\n` +
-            `O aluno foi marcado como excluído. Os dados foram mantidos para histórico.`,
-            'sucesso'
-        );
-        
-        // Atualizar tabela
-        carregarAlunosAdmin();
+        mostrarAlerta('✅ Sucesso', 'Aluno excluído com sucesso!', 'sucesso');
+        carregarAlunosAdmin(); // Esta função já deve existir no seu código
         
     } catch (error) {
-        console.error('Erro ao excluir aluno:', error);
+        console.error('Erro:', error);
         mostrarAlerta('Erro', 'Não foi possível excluir o aluno', 'erro');
     }
 }
 
-// 6. FUNÇÃO DE CONFIRMAÇÃO DE EXCLUSÃO
-async function mostrarConfirmacaoExclusao(aluno, numeroAluno) {
-    return new Promise((resolve) => {
+// 3. EDITAR PLANO DE PAGAMENTO (Função Simples)
+async function editarPlanoPagamento(numeroAluno, planoAtual = 'normal') {
+    try {
+        const alunoDoc = await db.collection('alunos').doc(numeroAluno).get();
+        if (!alunoDoc.exists) {
+            mostrarAlerta('Erro', 'Aluno não encontrado!', 'erro');
+            return;
+        }
+        
+        const aluno = alunoDoc.data();
+        
         const conteudo = `
-            <div class="confirmacao-exclusao">
-                <h4>⚠️ CONFIRMAR EXCLUSÃO DO ALUNO</h4>
-                <div class="alerta-perigo">
-                    <p><strong>ATENÇÃO:</strong> Esta ação é irreversível!</p>
-                </div>
+            <div style="max-width:500px;">
+                <h4 style="color:#1976d2;">💰 Editar Plano de Pagamento</h4>
+                <p><strong>Aluno:</strong> ${aluno.nome}</p>
+                <p><strong>Plano Atual:</strong> ${planoAtual.toUpperCase()}</p>
                 
-                <div class="info-aluno-exclusao">
-                    <p><strong>Aluno:</strong> ${aluno.nome} ${aluno.apelido}</p>
-                    <p><strong>Número:</strong> ${numeroAluno}</p>
-                    <p><strong>Classe:</strong> ${aluno.classe}ª - ${aluno.turma}</p>
-                    <p><strong>Data de Inscrição:</strong> ${formatarData(aluno.criadoEm)}</p>
-                    <p><strong>Status:</strong> ${aluno.ativo ? 'Ativo' : 'Inativo'}</p>
-                    <p><strong>Dívida:</strong> ${aluno.divida || 0} MZN</p>
-                </div>
-                
-                <div class="opcoes-exclusao">
-                    <label>
-                        <input type="radio" name="tipoExclusao" value="arquivar" checked>
-                        <span>📁 Arquivar (Mantém dados para histórico)</span>
+                <div style="display:grid; gap:10px; margin:20px 0;">
+                    <label style="display:block; padding:10px; border:2px solid #ddd; border-radius:5px; cursor:pointer;">
+                        <input type="radio" name="plano" value="normal" ${planoAtual === 'normal' ? 'checked' : ''} 
+                               style="margin-right:10px;">
+                        <strong>NORMAL</strong> - 5.000 MZN/mês
                     </label>
-                    <label>
-                        <input type="radio" name="tipoExclusao" value="completa">
-                        <span>🗑️ Exclusão Completa (Remove todos os dados)</span>
+                    
+                    <label style="display:block; padding:10px; border:2px solid #ff9800; border-radius:5px; cursor:pointer;">
+                        <input type="radio" name="plano" value="vip" ${planoAtual === 'vip' ? 'checked' : ''}
+                               style="margin-right:10px;">
+                        <strong>VIP</strong> - 13.500 MZN/trimestre (10% desconto)
+                    </label>
+                    
+                    <label style="display:block; padding:10px; border:2px solid #9c27b0; border-radius:5px; cursor:pointer;">
+                        <input type="radio" name="plano" value="premium" ${planoAtual === 'premium' ? 'checked' : ''}
+                               style="margin-right:10px;">
+                        <strong>PREMIUM</strong> - 50.000 MZN/ano (15% desconto)
                     </label>
                 </div>
                 
-                <div class="motivo-exclusao">
-                    <label>Motivo da Exclusão:</label>
-                    <select id="motivoExclusaoSelect">
-                        <option value="">Selecione um motivo</option>
-                        <option value="transferencia">Transferência para outra escola</option>
-                        <option value="desistencia">Desistência do aluno</option>
-                        <option value="problemas_financeiros">Problemas financeiros</option>
-                        <option value="outro">Outro motivo</option>
-                    </select>
-                    <textarea id="motivoExclusaoTexto" placeholder="Detalhe o motivo (opcional)" rows="3"></textarea>
-                </div>
-                
-                <div class="botoes-confirmacao">
-                    <button onclick="confirmarExclusaoFinal('${numeroAluno}')" class="btn-excluir-confirmar">✅ Confirmar Exclusão</button>
-                    <button onclick="cancelarExclusao()" class="btn-excluir-cancelar">❌ Cancelar</button>
+                <div style="text-align:center; margin-top:20px;">
+                    <button onclick="confirmarPlano('${numeroAluno}')" 
+                            style="background:#4caf50; color:white; padding:10px 20px; border:none; border-radius:5px; cursor:pointer; margin-right:10px;">
+                        ✅ Confirmar
+                    </button>
+                    <button onclick="fecharAlerta()" 
+                            style="background:#f44336; color:white; padding:10px 20px; border:none; border-radius:5px; cursor:pointer;">
+                        ❌ Cancelar
+                    </button>
                 </div>
             </div>
         `;
         
-        document.getElementById('alertTitle').textContent = 'Confirmar Exclusão';
+        document.getElementById('alertTitle').textContent = 'Plano de Pagamento';
         document.getElementById('alertMessage').innerHTML = conteudo;
         document.getElementById('alertModal').style.display = 'flex';
         
-        // Adicionar estilos
-        const style = document.createElement('style');
-        style.textContent = `
-            .confirmacao-exclusao { max-width: 500px; }
-            .alerta-perigo { background: #fff3cd; border: 1px solid #ffc107; padding: 10px; border-radius: 5px; margin: 10px 0; }
-            .alerta-perigo p { color: #856404; margin: 0; }
-            .info-aluno-exclusao { background: #f8f9fa; padding: 15px; border-radius: 5px; margin: 15px 0; }
-            .info-aluno-exclusao p { margin: 5px 0; }
-            .opcoes-exclusao label { display: block; padding: 10px; border: 1px solid #ddd; border-radius: 5px; margin: 5px 0; cursor: pointer; }
-            .opcoes-exclusao label:hover { background: #f0f8ff; }
-            .motivo-exclusao { margin: 15px 0; }
-            .motivo-exclusao label { display: block; margin-bottom: 5px; font-weight: bold; }
-            .motivo-exclusao select, .motivo-exclusao textarea { width: 100%; padding: 8px; margin: 5px 0; border: 1px solid #ddd; border-radius: 5px; }
-            .botoes-confirmacao { display: flex; gap: 10px; justify-content: center; margin-top: 20px; }
-            .btn-excluir-confirmar { background: #dc3545; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; }
-            .btn-excluir-cancelar { background: #6c757d; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; }
-        `;
-        document.head.appendChild(style);
-        
-        // Funções globais para os botões
-        window.confirmarExclusaoFinal = async function(numeroAluno) {
-            const tipoExclusao = document.querySelector('input[name="tipoExclusao"]:checked').value;
-            const motivo = document.getElementById('motivoExclusaoSelect').value;
-            const motivoTexto = document.getElementById('motivoExclusaoTexto').value;
-            
-            if (!motivo) {
-                mostrarAlerta('Atenção', 'Selecione um motivo para a exclusão!', 'erro');
+        // Adicionar função global temporária
+        window.confirmarPlano = async function(numeroAluno) {
+            const planoSelecionado = document.querySelector('input[name="plano"]:checked');
+            if (!planoSelecionado) {
+                mostrarAlerta('Atenção', 'Selecione um plano!', 'erro');
                 return;
             }
             
             try {
-                if (tipoExclusao === 'completa') {
-                    // Exclusão completa - remover todos os dados
-                    await excluirAlunoCompleto(numeroAluno, motivo, motivoTexto);
-                } else {
-                    // Apenas arq
-
+                await db.collection('alunos').doc(numeroAluno).update({
+                    planoPagamento: planoSelecionado.value
+                });
+                
+                mostrarAlerta('✅ Sucesso', `Plano alterado para: ${planoSelecionado.value.toUpperCase()}`, 'sucesso');
+                fecharAlerta();
+                carregarAlunosAdmin();
+                
+            } catch (error) {
+                mostrarAlerta('Erro', 'Não foi possível atualizar o plano', 'erro');
+            }
+        };
+        
+    } catch (error) {
+        console.error('Erro:', error);
+        mostrarAlerta('Erro', 'Não foi possível carregar os dados', 'erro');
+    }
+                            }
 
 function buscarAluno() {
     const termo = document.getElementById('buscaAluno').value.trim().toLowerCase();
