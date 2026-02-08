@@ -1788,7 +1788,694 @@ function configurarFormulariosAdmin() {
             mostrarAlerta('Erro', 'Não foi possível registrar o pagamento', 'erro');
         }
     });   
+
+     // FORMULÁRIO DE CALENDÁRIO
+    document.getElementById('formEvento').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const data = document.getElementById('eventoData').value;
+        const descricao = document.getElementById('eventoDesc').value;
+        
+        if (!data || !descricao) {
+            mostrarAlerta('Erro', 'Preencha todos os campos!', 'erro');
+            return;
+        }
+        
+        try {
+            await db.collection('calendario').add({
+                data: data,
+                evento: descricao,
+                tipo: 'Acadêmico',
+                criadoEm: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            
+            mostrarAlerta('✅ Evento Adicionado!', 
+                `Evento adicionado ao calendário:\n` +
+                `Data: ${formatarData(new Date(data))}\n` +
+                `Descrição: ${descricao}`,
+                'sucesso'
+            );
+            
+            this.reset();
+            await carregarCalendarioAdmin();
+            
+        } catch (error) {
+            mostrarAlerta('Erro', 'Não foi possível adicionar o evento', 'erro');
+        }
+    });
+}
+
+// 13. ATUALIZAR MÉDIA DO ALUNO
+async function atualizarMediaAluno(numeroAluno) {
+    try {
+        const notasSnap = await db.collection('notas')
+            .where('numeroAluno', '==', numeroAluno)
+            .get();
+        
+        if (notasSnap.empty) return;
+        
+        let somaNotas = 0;
+        let contadorNotas = 0;
+        
+        notasSnap.forEach(doc => {
+            const nota = doc.data().nota;
+            if (!isNaN(nota)) {
+                somaNotas += nota;
+                contadorNotas++;
+            }
+        });
+        
+        const media = contadorNotas > 0 ? (somaNotas / contadorNotas).toFixed(1) : 0;
+        
+        let status = 'Reprovado';
+        if (media >= 10) status = 'Aprovado';
+        else if (media >= 8) status = 'Recuperação';
+        
+        await db.collection('alunos').doc(numeroAluno).update({
+            mediaFinal: parseFloat(media),
+            statusAcademico: status
+        });
+        
+    } catch (error) {
+        console.error('Erro ao atualizar média:', error);
+    }
+}
+
+// 14. CALENDÁRIO DO ADMIN
+async function carregarCalendarioAdmin() {
+    try {
+        const calendarioSnap = await db.collection('calendario')
+            .orderBy('data')
+            .get();
+        
+        const lista = document.getElementById('adminCalendario');
+        if (!lista) return;
+        
+        lista.innerHTML = '';
+        
+        calendarioSnap.forEach(doc => {
+            const evento = doc.data();
+            const li = document.createElement('li');
+            li.className = 'evento-admin';
+            li.innerHTML = `
+                <div>
+                    <strong>${formatarData(evento.data)}</strong>
+                    <span>${evento.evento}</span>
+                </div>
+                <button onclick="removerEvento('${doc.id}')" class="btn-remover">🗑️ Remover</button>
+            `;
+            lista.appendChild(li);
+        });
+        
+    } catch (error) {
+        console.error('Erro ao carregar calendário admin:', error);
+    }
+    }
+
+    // 15. REMOVER EVENTO
+async function removerEvento(idEvento) {
+    if (!confirm('Remover este evento do calendário?')) return;
     
+    try {
+        await db.collection('calendario').doc(idEvento).delete();
+        await carregarCalendarioAdmin();
+        mostrarAlerta('Evento Removido', 'O evento foi removido do calendário.', 'sucesso');
+    } catch (error) {
+        mostrarAlerta('Erro', 'Não foi possível remover o evento', 'erro');
+    }
+}
+
+// 16. NOTAS RECENTES
+async function mostrarNotasRecentes() {
+    try {
+        const notasSnap = await db.collection('notas')
+            .orderBy('atualizadoEm', 'desc')
+            .limit(10)
+            .get();
+        
+        const container = document.createElement('div');
+        container.className = 'notas-recentes';
+        container.innerHTML = '<h3>📝 Últimas Notas Lançadas</h3>';
+        
+        if (notasSnap.empty) {
+            container.innerHTML += '<p style="color:#666; text-align:center;">Nenhuma nota lançada ainda</p>';
+        } else {
+            const lista = document.createElement('div');
+            lista.className = 'lista-notas-recentes';
+            
+            notasSnap.forEach(doc => {
+                const nota = doc.data();
+                const item = document.createElement('div');
+                item.className = 'nota-recente';
+                item.innerHTML = `
+                    <div class="nota-info">
+                        <strong>${nota.alunoNome}</strong>
+                        <span>${nota.disciplina} - ${nota.tipo}</span>
+                    </div>
+                    <div class="nota-valor">${nota.nota}</div>
+                    <div class="nota-data">${formatarData(nota.atualizadoEm)}</div>
+                `;
+                lista.appendChild(item);
+            });
+            container.appendChild(lista);
+        }
+        
+        // Adicionar ao painel
+        const adminFunc = document.querySelector('.admin-funcionalidades');
+        if (adminFunc && !document.querySelector('.notas-recentes')) {
+            adminFunc.insertBefore(container, adminFunc.firstChild);
+        }
+        
+    } catch (error) {
+        console.error('Erro ao mostrar notas recentes:', error);
+    }
+}
+
+// 17. FILTRO DE STATUS
+function adicionarFiltroStatus() {
+    const buscaContainer = document.querySelector('.busca-container');
+    if (!buscaContainer) return;
+    
+    const filtroDiv = document.createElement('div');
+    filtroDiv.className = 'filtro-status';
+    filtroDiv.innerHTML = `
+        <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;">
+            <button onclick="filtrarAlunos('todos')" class="btn-filtro active">👥 Todos</button>
+            <button onclick="filtrarAlunos('pendente')" class="btn-filtro">🟡 Pendentes</button>
+            <button onclick="filtrarAlunos('confirmada')" class="btn-filtro">✅ Confirmados</button>
+            <button onclick="filtrarAlunos('anulada')" class="btn-filtro">❌ Anulados</button>
+            <button onclick="filtrarAlunos('divida')" class="btn-filtro">💰 Com Dívida</button>
+            <button onclick="filtrarAlunos('ativo')" class="btn-filtro">✅ Ativos</button>
+            <button onclick="filtrarAlunos('inativo')" class="btn-filtro">⏸️ Inativos</button>
+        </div>
+    `;
+    
+    buscaContainer.parentNode.insertBefore(filtroDiv, buscaContainer.nextSibling);
+}
+
+// 18. FILTRAR ALUNOS
+async function filtrarAlunos(tipo) {
+    // Atualizar botões ativos
+    document.querySelectorAll('.btn-filtro').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    event.target.classList.add('active');
+    
+    try {
+        let query = db.collection('alunos');
+        
+        // Aplicar filtros
+        switch(tipo) {
+            case 'pendente':
+                query = query.where('statusMatricula', '==', 'pendente');
+                break;
+            case 'confirmada':
+                query = query.where('statusMatricula', '==', 'confirmada');
+                break;
+            case 'anulada':
+                query = query.where('statusMatricula', '==', 'anulada');
+                break;
+            case 'divida':
+                query = query.where('divida', '>', 0);
+                break;
+            case 'ativo':
+                query = query.where('ativo', '==', true);
+                break;
+            case 'inativo':
+                query = query.where('ativo', '==', false);
+                break;
+            // 'todos' não aplica filtro
+        }
+        
+        query = query.where('excluido', '!=', true).orderBy('nome');
+        
+        const alunosSnap = await query.get();
+        const tbody = document.querySelector('#tabelaAlunos tbody');
+        tbody.innerHTML = '';
+        
+        if (alunosSnap.empty) {
+            tbody.innerHTML = `<tr><td colspan="8">Nenhum aluno encontrado</td></tr>`;
+            return;
+        }
+        
+        alunosSnap.forEach(doc => {
+            const aluno = doc.data();
+            const numeroAluno = aluno.numeroAluno || doc.id;
+            const statusMatricula = aluno.statusMatricula || 'pendente';
+            const planoPagamento = aluno.planoPagamento || 'normal';
+            
+            // Adicionar à tabela (mesmo HTML da função carregarAlunosAdmin)
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${aluno.nome || ''} ${aluno.apelido || ''}</td>
+                <td>${numeroAluno}</td>
+                <td>${aluno.classe || '-'}ª</td>
+                <td>${aluno.turma || '-'}</td>
+                <td>
+                    <span class="status-matricula ${statusMatricula}" 
+                          onclick="gerenciarMatricula('${numeroAluno}', '${statusMatricula}')"
+                          style="cursor:pointer; padding:4px 10px; border-radius:12px; font-size:0.8rem; display:inline-block; min-width:100px; text-align:center;">
+                        ${statusMatricula === 'confirmada' ? '✅ CONFIRMADA' : 
+                          statusMatricula === 'anulada' ? '❌ ANULADA' : '🟡 PENDENTE'}
+                    </span>
+                </td>
+                <td>
+                    <span class="status-ativo ${aluno.ativo ? 'ativo' : 'inativo'}">
+                        ${aluno.ativo ? '✅ Ativo' : '⏸️ Inativo'}
+                    </span>
+                </td>
+                <td>${aluno.divida || 0} MZN</td>
+                <td>
+                    <div class="acoes-admin">
+                        <button onclick="verFormularioAluno('${numeroAluno}')" class="btn-acao ver">📄 Ver</button>
+                        <button onclick="gerenciarMatricula('${numeroAluno}', '${statusMatricula}')" class="btn-acao matricula">🎓 Matrícula</button>
+                        <button onclick="editarPlanoPagamento('${numeroAluno}', '${planoPagamento}')" class="btn-acao plano">💰 ${planoPagamento.toUpperCase()}</button>
+                        <button onclick="editarAluno('${numeroAluno}')" class="btn-acao editar">✏️ Editar</button>
+                        <button onclick="suspenderAluno('${numeroAluno}', ${aluno.ativo})" class="btn-acao ${aluno.ativo ? 'suspender' : 'ativar'}">
+                            ${aluno.ativo ? '⏸️ Suspender' : '▶️ Ativar'}
+                        </button>
+                        <button onclick="excluirAluno('${numeroAluno}')" class="btn-acao excluir">🗑️ Excluir</button>
+                    </div>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+        
+    } catch (error) {
+        console.error('Erro ao filtrar alunos:', error);
+        mostrarAlerta('Erro', 'Não foi possível aplicar o filtro', 'erro');
+    }
+                }
+
+    // 19. BUSCAR ALUNO
+function buscarAluno() {
+    const termo = document.getElementById('buscaAluno').value.trim().toLowerCase();
+    const linhas = document.querySelectorAll('#tabelaAlunos tbody tr');
+    
+    let encontrados = 0;
+    linhas.forEach(linha => {
+        const texto = linha.textContent.toLowerCase();
+        if (texto.includes(termo)) {
+            linha.style.display = '';
+            encontrados++;
+        } else {
+            linha.style.display = 'none';
+        }
+    });
+    
+    if (encontrados === 0 && termo) {
+        mostrarAlerta('Busca', 'Nenhum aluno encontrado com este termo', 'info');
+    }
+}
+
+// 20. LIMPAR BUSCA
+function limparBusca() {
+    document.getElementById('buscaAluno').value = '';
+    const linhas = document.querySelectorAll('#tabelaAlunos tbody tr');
+    linhas.forEach(linha => linha.style.display = '');
+}
+
+// 21. ADICIONAR ESTILOS DINÂMICOS
+function adicionarEstilosAdmin() {
+    const styles = `
+        <style>
+            /* Estilos para o painel do admin */
+            .acoes-admin {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 5px;
+                justify-content: center;
+            }
+            
+            .btn-acao {
+                padding: 6px 10px;
+                border: none;
+                border-radius: 4px;
+                cursor: pointer;
+                font-size: 0.8rem;
+                transition: all 0.3s;
+                white-space: nowrap;
+            }
+            
+            .btn-acao:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+            }
+            
+            .btn-acao.ver { background: #2196f3; color: white; }
+            .btn-acao.matricula { background: #9c27b0; color: white; }
+            .btn-acao.plano { background: #ff9800; color: white; }
+            .btn-acao.editar { background: #4caf50; color: white; }
+            .btn-acao.suspender { background: #ff5722; color: white; }
+            .btn-acao.ativar { background: #00bcd4; color: white; }
+            .btn-acao.excluir { background: #f44336; color: white; }
+            
+            .status-matricula {
+                font-weight: bold;
+            }
+            .status-matricula.pendente { color: #ff9800; }
+            .status-matricula.confirmada { color: #4caf50; }
+            .status-matricula.anulada { color: #f44336; }
+            
+            .status-ativo.ativo { color: #4caf50; font-weight: bold; }
+            .status-ativo.inativo { color: #ff5722; font-weight: bold; }
+            
+            .btn-filtro {
+                padding: 8px 15px;
+                border: 1px solid #ddd;
+                background: white;
+                border-radius: 20px;
+                cursor: pointer;
+                transition: all 0.3s;
+                font-size: 0.9rem;
+            }
+            
+            .btn-filtro:hover {
+                background: #f5f5f5;
+            }
+            
+            .btn-filtro.active {
+                background: #1976d2;
+                color: white;
+                border-color: #1976d2;
+            }
+            
+            .notas-recentes {
+                background: white;
+                padding: 15px;
+                border-radius: 8px;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                margin-bottom: 20px;
+            }
+            
+            .lista-notas-recentes {
+                max-height: 300px;
+                overflow-y: auto;
+            }
+            
+            .nota-recente {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 10px;
+                border-bottom: 1px solid #eee;
+            }
+            
+            .nota-recente:last-child {
+                border-bottom: none;
+            }
+            
+            .nota-info {
+                flex: 1;
+            }
+            
+            .nota-info strong {
+                display: block;
+                font-size: 0.9rem;
+            }
+            
+            .nota-info span {
+                font-size: 0.8rem;
+                color: #666;
+            }
+            
+            .nota-valor {
+                font-weight: bold;
+                font-size: 1.1rem;
+                color: #1976d2;
+                margin: 0 15px;
+            }
+            
+            .nota-data {
+                font-size: 0.8rem;
+                color: #999;
+            }
+            
+            .evento-admin {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 10px;
+                border-bottom: 1px solid #eee;
+            }
+            
+            .btn-remover {
+                background: #f44336;
+                color: white;
+                border: none;
+                padding: 5px 10px;
+                border-radius: 3px;
+                cursor: pointer;
+                font-size: 0.8rem;
+            }
+            
+            /* Estilos para modais */
+            .modal-matricula, .modal-plano, .modal-editar-aluno {
+                max-width: 500px;
+                margin: 0 auto;
+            }
+            
+            .opcao-matricula, .opcao-plano {
+                display: flex;
+                align-items: center;
+                padding: 15px;
+                border: 2px solid #ddd;
+                border-radius: 8px;
+                margin: 10px 0;
+                cursor: pointer;
+                transition: all 0.3s;
+            }
+            
+            .opcao-matricula:hover, .opcao-plano:hover {
+                border-color: #1976d2;
+                background: #f0f8ff;
+            }
+            
+            .opcao-matricula.selecionada, .opcao-plano.selecionada {
+                border-color: #4caf50;
+                background: #e8f5e9;
+            }
+            
+            .icone-opcao, .icone-plano {
+                font-size: 1.5rem;
+                margin-right: 15px;
+            }
+            
+            .texto-opcao, .texto-plano {
+                flex: 1;
+            }
+            
+            .texto-opcao strong, .texto-plano strong {
+                display: block;
+                font-size: 1.1rem;
+            }
+            
+            .texto-opcao small, .texto-plano small {
+                color: #666;
+                font-size: 0.9rem;
+            }
+            
+            .valor-plano {
+                font-weight: bold;
+                color: #1976d2;
+                margin: 5px 0;
+            }
+            
+            .form-editar {
+                display: grid;
+                gap: 15px;
+                margin: 20px 0;
+            }
+            
+            .form-group label {
+                display: block;
+                margin-bottom: 5px;
+                font-weight: bold;
+                color: #555;
+            }
+            
+            .form-group input, .form-group select {
+                width: 100%;
+                padding: 8px;
+                border: 1px solid #ddd;
+                border-radius: 4px;
+                font-size: 1rem;
+            }
+            
+            .botoes-matricula, .botoes-plano, .botoes-editar {
+                display: flex;
+                gap: 10px;
+                justify-content: center;
+                margin-top: 20px;
+            }
+            
+            .btn-confirmar, .btn-confirmar-plano, .btn-salvar {
+                background: #4caf50;
+                color: white;
+                padding: 10px 20px;
+                border: none;
+                border-radius: 5px;
+                cursor: pointer;
+                font-size: 1rem;
+            }
+            
+            .btn-cancelar {
+                background: #f44336;
+                color: white;
+                padding: 10px 20px;
+                border: none;
+                border-radius: 5px;
+                cursor: pointer;
+                font-size: 1rem;
+            }
+            
+            .info-aluno-matricula, .info-aluno-plano {
+                background: #f5f5f5;
+                padding: 15px;
+                border-radius: 5px;
+                margin: 15px 0;
+            }
+            
+            .status-matricula-badge, .plano-atual {
+                padding: 4px 10px;
+                border-radius: 12px;
+                font-size: 0.9rem;
+                font-weight: bold;
+                display: inline-block;
+            }
+            
+            .status-matricula-badge.pendente { background: #ff9800; color: white; }
+            .status-matricula-badge.confirmada { background: #4caf50; color: white; }
+            .status-matricula-badge.anulada { background: #f44336; color: white; }
+            
+            .plano-atual.normal { background: #2196f3; color: white; }
+            .plano-atual.vip { background: #ff9800; color: white; }
+            .plano-atual.premium { background: #9c27b0; color: white; }
+            
+            /* Formulário completo */
+            .formulario-completo {
+                max-width: 800px;
+                max-height: 70vh;
+                overflow-y: auto;
+            }
+            
+            .info-sections {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+                gap: 20px;
+                margin: 20px 0;
+            }
+            
+            .info-section {
+                background: #f9f9f9;
+                padding: 20px;
+                border-radius: 10px;
+                border-left: 5px solid #1976d2;
+            }
+            
+            .info-section h4 {
+                color: #1976d2;
+                margin-top: 0;
+                padding-bottom: 10px;
+                border-bottom: 1px solid #eee;
+            }
+            
+            .info-section p {
+                margin: 8px 0;
+                line-height: 1.5;
+            }
+            
+            .status-badge, .plano-badge {
+                padding: 4px 10px;
+                border-radius: 12px;
+                font-size: 0.9rem;
+                font-weight: bold;
+                display: inline-block;
+            }
+            
+            .status-badge.pendente { background: #ff9800; color: white; }
+            .status-badge.confirmada { background: #4caf50; color: white; }
+            .status-badge.anulada { background: #f44336; color: white; }
+            
+            .plano-badge.normal { background: #2196f3; color: white; }
+            .plano-badge.vip { background: #ff9800; color: white; }
+            .plano-badge.premium { background: #9c27b0; color: white; }
+            
+            .botoes-acao-formulario {
+                display: flex;
+                gap: 15px;
+                justify-content: center;
+                margin-top: 30px;
+                padding-top: 20px;
+                border-top: 2px solid #eee;
+            }
+            
+            .btn-imprimir {
+                background: #2196f3;
+                color: white;
+                padding: 12px 25px;
+                border: none;
+                border-radius: 5px;
+                cursor: pointer;
+                font-size: 1rem;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+            
+            .btn-fechar {
+                background: #757575;
+                color: white;
+                padding: 12px 25px;
+                border: none;
+                border-radius: 5px;
+                cursor: pointer;
+                font-size: 1rem;
+            }
+            
+            /* Responsividade */
+            @media (max-width: 768px) {
+                .acoes-admin {
+                    flex-direction: column;
+                }
+                
+                .btn-acao {
+                    width: 100%;
+                    justify-content: center;
+                }
+                
+                .info-sections {
+                    grid-template-columns: 1fr;
+                }
+                
+                .botoes-acao-formulario {
+                    flex-direction: column;
+                }
+                
+                .btn-imprimir, .btn-fechar {
+                    width: 100%;
+                    justify-content: center;
+                }
+            }
+        </style>
+    `;
+    
+    // Remover estilos antigos se existirem
+    const oldStyles = document.querySelector('#admin-styles');
+    if (oldStyles) oldStyles.remove();
+    
+    // Adicionar novos estilos
+    const styleElement = document.createElement('div');
+    styleElement.id = 'admin-styles';
+    styleElement.innerHTML = styles;
+    document.head.appendChild(styleElement);
+}
+
+// 22. INICIALIZAR PAINEL ADMIN AO MOSTRAR
+function mostrarPainelAdmin() {
+    mostrarPagina('painelAdmin');
+    carregarPainelAdmin();
+}
 
 // ===== INICIALIZAÇÃO DA APLICAÇÃO =====
 document.addEventListener('DOMContentLoaded', function() {
