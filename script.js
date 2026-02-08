@@ -1232,6 +1232,201 @@ async function suspenderAluno(numeroAluno, ativo) {
     }
 }
 
+// ===== NOVAS FUNÇÕES PARA BOTÕES DO ADMIN =====
+
+// 1. VER FORMULÁRIO DO ALUNO (Função Simples)
+async function verFormularioAluno(numeroAluno) {
+    try {
+        const alunoDoc = await db.collection('alunos').doc(numeroAluno).get();
+        if (!alunoDoc.exists) {
+            mostrarAlerta('Erro', 'Aluno não encontrado!', 'erro');
+            return;
+        }
+        
+        const aluno = alunoDoc.data();
+        
+        let conteudo = `
+            <div style="max-width:600px; max-height:70vh; overflow-y:auto; padding:10px;">
+                <h3 style="color:#1976d2; border-bottom:2px solid #1976d2; padding-bottom:10px;">
+                    📋 Formulário do Aluno: ${aluno.nome} ${aluno.apelido}
+                </h3>
+                
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px; margin:20px 0;">
+                    <div style="background:#f9f9f9; padding:15px; border-radius:8px; border-left:4px solid #2196f3;">
+                        <h4 style="color:#2196f3; margin-top:0;">👤 Dados Pessoais</h4>
+                        <p><strong>Nome:</strong> ${aluno.nome} ${aluno.apelido}</p>
+                        <p><strong>Número:</strong> ${numeroAluno}</p>
+                        <p><strong>BI:</strong> ${aluno.bi || '-'}</p>
+                        <p><strong>Nascimento:</strong> ${formatarData(aluno.dataNascimento)}</p>
+                        <p><strong>Email:</strong> ${aluno.email}</p>
+                        <p><strong>Telefone:</strong> ${aluno.telefone}</p>
+                    </div>
+                    
+                    <div style="background:#f9f9f9; padding:15px; border-radius:8px; border-left:4px solid #4caf50;">
+                        <h4 style="color:#4caf50; margin-top:0;">🎓 Dados Acadêmicos</h4>
+                        <p><strong>Classe:</strong> ${aluno.classe}ª</p>
+                        <p><strong>Curso:</strong> ${aluno.curso || 'Geral'}</p>
+                        <p><strong>Turma:</strong> ${aluno.turma}</p>
+                        <p><strong>Disciplinas:</strong> ${aluno.disciplinas ? aluno.disciplinas.join(', ') : '-'}</p>
+                        <p><strong>Status:</strong> ${aluno.statusAcademico || 'Regular'}</p>
+                    </div>
+                    
+                    <div style="background:#f9f9f9; padding:15px; border-radius:8px; border-left:4px solid #ff9800;">
+                        <h4 style="color:#ff9800; margin-top:0;">👨‍👩‍👧‍👦 Dados Familiares</h4>
+                        <p><strong>Encarregado:</strong> ${aluno.nomeEncarregado || '-'}</p>
+                        <p><strong>Tel. Encarregado:</strong> ${aluno.telefoneEncarregado || '-'}</p>
+                        <p><strong>Pai:</strong> ${aluno.nomePai || '-'}</p>
+                        <p><strong>Mãe:</strong> ${aluno.nomeMae || '-'}</p>
+                    </div>
+                    
+                    <div style="background:#f9f9f9; padding:15px; border-radius:8px; border-left:4px solid #9c27b0;">
+                        <h4 style="color:#9c27b0; margin-top:0;">💰 Dados Financeiros</h4>
+                        <p><strong>Plano:</strong> ${aluno.planoPagamento || 'Normal'}</p>
+                        <p><strong>Dívida:</strong> ${aluno.divida || 0} MZN</p>
+                        <p><strong>Status Conta:</strong> ${aluno.ativo ? 'Ativa' : 'Suspensa'}</p>
+                        <p><strong>Inscrição:</strong> ${formatarData(aluno.criadoEm)}</p>
+                    </div>
+                </div>
+                
+                <div style="text-align:center; margin-top:20px; padding-top:20px; border-top:2px solid #eee;">
+                    <button onclick="imprimirFormulario('${numeroAluno}')" 
+                            style="background:#2196f3; color:white; padding:10px 20px; border:none; border-radius:5px; cursor:pointer; margin-right:10px;">
+                        🖨️ Imprimir
+                    </button>
+                    <button onclick="fecharAlerta()" 
+                            style="background:#757575; color:white; padding:10px 20px; border:none; border-radius:5px; cursor:pointer;">
+                        Fechar
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        document.getElementById('alertTitle').textContent = `Formulário do Aluno`;
+        document.getElementById('alertMessage').innerHTML = conteudo;
+        document.getElementById('alertModal').style.display = 'flex';
+        
+    } catch (error) {
+        console.error('Erro:', error);
+        mostrarAlerta('Erro', 'Não foi possível carregar o formulário', 'erro');
+    }
+}
+
+// Função auxiliar para imprimir
+function imprimirFormulario(numeroAluno) {
+    const conteudo = document.getElementById('alertMessage').innerHTML;
+    const janela = window.open('', '_blank');
+    janela.document.write(`
+        <html><head><title>Formulário ${numeroAluno}</title>
+        <style>body{font-family:Arial; padding:20px;} @media print{button{display:none;}}</style>
+        </head><body>${conteudo}</body></html>
+    `);
+    janela.document.close();
+}
+
+// 2. EXCLUIR ALUNO (Função Simples)
+async function excluirAluno(numeroAluno) {
+    if (!confirm('Tem certeza que deseja excluir este aluno? Esta ação não pode ser desfeita.')) {
+        return;
+    }
+    
+    try {
+        await db.collection('alunos').doc(numeroAluno).update({
+            excluido: true,
+            ativo: false,
+            dataExclusao: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        
+        mostrarAlerta('✅ Sucesso', 'Aluno excluído com sucesso!', 'sucesso');
+        carregarAlunosAdmin(); // Esta função já deve existir no seu código
+        
+    } catch (error) {
+        console.error('Erro:', error);
+        mostrarAlerta('Erro', 'Não foi possível excluir o aluno', 'erro');
+    }
+}
+
+// 3. EDITAR PLANO DE PAGAMENTO (Função Simples)
+async function editarPlanoPagamento(numeroAluno, planoAtual = 'normal') {
+    try {
+        const alunoDoc = await db.collection('alunos').doc(numeroAluno).get();
+        if (!alunoDoc.exists) {
+            mostrarAlerta('Erro', 'Aluno não encontrado!', 'erro');
+            return;
+        }
+        
+        const aluno = alunoDoc.data();
+        
+        const conteudo = `
+            <div style="max-width:500px;">
+                <h4 style="color:#1976d2;">💰 Editar Plano de Pagamento</h4>
+                <p><strong>Aluno:</strong> ${aluno.nome}</p>
+                <p><strong>Plano Atual:</strong> ${planoAtual.toUpperCase()}</p>
+                
+                <div style="display:grid; gap:10px; margin:20px 0;">
+                    <label style="display:block; padding:10px; border:2px solid #ddd; border-radius:5px; cursor:pointer;">
+                        <input type="radio" name="plano" value="normal" ${planoAtual === 'normal' ? 'checked' : ''} 
+                               style="margin-right:10px;">
+                        <strong>NORMAL</strong> - 5.000 MZN/mês
+                    </label>
+                    
+                    <label style="display:block; padding:10px; border:2px solid #ff9800; border-radius:5px; cursor:pointer;">
+                        <input type="radio" name="plano" value="vip" ${planoAtual === 'vip' ? 'checked' : ''}
+                               style="margin-right:10px;">
+                        <strong>VIP</strong> - 13.500 MZN/trimestre (10% desconto)
+                    </label>
+                    
+                    <label style="display:block; padding:10px; border:2px solid #9c27b0; border-radius:5px; cursor:pointer;">
+                        <input type="radio" name="plano" value="premium" ${planoAtual === 'premium' ? 'checked' : ''}
+                               style="margin-right:10px;">
+                        <strong>PREMIUM</strong> - 50.000 MZN/ano (15% desconto)
+                    </label>
+                </div>
+                
+                <div style="text-align:center; margin-top:20px;">
+                    <button onclick="confirmarPlano('${numeroAluno}')" 
+                            style="background:#4caf50; color:white; padding:10px 20px; border:none; border-radius:5px; cursor:pointer; margin-right:10px;">
+                        ✅ Confirmar
+                    </button>
+                    <button onclick="fecharAlerta()" 
+                            style="background:#f44336; color:white; padding:10px 20px; border:none; border-radius:5px; cursor:pointer;">
+                        ❌ Cancelar
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        document.getElementById('alertTitle').textContent = 'Plano de Pagamento';
+        document.getElementById('alertMessage').innerHTML = conteudo;
+        document.getElementById('alertModal').style.display = 'flex';
+        
+        // Adicionar função global temporária
+        window.confirmarPlano = async function(numeroAluno) {
+            const planoSelecionado = document.querySelector('input[name="plano"]:checked');
+            if (!planoSelecionado) {
+                mostrarAlerta('Atenção', 'Selecione um plano!', 'erro');
+                return;
+            }
+            
+            try {
+                await db.collection('alunos').doc(numeroAluno).update({
+                    planoPagamento: planoSelecionado.value
+                });
+                
+                mostrarAlerta('✅ Sucesso', `Plano alterado para: ${planoSelecionado.value.toUpperCase()}`, 'sucesso');
+                fecharAlerta();
+                carregarAlunosAdmin();
+                
+            } catch (error) {
+                mostrarAlerta('Erro', 'Não foi possível atualizar o plano', 'erro');
+            }
+        };
+        
+    } catch (error) {
+        console.error('Erro:', error);
+        mostrarAlerta('Erro', 'Não foi possível carregar os dados', 'erro');
+    }
+                                                   }
+
 function buscarAluno() {
     const termo = document.getElementById('buscaAluno').value.trim().toLowerCase();
     const linhas = document.querySelectorAll('#tabelaAlunos tbody tr');
