@@ -1,4 +1,6 @@
-// ===== CONFIGURAÇÃO DO FIREBASE =====
+// ===== FIREBASE-CONFIG.JS =====
+// Apenas a configuração e inicialização do Firebase
+
 const firebaseConfig = {
     apiKey: "AIzaSyAk2_prEtJXNPanJFRGHxbQqXi1TVhX0e8",
     authDomain: "portal-de-aluno-zenite-e816a.firebaseapp.com",
@@ -12,6 +14,10 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
+
+// Tornar disponível globalmente (opcional, mas útil)
+window.auth = auth;
+window.db = db;
 
 // ===== VARIÁVEIS GLOBAIS =====
 let alunoLogado = null;
